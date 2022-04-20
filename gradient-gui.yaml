@@ -1,0 +1,65 @@
+- name: size
+  values: [ 1920x1080, 1080x1080, 1280x800, 800x800, 4K ]
+  current: 1920x1080
+- name: quality
+  property: resolutionFactor
+  [ min, max, step ]: [ 0.1, 4, 0.05 ]
+  current: 1
+- name: zoom
+  [ min, max, step ]: [ 0.5, 3, 0.1 ]
+  current: 1
+- name: rotation
+  [ min, max, step ]: [ -180.0, 180.0, 5 ]
+  current: 0
+- name: horizontal
+  [ min, max, step ]: [ -1000.0, 1000.0, 10 ]
+  current: 0
+- name: vertical
+  [ min, max, step ]: [ -1000.0, 1000.0, 10 ]
+  current: 0
+- name: destiny
+  property: seed
+  [ min, max, step ]: [ 0, 10000, 1 ]
+  current: 42 # random?
+- name: product
+  values: [ JetBrains, IntelliJ IDEA, Resharper C++ ]
+  current: JetBrains
+- name: flat colors
+  property: flatColors
+  current: on
+- name: flat color qty
+  property: flatLinesNum
+  [ min, max, step ]: [ 0, 10000, 1 ]
+  current: 42 # random?
+- name: gradient
+- name: dither
+  [ min, max, step ]: [ 0, 1, 0.05 ]
+  current: 0
+- name: logo
+  current: off
+- name: save
+- name: network
+  icon: some-url
+  expand: yes
+  items:
+    - name: depth
+      [ min, max, step ]: [ 1, 10, 1 ]
+    - name: width
+      [ min, max, step ]: [ 1, 10, 1 ]
+    - name: variance
+      [ min, max, step ]: [ 1, 10000, 1 ]
+    - name: mode
+      values: [ fan_in, fan_out, avg ]
+    # ...
+- name: coord
+  items:
+    - name: α
+      [ min, max, step ]: [ 0, 1, 0.01 ]
+    - name: β
+      [ min, max, step ]: [ 0, 1, 0.01 ]
+    - name: γ
+      [ min, max, step ]: [ 0, 1, 0.01 ]
+- name: random
+  items: min, mid, max
+- name: undo
+- name: export
