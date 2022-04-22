@@ -1,0 +1,1 @@
+dhall-to-json --file ./gui/$1.dhall

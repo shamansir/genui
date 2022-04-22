@@ -1,0 +1,1 @@
+dhall-to-yaml --file ./gui/$1.dhall
