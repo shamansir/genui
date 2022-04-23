@@ -1,8 +1,10 @@
+let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
+
 let P = ./genui.dhall
 
 let int
-    = \(name : Text) -> \(current : Integer) -> \(min : Integer) -> \(max : Integer) -> \(step : Integer) ->
-    P.Property::{ name, def = P.Def.NumInt { min, max, step, current } }
+    = \(name : Text) -> \(def : P.IntDef) ->
+    P.Property::{ name, def = P.Def.NumInt def }
 
 let float
     = \(name : Text) -> \(def : P.FloatDef) ->
@@ -16,9 +18,52 @@ let color
     = \(name : Text) -> \(def : P.ColorDef) ->
     P.Property::{ name, def = P.Def.Color def }
 
+let color_
+    = \(name : Text) -> \(current : Text) ->
+    color name { current }
+
+let text
+    = \(name : Text) -> \(def : P.TextualDef) ->
+    P.Property::{ name, def = P.Def.Textual def }
+
+let text_
+    = \(name : Text) -> \(current : Text) ->
+    text name { current }
+
+let toggle
+    = \(name : Text) -> \(def : P.ToggleDef) ->
+    P.Property::{ name, def = P.Def.Toggle def }
+
+let toggle_
+    = \(name : Text) -> \(current : Bool) ->
+    toggle name { current }
+
+let action
+    = \(name : Text) ->
+    P.Property::{ name, def = P.Def.Action {=} }
+
+let select
+    = \(name : Text) -> \(def : P.SelectDef) ->
+    P.Property::{ name, def = P.Def.Select def }
+
+let select_
+    = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
+    select name { values, current }
+
+let nest
+    = \(name : Text) -> \(def : P.NestDef) ->
+    P.Property::{ name, def = P.Def.Nest def }
+
+let nest_
+    = \(name : Text) -> \(children : List JSON.Type) -> \(expand : Bool) ->
+    nest name { children, expand, nest = None Text }
+
 -- let addIcon
 --     = \(url : Text) -> \(toProp : P.Property.Type) ->
 --     (toProp // { icon = Some url })
 
 
-in { int, float, xy, color }
+in
+    { int, float, xy, color, text, toggle, action, select, nest
+    , color_, text_, toggle_, select_, nest_
+    }

@@ -21,9 +21,9 @@ let ui : List P.Property.Type =
             }
     ,
         P.Property::
-            { name = "group"
+            { name = "nest"
             , def =
-                P.Def.Group
+                P.Def.Nest
                     { children = ([ Property/encode innerProp ] : List JSON.Type)
                     , expand = True
                     , nest = None Text

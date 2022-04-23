@@ -87,12 +87,20 @@ let encode
                                         }
                                     )
                                 }
+                    , Toggle = \(def : P.ToggleDef) ->
+                                { kind = JSON.string "toggle"
+                                , def = JSON.object
+                                    (toMap
+                                        { current = JSON.bool def.current
+                                        }
+                                    )
+                                }
                     , Action = \(def : P.ActionDef) ->
                                 { kind = JSON.string "action"
                                 , def = JSON.null
                                 }
-                    , Group = \(def : P.GroupDef) ->
-                                { kind = JSON.string "group"
+                    , Nest = \(def : P.NestDef) ->
+                                { kind = JSON.string "nest"
                                 , def = JSON.object
                                     (toMap
                                         { expand = JSON.bool def.expand
@@ -106,14 +114,6 @@ let encode
                                     (toMap
                                         { current = JSON.string def.current
                                         , values = JSON.array (List/map Text JSON.Type JSON.string def.values)
-                                        }
-                                    )
-                                }
-                    , Switch = \(def : P.SwitchDef) ->
-                                { kind = JSON.string "switch"
-                                , def = JSON.object
-                                    (toMap
-                                        { current = JSON.bool def.current
                                         }
                                     )
                                 }
