@@ -4,32 +4,33 @@
 let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 
 
-let IntSpec : Type = { min : Integer, max : Integer, step : Integer, current : Integer }
-let FloatSpec : Type = { min : Natural, max : Natural, step : Natural, current : Natural }
-let ColorSpec : Type = { current : Text }
-let TextualSpec : Type = { current : Text }
-let ActionSpec : Type = {}
-let SelectSpec : Type = { current : Text, values : List Text }
-let GroupSpec : Type = { children : List JSON.Type, expand : Bool, nest : Optional Text }
-let SwitchSpec : Type = { current : Bool }
+let IntDef : Type = { min : Integer, max : Integer, step : Integer, current : Integer }
+let FloatDef : Type = { min : Natural, max : Natural, step : Natural, current : Natural }
+let XYDef : Type = { x : FloatDef, y : FloatDef }
+let ColorDef : Type = { current : Text }
+let TextualDef : Type = { current : Text }
+let ActionDef : Type = {}
+let SelectDef : Type = { current : Text, values : List Text }
+let GroupDef : Type = { children : List JSON.Type, expand : Bool, nest : Optional Text }
+let SwitchDef : Type = { current : Bool }
 
 
-let Spec : Type =
-    < NumInt : IntSpec
-    | NumFloat : FloatSpec
-    -- TODO: XY
-    | Color : ColorSpec
-    | Textual : TextualSpec
-    | Action : ActionSpec
-    | Select : SelectSpec
-    | Group : GroupSpec
-    | Switch : SwitchSpec
+let Def : Type =
+    < NumInt : IntDef
+    | NumFloat : FloatDef
+    | XY : XYDef
+    | Color : ColorDef
+    | Textual : TextualDef
+    | Action : ActionDef
+    | Select : SelectDef
+    | Group : GroupDef
+    | Switch : SwitchDef
     >
 
 
 let Property =
     { Type =
-        { spec : Spec
+        { def : Def
         , name : Text
         , icon : Optional Text
         , property : Optional Text
@@ -42,6 +43,6 @@ let Property =
 
 in
     { Property
-    , Spec
-    , IntSpec, FloatSpec, ColorSpec, TextualSpec, ActionSpec, SelectSpec, GroupSpec, SwitchSpec
+    , Def
+    , IntDef, FloatDef, XYDef, ColorDef, TextualDef, ActionDef, SelectDef, GroupDef, SwitchDef
     }

@@ -23,43 +23,72 @@ let encode
                             prop.icon
                 }
                 // merge
-                    { NumInt = \(spec : P.IntSpec) ->
+                    { NumInt = \(def : P.IntDef) ->
                                 { kind = JSON.string "int"
-                                , min = JSON.integer spec.min
-                                , max = JSON.integer spec.max
-                                , step = JSON.integer spec.step
+                                , min = JSON.integer def.min
+                                , max = JSON.integer def.max
+                                , step = JSON.integer def.step
                                 , current = JSON.null
                                 , expand = JSON.null
                                 , children = JSON.array ([] : List JSON.Type)
+                                , x = JSON.null, y = JSON.null
                                 }
-                    , NumFloat = \(spec : P.FloatSpec) ->
+                    , NumFloat = \(def : P.FloatDef) ->
                                 { kind = JSON.string "float"
-                                , min = JSON.natural spec.min
-                                , max = JSON.natural spec.max
-                                , step = JSON.natural spec.step
+                                , min = JSON.natural def.min
+                                , max = JSON.natural def.max
+                                , step = JSON.natural def.step
+                                , current = JSON.null
+                                , expand = JSON.null
+                                , children = JSON.array ([] : List JSON.Type)
+                                , x = JSON.null, y = JSON.null
+                                }
+                    , XY = \(def : P.XYDef) ->
+                                { kind = JSON.string "xy"
+                                , x = JSON.object
+                                    (toMap
+                                        { min = JSON.natural def.x.min
+                                        , max = JSON.natural def.x.max
+                                        , step = JSON.natural def.x.step
+                                        , current = JSON.natural def.x.current
+                                        }
+                                    )
+                                , y = JSON.object
+                                    (toMap
+                                        { min = JSON.natural def.y.min
+                                        , max = JSON.natural def.y.max
+                                        , step = JSON.natural def.y.step
+                                        , current = JSON.natural def.y.current
+                                        }
+                                    )
+                                , min = JSON.null
+                                , max = JSON.null
+                                , step = JSON.null
                                 , current = JSON.null
                                 , expand = JSON.null
                                 , children = JSON.array ([] : List JSON.Type)
                                 }
-                    , Color = \(spec : P.ColorSpec) ->
+                    , Color = \(def : P.ColorDef) ->
                                 { kind = JSON.string "color"
                                 , min = JSON.null
                                 , max = JSON.null
                                 , step = JSON.null
-                                , current = JSON.string spec.current
+                                , current = JSON.string def.current
                                 , expand = JSON.null
                                 , children = JSON.array ([] : List JSON.Type)
+                                , x = JSON.null, y = JSON.null
                                 }
-                    , Textual = \(spec : P.TextualSpec) ->
+                    , Textual = \(def : P.TextualDef) ->
                                 { kind = JSON.string "text"
                                 , min = JSON.null
                                 , max = JSON.null
                                 , step = JSON.null
-                                , current = JSON.string spec.current
+                                , current = JSON.string def.current
                                 , expand = JSON.null
                                 , children = JSON.array ([] : List JSON.Type)
+                                , x = JSON.null, y = JSON.null
                                 }
-                    , Action = \(spec : P.ActionSpec) ->
+                    , Action = \(def : P.ActionDef) ->
                                 { kind = JSON.string "action"
                                 , min = JSON.null
                                 , max = JSON.null
@@ -67,26 +96,29 @@ let encode
                                 , current = JSON.null
                                 , expand = JSON.null
                                 , children = JSON.array ([] : List JSON.Type)
+                                , x = JSON.null, y = JSON.null
                                 }
-                    , Group = \(spec : P.GroupSpec) ->
+                    , Group = \(def : P.GroupDef) ->
                                 { kind = JSON.string "group"
                                 , min = JSON.null
                                 , max = JSON.null
                                 , step = JSON.null
                                 , current = JSON.null
                                 , expand = JSON.null
-                                , children = JSON.array spec.children
+                                , children = JSON.array def.children
+                                , x = JSON.null, y = JSON.null
                                 }
-                    , Select = \(spec : P.SelectSpec) ->
+                    , Select = \(def : P.SelectDef) ->
                                 { kind = JSON.string "select"
                                 , min = JSON.null
                                 , max = JSON.null
                                 , step = JSON.null
-                                , current = JSON.string spec.current
+                                , current = JSON.string def.current
                                 , expand = JSON.null
                                 , children = JSON.array ([] : List JSON.Type)
+                                , x = JSON.null, y = JSON.null
                                 }
-                    , Switch = \(spec : P.SwitchSpec) ->
+                    , Switch = \(def : P.SwitchDef) ->
                                 { kind = JSON.string "switch"
                                 , min = JSON.null
                                 , max = JSON.null
@@ -94,9 +126,10 @@ let encode
                                 , current = JSON.null
                                 , expand = JSON.null
                                 , children = JSON.array ([] : List JSON.Type)
+                                , x = JSON.null, y = JSON.null
                                 }
                     }
-                    prop.spec
+                    prop.def
             )
         )
 
