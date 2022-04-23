@@ -8,7 +8,7 @@ let innerProp
     : P.Property.Type
     = P.Property::
             { name = "test-2"
-            , spec = P.Spec.Action {=}
+            , def = P.Def.Action {=}
             }
 
 
@@ -16,14 +16,14 @@ let ui : List P.Property.Type =
     [
         P.Property::
             { name = "test"
-            , spec = P.Spec.Action {=}
+            , def = P.Def.Action {=}
             , icon = Some "test-icon"
             }
     ,
         P.Property::
             { name = "group"
-            , spec =
-                P.Spec.Group
+            , def =
+                P.Def.Group
                     { children = ([ Property/encode innerProp ] : List JSON.Type)
                     , expand = True
                     , nest = None Text

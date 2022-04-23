@@ -2,6 +2,7 @@
 
 let P = ./genui.dhall
 let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
+let List/map = https://prelude.dhall-lang.org/List/map
 
 
 let encode
@@ -25,108 +26,96 @@ let encode
                 // merge
                     { NumInt = \(def : P.IntDef) ->
                                 { kind = JSON.string "int"
-                                , min = JSON.integer def.min
-                                , max = JSON.integer def.max
-                                , step = JSON.integer def.step
-                                , current = JSON.null
-                                , expand = JSON.null
-                                , children = JSON.array ([] : List JSON.Type)
-                                , x = JSON.null, y = JSON.null
+                                , def = JSON.object
+                                    (toMap
+                                        { min = JSON.integer def.min
+                                        , max = JSON.integer def.max
+                                        , step = JSON.integer def.step
+                                        , current = JSON.integer def.current
+                                        }
+                                    )
                                 }
                     , NumFloat = \(def : P.FloatDef) ->
                                 { kind = JSON.string "float"
-                                , min = JSON.natural def.min
-                                , max = JSON.natural def.max
-                                , step = JSON.natural def.step
-                                , current = JSON.null
-                                , expand = JSON.null
-                                , children = JSON.array ([] : List JSON.Type)
-                                , x = JSON.null, y = JSON.null
+                                , def = JSON.object
+                                    (toMap
+                                        { min = JSON.natural def.min
+                                        , max = JSON.natural def.max
+                                        , step = JSON.natural def.step
+                                        , current = JSON.natural def.current
+                                        }
+                                    )
                                 }
                     , XY = \(def : P.XYDef) ->
                                 { kind = JSON.string "xy"
-                                , x = JSON.object
+                                , def = JSON.object
                                     (toMap
-                                        { min = JSON.natural def.x.min
-                                        , max = JSON.natural def.x.max
-                                        , step = JSON.natural def.x.step
-                                        , current = JSON.natural def.x.current
+                                        { x =
+                                            JSON.object
+                                                (toMap
+                                                    { min = JSON.natural def.x.min
+                                                    , max = JSON.natural def.x.max
+                                                    , step = JSON.natural def.x.step
+                                                    , current = JSON.natural def.x.current
+                                                    }
+                                                )
+                                        , y =
+                                            JSON.object
+                                                (toMap
+                                                    { min = JSON.natural def.y.min
+                                                    , max = JSON.natural def.y.max
+                                                    , step = JSON.natural def.y.step
+                                                    , current = JSON.natural def.y.current
+                                                    }
+                                                )
                                         }
                                     )
-                                , y = JSON.object
-                                    (toMap
-                                        { min = JSON.natural def.y.min
-                                        , max = JSON.natural def.y.max
-                                        , step = JSON.natural def.y.step
-                                        , current = JSON.natural def.y.current
-                                        }
-                                    )
-                                , min = JSON.null
-                                , max = JSON.null
-                                , step = JSON.null
-                                , current = JSON.null
-                                , expand = JSON.null
-                                , children = JSON.array ([] : List JSON.Type)
                                 }
                     , Color = \(def : P.ColorDef) ->
                                 { kind = JSON.string "color"
-                                , min = JSON.null
-                                , max = JSON.null
-                                , step = JSON.null
-                                , current = JSON.string def.current
-                                , expand = JSON.null
-                                , children = JSON.array ([] : List JSON.Type)
-                                , x = JSON.null, y = JSON.null
+                                , def = JSON.object
+                                    (toMap
+                                        { current = JSON.string def.current
+                                        }
+                                    )
                                 }
                     , Textual = \(def : P.TextualDef) ->
                                 { kind = JSON.string "text"
-                                , min = JSON.null
-                                , max = JSON.null
-                                , step = JSON.null
-                                , current = JSON.string def.current
-                                , expand = JSON.null
-                                , children = JSON.array ([] : List JSON.Type)
-                                , x = JSON.null, y = JSON.null
+                                , def = JSON.object
+                                    (toMap
+                                        { current = JSON.string def.current
+                                        }
+                                    )
                                 }
                     , Action = \(def : P.ActionDef) ->
                                 { kind = JSON.string "action"
-                                , min = JSON.null
-                                , max = JSON.null
-                                , step = JSON.null
-                                , current = JSON.null
-                                , expand = JSON.null
-                                , children = JSON.array ([] : List JSON.Type)
-                                , x = JSON.null, y = JSON.null
+                                , def = JSON.null
                                 }
                     , Group = \(def : P.GroupDef) ->
                                 { kind = JSON.string "group"
-                                , min = JSON.null
-                                , max = JSON.null
-                                , step = JSON.null
-                                , current = JSON.null
-                                , expand = JSON.null
-                                , children = JSON.array def.children
-                                , x = JSON.null, y = JSON.null
+                                , def = JSON.object
+                                    (toMap
+                                        { expand = JSON.bool def.expand
+                                        , children = JSON.array def.children
+                                        }
+                                    )
                                 }
                     , Select = \(def : P.SelectDef) ->
                                 { kind = JSON.string "select"
-                                , min = JSON.null
-                                , max = JSON.null
-                                , step = JSON.null
-                                , current = JSON.string def.current
-                                , expand = JSON.null
-                                , children = JSON.array ([] : List JSON.Type)
-                                , x = JSON.null, y = JSON.null
+                                , def = JSON.object
+                                    (toMap
+                                        { current = JSON.string def.current
+                                        , values = JSON.array (List/map Text JSON.Type JSON.string def.values)
+                                        }
+                                    )
                                 }
                     , Switch = \(def : P.SwitchDef) ->
                                 { kind = JSON.string "switch"
-                                , min = JSON.null
-                                , max = JSON.null
-                                , step = JSON.null
-                                , current = JSON.null
-                                , expand = JSON.null
-                                , children = JSON.array ([] : List JSON.Type)
-                                , x = JSON.null, y = JSON.null
+                                , def = JSON.object
+                                    (toMap
+                                        { current = JSON.bool def.current
+                                        }
+                                    )
                                 }
                     }
                     prop.def
