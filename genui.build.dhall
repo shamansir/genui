@@ -1,6 +1,8 @@
 let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
+let List/map = https://prelude.dhall-lang.org/List/map
 
 let P = ./genui.dhall
+let Property/encode = ./genui.encode.dhall
 
 let int
     = \(name : Text) -> \(def : P.IntDef) ->
@@ -58,6 +60,13 @@ let nest_
     = \(name : Text) -> \(children : List JSON.Type) -> \(expand : Bool) ->
     nest name { children, expand, nest = None Text }
 
+let children
+    = \(children : List P.Property.Type) ->
+    List/map P.Property.Type JSON.Type Property/encode children
+
+let root
+    = children
+
 -- let addIcon
 --     = \(url : Text) -> \(toProp : P.Property.Type) ->
 --     (toProp // { icon = Some url })
@@ -66,4 +75,5 @@ let nest_
 in
     { int, float, xy, color, text, toggle, action, select, nest
     , color_, text_, toggle_, select_, nest_
+    , root, children
     }

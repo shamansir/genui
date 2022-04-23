@@ -1,34 +1,111 @@
 let P = ../genui.dhall
-let Property/encode = ../genui.encode.dhall
-let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
-let List/map = https://prelude.dhall-lang.org/List/map
+let b = ../genui.build.dhall
 
 
-let innerProp
-    : P.Property.Type
-    = P.Property::
-            { name = "test-2"
-            , def = P.Def.Action {=}
-            }
+let resolutions = [ "1920x1080", "1080x1080", "1280x800", "800x800", "4K" ]
 
+let products =
+    [ "JetBrains", "Space", "IDEA", "PhpStorm", "PyCharm", "RubyMine", "CLion", "DataGrip"
+    , "AppCode", "GoLand", "ReSharper", "ReSharper C++", "dotCover", "dotPeek", "dotMemory", "dotTrace"
+    , "Rider", "TeamCity", "YouTrack", "Upsource", "Hub", "Kotlin", "Mono", "MPS", "IDEA Edu", "PyCharm Edu"
+    , "DataSpell", "Qodana", "Datalore", "CodeWithMe", "WebStorm", "Edu Tools", "Fleet"
+    ] -- TODO: sort
 
-let ui : List P.Property.Type =
-    [
-        P.Property::
-            { name = "test"
-            , def = P.Def.Action {=}
-            , icon = Some "test-icon"
-            }
-    ,
-        P.Property::
-            { name = "nest"
-            , def =
-                P.Def.Nest
-                    { children = ([ Property/encode innerProp ] : List JSON.Type)
-                    , expand = True
-                    , nest = None Text
-                    }
-            }
+let periodic_fn =
+    [ "None", "Sin", "Tan(square)", "Squares#2", "Squares and stripes", "Tiles with bubbles"
+    , "Experimental", "Experimental2", "Experimental3"
     ]
 
-in List/map P.Property.Type JSON.Type Property/encode ui
+let modes =
+    [ "fan_in", "fan_out", "fan_avg"
+    ]
+
+let distributions =
+    [ "truncated_normal", "normal", "untruncated_normal", "uniform"
+    ]
+
+let achitectures =
+    [ "perceptron", "densenet", "resnet", "resnet_concat", "chain", "plexus"
+    ]
+
+let activations =
+    [ "gelu", "hard_sigmoid", "linear", "sigmoid", "sinus", "experimental1", "tanh"
+    ]
+
+let f_modes =
+    [ "disabled", "all"
+    ]
+
+in b.root
+    [ b.select_ "size" resolutions "1920x1080"
+        // { property = Some "resolution" }
+    , b.float "quality" { min = 0.1, max = 4.0, step = 0.05, current = 1.0 }
+        // { property = Some "resolutionFactor" }
+    , b.float "zoom" { min = 0.5, max = 3.0, step = 0.01, current = 1.0 }
+        // { property = Some "scale" }
+    , b.int "rotate" { min = -180, max = +180, step = +5, current = +0 }
+        // { property = Some "rotation" }
+    , b.int "horizontal" { min = -1000, max = +1000, step = +10, current = +0 }
+        // { property = Some "offsetX" }
+    , b.int "vertical" { min = -1000, max = +1000, step = +10, current = +0 }
+        // { property = Some "offsetY" }
+    , b.int "destiny" { min = +0, max = +10000, step = +1, current = +0 }
+        // { property = Some "offsetY" }
+    , b.select_ "product" products "JetBrains"
+    , b.toggle_ "flat colors" True
+        // { property = Some "flatColors" }
+    , b.int "flat color qty" { min = +5, max = +30, step = +1, current = +0 }
+        // { property = Some "flatLinesNum" }
+    , b.action "gradient"
+        // { property = Some "callGradientTool" }
+    , b.float "dither" { min = 0.0, max = 1.0, step = 0.05, current = 0.0 }
+        // { property = Some "ditherStrength" }
+    , b.toggle_ "logo shown" True
+        // { property = Some "logo" }
+    , b.nest_
+        "neuro"
+        (b.children
+            [ b.int "depth" { min = +1, max = +10, step = +1, current = +0 }
+            , b.int "width" { min = +1, max = +10, step = +1, current = +0 }
+            , b.int "variance" { min = +1, max = +10000, step = +1, current = +0 }
+            , b.select_ "mode" modes "fan_in"
+            , b.select_ "distribution" modes "truncated_normal"
+            , b.select_ "achitectures" modes "resnet"
+            , b.select_ "activation" activations "gelu"
+            , b.select_ "outActivation" activations "gelu"
+            , b.select_ "fMode" f_modes "disabled"
+            ]
+        )
+        True
+    , b.action "save"
+    , b.nest_
+        "evolve"
+        (b.children
+            [ b.int "α" { min = +1, max = +10, step = +1, current = +0 }
+                // { property = Some "alpha" }
+            , b.int "β" { min = +1, max = +10, step = +1, current = +0 }
+                // { property = Some "beta" }
+            , b.int "γ" { min = +1, max = +10000, step = +1, current = +0 }
+                // { property = Some "a" }
+            , b.select_ "mode" modes "fan_in"
+            , b.select_ "distribution" modes "truncated_normal"
+            , b.select_ "achitectures" modes "resnet"
+            , b.select_ "activation" activations "gelu"
+            , b.select_ "outActivation" activations "gelu"
+            , b.select_ "fMode" f_modes "disabled"
+            ]
+        )
+        True
+    , b.nest_
+        "mutation"
+        (b.children
+            [ b.action "min" // { property = Some "randomMin" }
+            , b.action "mid" // { property = Some "randomMid" }
+            , b.action "max" // { property = Some "randomMax" }
+            ]
+        )
+        True
+    , b.action "undo"
+    , b.action "export"
+        -- // { boundTo = Some "actions", property = Some "scale" }
+    ]

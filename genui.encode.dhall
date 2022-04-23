@@ -39,10 +39,10 @@ let encode
                                 { kind = JSON.string "float"
                                 , def = JSON.object
                                     (toMap
-                                        { min = JSON.natural def.min
-                                        , max = JSON.natural def.max
-                                        , step = JSON.natural def.step
-                                        , current = JSON.natural def.current
+                                        { min = JSON.double def.min
+                                        , max = JSON.double def.max
+                                        , step = JSON.double def.step
+                                        , current = JSON.double def.current
                                         }
                                     )
                                 }
@@ -53,19 +53,19 @@ let encode
                                         { x =
                                             JSON.object
                                                 (toMap
-                                                    { min = JSON.natural def.x.min
-                                                    , max = JSON.natural def.x.max
-                                                    , step = JSON.natural def.x.step
-                                                    , current = JSON.natural def.x.current
+                                                    { min = JSON.double def.x.min
+                                                    , max = JSON.double def.x.max
+                                                    , step = JSON.double def.x.step
+                                                    , current = JSON.double def.x.current
                                                     }
                                                 )
                                         , y =
                                             JSON.object
                                                 (toMap
-                                                    { min = JSON.natural def.y.min
-                                                    , max = JSON.natural def.y.max
-                                                    , step = JSON.natural def.y.step
-                                                    , current = JSON.natural def.y.current
+                                                    { min = JSON.double def.y.min
+                                                    , max = JSON.double def.y.max
+                                                    , step = JSON.double def.y.step
+                                                    , current = JSON.double def.y.current
                                                     }
                                                 )
                                         }

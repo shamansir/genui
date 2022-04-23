@@ -5,7 +5,7 @@ let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 
 
 let IntDef : Type = { min : Integer, max : Integer, step : Integer, current : Integer }
-let FloatDef : Type = { min : Natural, max : Natural, step : Natural, current : Natural }
+let FloatDef : Type = { min : Double, max : Double, step : Double, current : Double }
 let XYDef : Type = { x : FloatDef, y : FloatDef }
 let ToggleDef : Type = { current : Bool }
 let ColorDef : Type = { current : Text }
