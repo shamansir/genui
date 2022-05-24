@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>GenUI generator</title>
+  <script src="./dat.gui.v0.7.9.min.js"></script>
+</head>
+<body>
+    <link rel="stylesheet" type="text/css" href="./dat.gui.cai.css" />
+    <script src="../genui.datgui.js"></script>
+    <script>
+      const readJson = (name, cb) => {
+          fetch(`http://localhost:8005/${name}.json`)
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error("HTTP error " + response.status);
+                  }
+                  return response.json();
+              })
+              .then((json) => cb(null, json))
+              .catch((err) => cb(err, null));
+      };
+
+      readJson('gradient',
+          (err, json) =>
+              {
+
+                  if (err) {
+                      console.error(err);
+                      return;
+                  }
+
+                  let state = {};
+
+                  let actions =
+                      { callGradientTool : () => { console.log('callGradientTool'); }
+                      , save : () => { console.log('save'); }
+                      , randomMin : () => { console.log('randomMin'); }
+                      , randomMid : () => { console.log('randomMid'); }
+                      , randomMax : () => { console.log('randomMax'); }
+                      , undo : () => { console.log('undo'); }
+                      , export : () => { console.log('export'); }
+                      };
+
+                  const update =
+                      (prop, val) => {
+                          console.log(state);
+                          console.log(prop, val);
+                      };
+
+                  GenUI.toDatGUI(json, state, actions, update);
+              }
+      );
+    </script>
+</body>
+</html>

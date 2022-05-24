@@ -39,7 +39,8 @@ let f_modes =
     ]
 
 in b.root
-    [ b.select_ "size" resolutions "1920x1080"
+    [ b.select_ "product" products "JetBrains"
+    , b.select_ "size" resolutions "1920x1080"
         // { property = Some "resolution" }
     , b.float "quality" { min = 0.1, max = 4.0, step = 0.05, current = 1.0 }
         // { property = Some "resolutionFactor" }
@@ -53,7 +54,6 @@ in b.root
         // { property = Some "offsetY" }
     , b.int "destiny" { min = +0, max = +10000, step = +1, current = +0 }
         // { property = Some "offsetY" }
-    , b.select_ "product" products "JetBrains"
     , b.toggle_ "flat colors" True
         // { property = Some "flatColors" }
     , b.int "flat color qty" { min = +5, max = +30, step = +1, current = +5 }
@@ -84,11 +84,11 @@ in b.root
     , b.nest_
         "evolve"
         (b.children
-            [ b.float "α" { min = 0.0, max = 1.0, step = 0.01, current = 5.0 }
+            [ b.float "α" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
                 // { property = Some "alpha" }
-            , b.float "β" { min = 0.0, max = 1.0, step = 0.01, current = 5.0 }
+            , b.float "β" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
                 // { property = Some "beta" }
-            , b.float "γ" { min = 0.0, max = 1.0, step = 0.01, current = 5.0 }
+            , b.float "γ" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
                 // { property = Some "gamma" }
             ]
         )

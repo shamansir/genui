@@ -1,14 +1,4 @@
-const readJsonGui = (name, cb) => {
-    fetch(`http://localhost:8005/${name}.json`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("HTTP error " + response.status);
-            }
-            return response.json();
-        })
-        .then((json) => cb(null, json))
-        .catch((err) => cb(err, null));
-};
+
 
 const addProp = (gui, prop, state, actions, update) => {
     const def = prop.def;
@@ -61,35 +51,17 @@ const addProp = (gui, prop, state, actions, update) => {
     }
 }
 
-const buildGui = (root, state, actions, update) => {
+const GenUI = {}
+
+GenUI.toDatGUI = (root, state, actions, update) => {
     const gui = new dat.GUI();
     root.forEach(prop => {
         addProp(gui, prop, state, actions, update);
     });
 };
 
+GenUI.toDatGUI_ = (root, state, update) => {
+    GenUI.toDatGUI(root, state, state, update);
+};
 
-readJsonGui('gradient',
-    (err, json) =>
-        {
-            if (err) {
-                console.error(err);
-                return;
-            }
-            let state = {};
-            let actions =
-                { callGradientTool : () => { console.log('callGradientTool'); }
-                , save : () => { console.log('save'); }
-                , randomMin : () => { console.log('randomMin'); }
-                , randomMid : () => { console.log('randomMid'); }
-                , randomMax : () => { console.log('randomMax'); }
-                , undo : () => { console.log('undo'); }
-                , export : () => { console.log('export'); }
-                };
-            const update =
-                (prop, val) => {
-                    console.log(prop, val);
-                };
-            buildGui(json, state, actions, update);
-        }
-);
+window.GenUI = GenUI;
