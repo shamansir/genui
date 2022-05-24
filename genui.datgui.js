@@ -16,26 +16,30 @@ const addProp = (gui, prop, state, actions, update) => {
     const name = prop.name || prop.property;
     switch (prop.kind) {
         case 'select':
-            state[property] = prop.def.current;
+            state[property] = def.current;
             gui.add(state, property, def.values).name(name).onFinishChange((val) => { update(property, val); });
+            // TODO: love
             break;
         case 'float': case 'int':
-            state[property] = prop.def.current;
-            gui.add(state, property, def.min, prop.def.max, prop.def.step).name(name).onFinishChange((val) => { update(property, val); });
+            state[property] = def.current;
+            gui.add(state, property, def.min, def.max, def.step).name(name).onFinishChange((val) => { update(property, val); });
             break;
-        case 'text':
-            state[property] = prop.def.current;
+        case 'text': case 'color':
+            state[property] = def.current;
             gui.add(state, property).name(name).onFinishChange((val) => { update(property, val); });
             break;
         case 'toggle':
-            state[property] = prop.def.current;
+            state[property] = def.current;
             gui.add(state, property).name(name).onFinishChange((val) => { update(property, val); });
             break;
         case 'nest':
             const nestFolder = gui.addFolder(name);
             prop.def.children.forEach(childProp => {
-                addProp(nestFolder, childProp, state, actions, update);
+                addProp(nestFolder, childProp, def.nest ? state[def.nest] : state, actions, update);
             });
+            if (def.expand) {
+                nestFolder.open();
+            }
             break;
         case 'action':
             if (actions.hasOwnProperty(property)) {
@@ -44,8 +48,15 @@ const addProp = (gui, prop, state, actions, update) => {
                 console.warn('actions object doesn\'t have handler for ' + property);
             }
             break;
-        // TODO: xy, color
+        case 'xy':
+            const xyFolder = gui.addFolder(name);
+            state[property]['x'] = def.x.current;
+            state[property]['y'] = def.y.current;
+            xyFolder.add(state[property], 'x', def.x.min, def.x.max, def.x.step).name(name).onFinishChange((val) => { update(property, { x: val }); });
+            xyFolder.add(state[property], 'y', def.y.min, def.y.max, def.y.step).name(name).onFinishChange((val) => { update(property, { y: val }); });
+            break;
         default:
+            console.warn('property was not handled, because of its unsupported kind', prop.kind, property);
             break;
     }
 }
@@ -66,7 +77,15 @@ readJsonGui('gradient',
                 return;
             }
             let state = {};
-            let actions = {};
+            let actions =
+                { callGradientTool : () => { console.log('callGradientTool'); }
+                , save : () => { console.log('save'); }
+                , randomMin : () => { console.log('randomMin'); }
+                , randomMid : () => { console.log('randomMid'); }
+                , randomMax : () => { console.log('randomMax'); }
+                , undo : () => { console.log('undo'); }
+                , export : () => { console.log('export'); }
+                };
             const update =
                 (prop, val) => {
                     console.log(prop, val);

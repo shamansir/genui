@@ -56,7 +56,7 @@ in b.root
     , b.select_ "product" products "JetBrains"
     , b.toggle_ "flat colors" True
         // { property = Some "flatColors" }
-    , b.int "flat color qty" { min = +5, max = +30, step = +1, current = +0 }
+    , b.int "flat color qty" { min = +5, max = +30, step = +1, current = +5 }
         // { property = Some "flatLinesNum" }
     , b.action "gradient"
         // { property = Some "callGradientTool" }
@@ -67,9 +67,10 @@ in b.root
     , b.nest_
         "neuro"
         (b.children
-            [ b.int "depth" { min = +1, max = +10, step = +1, current = +0 }
-            , b.int "width" { min = +1, max = +10, step = +1, current = +0 }
-            , b.int "variance" { min = +1, max = +10000, step = +1, current = +0 }
+            [ b.int "seed" { min = +0, max = +50000, step = +1, current = +5 }
+            , b.int "depth" { min = +1, max = +10, step = +1, current = +5 }
+            , b.int "width" { min = +1, max = +10, step = +1, current = +5 }
+            , b.int "variance" { min = +1, max = +10000, step = +1, current = +2000 }
             , b.select_ "mode" modes "fan_in"
             , b.select_ "distribution" distributions "truncated_normal"
             , b.select_ "achitectures" achitectures "resnet"
@@ -78,20 +79,20 @@ in b.root
             , b.select_ "fMode" f_modes "disabled"
             ]
         )
-        True
+        False
     , b.action "save"
     , b.nest_
         "evolve"
         (b.children
-            [ b.int "α" { min = +1, max = +10, step = +1, current = +0 }
+            [ b.float "α" { min = 0.0, max = 1.0, step = 0.01, current = 5.0 }
                 // { property = Some "alpha" }
-            , b.int "β" { min = +1, max = +10, step = +1, current = +0 }
+            , b.float "β" { min = 0.0, max = 1.0, step = 0.01, current = 5.0 }
                 // { property = Some "beta" }
-            , b.int "γ" { min = +1, max = +10000, step = +1, current = +0 }
-                // { property = Some "a" }
+            , b.float "γ" { min = 0.0, max = 1.0, step = 0.01, current = 5.0 }
+                // { property = Some "gamma" }
             ]
         )
-        True
+        False
     , b.nest_
         "mutation"
         (b.children
@@ -100,7 +101,7 @@ in b.root
             , b.action "max" // { property = Some "randomMax" }
             ]
         )
-        True
+        False
     , b.action "undo"
     , b.action "export"
         -- // { boundTo = Some "actions", property = Some "scale" }
