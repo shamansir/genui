@@ -4,6 +4,12 @@
 let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 
 
+let NestKind =
+    < Switch
+    | Toggle
+    >
+
+
 let IntDef : Type = { min : Integer, max : Integer, step : Integer, current : Integer }
 let FloatDef : Type = { min : Double, max : Double, step : Double, current : Double }
 let XYDef : Type = { x : FloatDef, y : FloatDef }
@@ -34,10 +40,12 @@ let Property =
         , name : Text
         , icon : Optional Text
         , property : Optional Text
+        , live : Bool
         }
     , default =
         { icon = None Text
         , property = None Text
+        , live = False
         }
     }
 

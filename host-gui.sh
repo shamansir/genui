@@ -1,0 +1,1 @@
+http-server -p 8005 --cors ./gui/

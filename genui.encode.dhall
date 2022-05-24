@@ -21,7 +21,7 @@ let encode
                             { Some = \(prop : Text) -> JSON.string prop
                             , None = JSON.null
                             }
-                            prop.icon
+                            prop.property
                 }
                 // merge
                     { NumInt = \(def : P.IntDef) ->

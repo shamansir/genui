@@ -1,6 +1,8 @@
 let P = ../genui.dhall
 let b = ../genui.build.dhall
 
+let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
+
 
 let resolutions = [ "1920x1080", "1080x1080", "1280x800", "800x800", "4K" ]
 
@@ -11,10 +13,10 @@ let products =
     , "DataSpell", "Qodana", "Datalore", "CodeWithMe", "WebStorm", "Edu Tools", "Fleet"
     ] -- TODO: sort
 
-let periodic_fn =
+{- let periodic_fn =
     [ "None", "Sin", "Tan(square)", "Squares#2", "Squares and stripes", "Tiles with bubbles"
     , "Experimental", "Experimental2", "Experimental3"
-    ]
+    ] -}
 
 let modes =
     [ "fan_in", "fan_out", "fan_avg"
@@ -69,8 +71,8 @@ in b.root
             , b.int "width" { min = +1, max = +10, step = +1, current = +0 }
             , b.int "variance" { min = +1, max = +10000, step = +1, current = +0 }
             , b.select_ "mode" modes "fan_in"
-            , b.select_ "distribution" modes "truncated_normal"
-            , b.select_ "achitectures" modes "resnet"
+            , b.select_ "distribution" distributions "truncated_normal"
+            , b.select_ "achitectures" achitectures "resnet"
             , b.select_ "activation" activations "gelu"
             , b.select_ "outActivation" activations "gelu"
             , b.select_ "fMode" f_modes "disabled"
@@ -87,12 +89,6 @@ in b.root
                 // { property = Some "beta" }
             , b.int "γ" { min = +1, max = +10000, step = +1, current = +0 }
                 // { property = Some "a" }
-            , b.select_ "mode" modes "fan_in"
-            , b.select_ "distribution" modes "truncated_normal"
-            , b.select_ "achitectures" modes "resnet"
-            , b.select_ "activation" activations "gelu"
-            , b.select_ "outActivation" activations "gelu"
-            , b.select_ "fMode" f_modes "disabled"
             ]
         )
         True
@@ -108,4 +104,4 @@ in b.root
     , b.action "undo"
     , b.action "export"
         -- // { boundTo = Some "actions", property = Some "scale" }
-    ]
+    ] : List JSON.Type
