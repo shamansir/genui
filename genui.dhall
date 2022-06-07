@@ -49,8 +49,15 @@ let Property =
         }
     }
 
+
+let GenUI =
+    { version : Text
+    , root : List JSON.Type
+    }
+
 in
-    { Property
+    { GenUI
+    , Property
     , Def
     , IntDef, FloatDef, XYDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ToggleDef
     }

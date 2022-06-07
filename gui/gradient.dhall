@@ -105,4 +105,4 @@ in b.root
     , b.action "undo"
     , b.action "export"
         -- // { boundTo = Some "actions", property = Some "scale" }
-    ] : List JSON.Type
+    ] : P.GenUI

@@ -3,6 +3,8 @@ let List/map = https://prelude.dhall-lang.org/List/map
 
 let P = ./genui.dhall
 let Property/encode = ./genui.encode.dhall
+let VERSION = ./VERSION.dhall
+
 
 let int
     = \(name : Text) -> \(def : P.IntDef) ->
@@ -65,7 +67,10 @@ let children
     List/map P.Property.Type JSON.Type Property/encode children
 
 let root
-    = children
+    = \(items : List P.Property.Type) ->
+    { version = VERSION
+    , root = children items
+    } : P.GenUI
 
 -- let addIcon
 --     = \(url : Text) -> \(toProp : P.Property.Type) ->
