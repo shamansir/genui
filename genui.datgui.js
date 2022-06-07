@@ -53,9 +53,10 @@ const addProp = (gui, prop, state, actions, update) => {
 
 const GenUI = {}
 
-GenUI.toDatGUI = (root, state, actions, update) => {
+GenUI.toDatGUI = (genui, state, actions, update) => {
     const gui = new dat.GUI();
-    root.forEach(prop => {
+    console.log('Gen UI, version ', genui.version)
+    genui.root.forEach(prop => {
         addProp(gui, prop, state, actions, update);
     });
 };
