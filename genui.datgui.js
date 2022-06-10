@@ -9,7 +9,7 @@ const addProp = (gui, prop, state, actions, update) => {
         case 'select':
             state[property] = def.current;
             control = gui.add(state, property, def.values).name(name).onFinishChange((val) => { update(property, val); });
-            return { property, control };
+            return { property, control, values : def.values };
         case 'float': case 'int':
             state[property] = def.current;
             control = gui.add(state, property, def.min, def.max, def.step).name(name).onFinishChange((val) => { update(property, val); });

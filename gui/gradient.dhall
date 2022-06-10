@@ -108,5 +108,5 @@ in b.root
     , b.action "undo"
     , b.action "create URL" // b.bindTo "save"
     , b.action "export" // b.bindTo "export_"
-    , b.action "video"
+    , b.action "video" // b.bindTo "requestVideo"
     ] : P.GenUI
