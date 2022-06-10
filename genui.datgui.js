@@ -60,6 +60,8 @@ const addProp = (gui, prop, state, actions, update) => {
 
 const GenUI = {}
 
+GenUI.REF = '__dat_gui';
+
 GenUI.toDatGUI = (genui, state, actions, update) => {
     const gui = new dat.GUI();
     console.log('Gen UI, version ', genui.version);
@@ -70,6 +72,7 @@ GenUI.toDatGUI = (genui, state, actions, update) => {
             mapping[p.property] = { control : p.control, children : p.children };
         }
     });
+    mapping[GenUI.REF] = gui;
     return mapping;
 };
 
