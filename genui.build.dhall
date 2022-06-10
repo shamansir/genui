@@ -72,6 +72,10 @@ let root
     , root = children items
     } : P.GenUI
 
+let bindTo
+    = \(propName : Text) ->
+    { property = Some propName }
+
 -- let addIcon
 --     = \(url : Text) -> \(toProp : P.Property.Type) ->
 --     (toProp // { icon = Some url })
@@ -81,4 +85,5 @@ in
     { int, float, xy, color, text, toggle, action, select, nest
     , color_, text_, toggle_, select_, nest_
     , root, children
+    , bindTo
     }

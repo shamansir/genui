@@ -41,29 +41,19 @@ let f_modes =
 in b.root
     [ b.select_ "product" products "JetBrains"
     , b.select_ "size" resolutions "1920x1080"
-        // { property = Some "resolution" }
+        // b.bindTo "resolution"
     , b.float "quality" { min = 0.1, max = 4.0, step = 0.05, current = 1.0 }
-        // { property = Some "resolutionFactor" }
+        // b.bindTo "resolutionFactor"
     , b.float "zoom" { min = 0.5, max = 3.0, step = 0.01, current = 1.0 }
-        // { property = Some "scale" }
+        // b.bindTo "scale"
     , b.int "rotate" { min = -180, max = +180, step = +5, current = +0 }
-        // { property = Some "rotation" }
+        // b.bindTo "rotation"
     , b.int "horizontal" { min = -1000, max = +1000, step = +10, current = +0 }
-        // { property = Some "offsetX" }
+        // b.bindTo "offsetX"
     , b.int "vertical" { min = -1000, max = +1000, step = +10, current = +0 }
-        // { property = Some "offsetY" }
-    , b.int "destiny" { min = +0, max = +10000, step = +1, current = +0 }
-        // { property = Some "offsetY" }
-    , b.toggle_ "flat colors" True
-        // { property = Some "flatColors" }
-    , b.int "flat color qty" { min = +5, max = +30, step = +1, current = +5 }
-        // { property = Some "flatLinesNum" }
-    , b.action "gradient"
-        // { property = Some "callGradientTool" }
-    , b.float "dither" { min = 0.0, max = 1.0, step = 0.05, current = 0.0 }
-        // { property = Some "ditherStrength" }
-    , b.toggle_ "logo shown" True
-        // { property = Some "logo" }
+        // b.bindTo "offsetY"
+    , b.action "color map"
+        // b.bindTo "callGradientTool"
     , b.nest_
         "neuro"
         (b.children
@@ -73,9 +63,9 @@ in b.root
             , b.int "variance" { min = +1, max = +10000, step = +1, current = +2000 }
             , b.select_ "mode" modes "fan_in"
             , b.select_ "distribution" distributions "truncated_normal"
-            , b.select_ "achitectures" achitectures "resnet"
-            , b.select_ "activation" activations "gelu"
-            , b.select_ "outActivation" activations "gelu"
+            , b.select_ "achitectures" achitectures "densenet"
+            , b.select_ "activation" activations "sigmoid"
+            , b.select_ "outActivation" activations "sigmoid"
             , b.select_ "fMode" f_modes "disabled"
             ]
         )
@@ -85,24 +75,39 @@ in b.root
         "evolve"
         (b.children
             [ b.float "α" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
-                // { property = Some "alpha" }
+                // b.bindTo "alpha"
             , b.float "β" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
-                // { property = Some "beta" }
+                // b.bindTo "beta"
             , b.float "γ" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
-                // { property = Some "gamma" }
+                // b.bindTo "gamma"
             ]
         )
         False
     , b.nest_
         "mutation"
         (b.children
-            [ b.action "min" // { property = Some "randomMin" }
-            , b.action "mid" // { property = Some "randomMid" }
-            , b.action "max" // { property = Some "randomMax" }
+            [ b.action "mild" // b.bindTo "randomMid"
+            , b.action "hard" // b.bindTo "randomMax"
             ]
         )
         False
+    , b.nest_
+        "lab"
+        (b.children
+            [ b.toggle_ "flat colors" True
+                // b.bindTo "flatColors"
+            , b.int "flat color qty" { min = +5, max = +30, step = +1, current = +5 }
+                // b.bindTo "flatLinesNum"
+            , b.float "dither" { min = 0.0, max = 1.0, step = 0.05, current = 0.0 }
+                // b.bindTo "ditherStrength"
+            , b.toggle_ "logo" True
+                // b.bindTo "logoShown"
+            ]
+        )
+        False
+
     , b.action "undo"
-    , b.action "export"
-        -- // { boundTo = Some "actions", property = Some "scale" }
+    , b.action "create URL" // b.bindTo "save"
+    , b.action "export" // b.bindTo "export_"
+    , b.action "video"
     ] : P.GenUI
