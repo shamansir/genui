@@ -63,14 +63,13 @@ in b.root
             , b.int "variance" { min = +1, max = +10000, step = +1, current = +2000 }
             , b.select_ "mode" modes "fan_in"
             , b.select_ "distribution" distributions "truncated_normal"
-            , b.select_ "achitectures" achitectures "densenet"
+            , b.select_ "achitecture" achitectures "densenet"
             , b.select_ "activation" activations "sigmoid"
             , b.select_ "outActivation" activations "sigmoid"
             , b.select_ "fMode" f_modes "disabled"
             ]
         )
         False
-    , b.action "save"
     , b.nest_
         "evolve"
         (b.children
@@ -94,7 +93,7 @@ in b.root
     , b.nest_
         "lab"
         (b.children
-            [ b.toggle_ "flat colors" True
+            [ b.toggle_ "flat colors" False
                 // b.bindTo "flatColors"
             , b.int "flat color qty" { min = +5, max = +30, step = +1, current = +5 }
                 // b.bindTo "flatLinesNum"
