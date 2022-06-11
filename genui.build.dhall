@@ -44,7 +44,7 @@ let toggle_
 
 let action
     = \(name : Text) ->
-    P.Property::{ name, def = P.Def.Action {=} }
+    P.Property::{ name, def = P.Def.Action { face = P.Face.Default } }
 
 let select
     = \(name : Text) -> \(def : P.SelectDef) ->
@@ -52,7 +52,13 @@ let select
 
 let select_
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
-    select name { values, current }
+    select name
+        { values
+        , current
+        , expand = False
+        , kind = P.SelectKind.Choice { expand = True, face = P.Face.Default }
+        , shape = P.NestShape.default
+        }
 
 let nest
     = \(name : Text) -> \(def : P.NestDef) ->
@@ -60,7 +66,7 @@ let nest
 
 let nest_
     = \(name : Text) -> \(children : List JSON.Type) -> \(expand : Bool) ->
-    nest name { children, expand, nest = None Text }
+    nest name { children, expand, nestProperty = None Text }
 
 let children
     = \(children : List P.Property.Type) ->

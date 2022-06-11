@@ -5,6 +5,62 @@ let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 let List/map = https://prelude.dhall-lang.org/List/map
 
 
+let encodeFace
+    : P.Face -> JSON.Type
+    = \(face : P.Face)
+    -> merge
+        { Color = \(color : Text) -> JSON.object (toMap { face = JSON.string "color", color = JSON.string color })
+        , Icon = \(icon : Text) -> JSON.object (toMap { face = JSON.string "icon", icon = JSON.string icon })
+        , Default = JSON.null
+        }
+        face
+
+
+let encodeCellShape
+    : P.CellShape.Type -> JSON.Type
+    = \(shape : P.CellShape.Type)
+    -> JSON.object
+        (toMap
+            { cols = JSON.integer shape.cols
+            , rows = JSON.integer shape.rows
+            }
+        )
+
+
+let encodeNestShape
+    : P.NestShape.Type -> JSON.Type
+    = \(shape : P.NestShape.Type)
+    -> JSON.object
+        (toMap
+            { cols = JSON.integer shape.cols
+            , rows = JSON.integer shape.rows
+            , pages = JSON.integer shape.rows
+            }
+        )
+
+
+let encodeSelectKind
+    : P.SelectKind -> JSON.Type
+    = \(kind : P.SelectKind)
+    -> merge
+        { Choice = \(def : { expand : Bool, face: P.Face }) -> JSON.object (toMap { face = encodeFace def.face, expand = JSON.bool def.expand })
+        , Knob = JSON.object (toMap { kind = JSON.string "knob" })
+        , Switch = JSON.object (toMap { kind = JSON.string "switch" })
+        }
+        kind
+
+
+let encodeSelectItem
+    : P.SelectItem -> JSON.Type
+    = \(item : P.SelectItem)
+    -> JSON.object
+        (toMap
+            { face = encodeFace item.face
+            , value = JSON.string item.value
+            }
+        )
+
+
 let encode
     : P.Property.Type -> JSON.Type
     = \(prop : P.Property.Type)
@@ -12,11 +68,11 @@ let encode
         ( toMap
             (
                 { name = JSON.string prop.name
-                , icon = merge
+                {- }, icon = merge
                             { Some = \(icon : Text) -> JSON.string icon
                             , None = JSON.null
                             }
-                            prop.icon
+                            prop.icon -}
                 , property = merge
                             { Some = \(prop : Text) -> JSON.string prop
                             , None = JSON.null
@@ -113,7 +169,7 @@ let encode
                                 , def = JSON.object
                                     (toMap
                                         { current = JSON.string def.current
-                                        , values = JSON.array (List/map Text JSON.Type JSON.string def.values)
+                                        , values = JSON.array (List/map P.SelectItem JSON.Type encodeSelectItem def.values)
                                         }
                                     )
                                 }
