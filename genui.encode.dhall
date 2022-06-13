@@ -43,7 +43,13 @@ let encodeSelectKind
     : P.SelectKind -> JSON.Type
     = \(kind : P.SelectKind)
     -> merge
-        { Choice = \(def : { expand : Bool, face: P.Face }) -> JSON.object (toMap { face = encodeFace def.face, expand = JSON.bool def.expand })
+        { Choice =
+            \(def : { expand : Bool, face: P.Face }) ->
+            JSON.object
+                (toMap
+                    { face = encodeFace def.face
+                    , expand = JSON.bool def.expand
+                    })
         , Knob = JSON.object (toMap { kind = JSON.string "knob" })
         , Switch = JSON.object (toMap { kind = JSON.string "switch" })
         }
@@ -167,6 +173,12 @@ let encode
                                         , children = JSON.array def.children
                                         , shape = encodeNestShape def.shape
                                         , face = encodeFace def.face
+                                        , nestAt =
+                                            merge
+                                                { Some = \(prop : Text) -> JSON.string prop
+                                                , None = JSON.null
+                                                }
+                                                def.nestProperty
                                         }
                                     )
                                 }
@@ -177,6 +189,12 @@ let encode
                                         { current = JSON.string def.current
                                         , values = JSON.array (List/map P.SelectItem JSON.Type encodeSelectItem def.values)
                                         , kind = encodeSelectKind def.kind
+                                        , nestAt =
+                                            merge
+                                                { Some = \(prop : Text) -> JSON.string prop
+                                                , None = JSON.null
+                                                }
+                                                def.nestProperty
                                         }
                                     )
                                 }
