@@ -2,7 +2,7 @@ module GenUI exposing (..)
 
 
 type Face
-    = Color String
+    = OfColor String
     | Icon String
     | Default
 
