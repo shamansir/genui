@@ -53,9 +53,10 @@ let select
 let select_
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     select name
-        { values
+        { values =
+            List/map Text P.SelectItem (\(t : Text) -> { value = t, face = P.Face.Default } : P.SelectItem) values
         , current
-        , expand = False
+        , nestProperty = None Text
         , kind = P.SelectKind.Choice { expand = True, face = P.Face.Default }
         , shape = P.NestShape.default
         }
@@ -66,7 +67,12 @@ let nest
 
 let nest_
     = \(name : Text) -> \(children : List JSON.Type) -> \(expand : Bool) ->
-    nest name { children, expand, nestProperty = None Text }
+    nest name
+        { children
+        , expand
+        , nestProperty = None Text
+        , shape = P.NestShape.default
+        }
 
 let children
     = \(children : List P.Property.Type) ->
