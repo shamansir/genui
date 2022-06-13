@@ -72,6 +72,7 @@ let nest_
         , expand
         , nestProperty = None Text
         , shape = P.NestShape.default
+        , face = P.Face.Default
         }
 
 let children

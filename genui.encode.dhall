@@ -68,11 +68,11 @@ let encode
         ( toMap
             (
                 { name = JSON.string prop.name
-                {- }, icon = merge
-                            { Some = \(icon : Text) -> JSON.string icon
+                , shape = merge
+                            { Some = \(shape : P.CellShape.Type) -> encodeCellShape shape
                             , None = JSON.null
                             }
-                            prop.icon -}
+                            prop.shape
                 , property = merge
                             { Some = \(prop : Text) -> JSON.string prop
                             , None = JSON.null
@@ -153,7 +153,11 @@ let encode
                                 }
                     , Action = \(def : P.ActionDef) ->
                                 { kind = JSON.string "action"
-                                , def = JSON.null
+                                , def = JSON.object
+                                    (toMap
+                                        { face = encodeFace def.face
+                                        }
+                                    )
                                 }
                     , Nest = \(def : P.NestDef) ->
                                 { kind = JSON.string "nest"
@@ -161,6 +165,8 @@ let encode
                                     (toMap
                                         { expand = JSON.bool def.expand
                                         , children = JSON.array def.children
+                                        , shape = encodeNestShape def.shape
+                                        , face = encodeFace def.face
                                         }
                                     )
                                 }
@@ -170,6 +176,7 @@ let encode
                                     (toMap
                                         { current = JSON.string def.current
                                         , values = JSON.array (List/map P.SelectItem JSON.Type encodeSelectItem def.values)
+                                        , kind = encodeSelectKind def.kind
                                         }
                                     )
                                 }

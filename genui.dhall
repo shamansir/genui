@@ -59,7 +59,7 @@ let ColorDef : Type = { current : Text }
 let TextualDef : Type = { current : Text }
 let ActionDef : Type = { face : Face }
 let SelectDef : Type = { current : Text, values : List SelectItem, nestProperty : Optional Text, kind : SelectKind, shape : NestShape.Type }
-let NestDef : Type = { children : List JSON.Type, expand : Bool, nestProperty : Optional Text, shape : NestShape.Type }
+let NestDef : Type = { face : Face, children : List JSON.Type, expand : Bool, nestProperty : Optional Text, shape : NestShape.Type }
 
 
 let Def : Type =
