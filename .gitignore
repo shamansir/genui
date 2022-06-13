@@ -3,3 +3,4 @@ gui/*.json
 gui/*.yaml
 example/dat.gui.v0.7.9.min.js
 example/dat.gui.cai.css
+elm-stuff
