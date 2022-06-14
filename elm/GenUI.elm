@@ -1,6 +1,9 @@
 module GenUI exposing (..)
 
 
+let version = "0.2"
+
+
 type Face
     = OfColor String
     | Icon String
@@ -39,8 +42,8 @@ type alias ToggleDef = { current : Bool }
 type alias ColorDef = { current : String }
 type alias TextualDef = { current : String }
 type alias ActionDef = { face : Face }
-type alias SelectDef = { current : String, values : List SelectItem, nestProperty : Maybe String, kind : SelectKind, shape : NestShape }
-type alias NestDef = { children : List Property, expand : Bool, nestProperty : Maybe String, shape : NestShape }
+type alias SelectDef = { current : String, values : List SelectItem, nestAt : Maybe String, kind : SelectKind, shape : NestShape }
+type alias NestDef = { children : List Property, expand : Bool, nestAt : Maybe String, shape : NestShape, face : Face }
 
 
 type Def
@@ -68,3 +71,6 @@ type alias GenUI =
     { version : String
     , root : List Property
     }
+
+
+-- TODO: fold

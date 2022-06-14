@@ -10,17 +10,17 @@ cellShape : D.Decoder G.CellShape
 cellShape =
     D.map2
         G.CellShape
-        (D.field "cols" <| D.int)
-        (D.field "rows" <| D.int)
+        (D.field "cols" D.int)
+        (D.field "rows" D.int)
 
 
 nestShape : D.Decoder G.NestShape
 nestShape =
     D.map3
         G.NestShape
-        (D.field "cols" <| D.int)
-        (D.field "rows" <| D.int)
-        (D.field "pages" <| D.int)
+        (D.field "cols" D.int)
+        (D.field "rows" D.int)
+        (D.field "pages" D.int)
 
 
 face : D.Decoder G.Face
@@ -39,8 +39,8 @@ selectItem : D.Decoder G.SelectItem
 selectItem =
     D.map2
         G.SelectItem
-        (D.field "value" <| D.string)
-        (D.field "face" <| face)
+        (D.field "value" D.string)
+        (D.field "face" face)
 
 
 selectKind : D.Decoder G.SelectKind
@@ -51,7 +51,7 @@ selectKind =
                 case kind_ of
                     "choice" ->
                         D.map2
-                            G.Choice
+                            (\e f -> G.Choice { expand = e, face = f })
                             (D.field "expand" D.bool)
                             (D.field "face" face)
                     "knob" -> D.succeed G.Knob
@@ -116,16 +116,17 @@ def kind =
                 (D.field "values" <| D.list selectItem)
                 (D.maybe <| D.field "nestAt" D.string)
                 (D.field "kind" selectKind)
-                (D.field "shape" <| nestShape)
+                (D.field "shape" nestShape)
 
 
         nestDef =
-            D.map4
+            D.map5
                 G.NestDef
                 (D.field "children" <| D.list property)
                 (D.field "expand" D.bool)
                 (D.maybe <| D.field "nestAt" D.string)
-                (D.field "shape" <| nestShape)
+                (D.field "shape" nestShape)
+                (D.field "face" face)
 
 
 
@@ -143,6 +144,7 @@ def kind =
 
 
         _ -> D.fail <| "unknown kind " ++ kind
+
 
 
 
