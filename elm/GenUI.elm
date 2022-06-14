@@ -1,7 +1,8 @@
 module GenUI exposing (..)
 
 
-let version = "0.2"
+version : String
+version = "0.2"
 
 
 type Face
