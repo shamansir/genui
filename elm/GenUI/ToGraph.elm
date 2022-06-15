@@ -1,4 +1,4 @@
-module GenUI.Graph exposing (..)
+module GenUI.ToGraph exposing (..)
 
 import Graph exposing (Graph)
 

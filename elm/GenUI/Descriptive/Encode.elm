@@ -189,3 +189,9 @@ encode : G.GenUI -> Descriptive
 encode genui =
     (0, "GenUI, version " ++ genui.version)
     :: (indent <| indexedList property genui.root)
+
+
+toString : Descriptive -> String
+toString =
+    List.map (\(indent_, str) -> (String.fromList <| List.repeat indent_ ' ') ++ str )
+        >> String.join "\n"

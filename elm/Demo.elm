@@ -2,6 +2,8 @@ module Demo exposing (..)
 
 
 import GenUI.Descriptive.Encode as Descriptive
+import Json.Decode as Json
+import GenUI.Json.Decode as GJson
 
 import Browser
 import GenUI as G
@@ -9,13 +11,15 @@ import GenUI as G
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode exposing (decodeString)
 
 
 type alias Model = Maybe (Result String G.GenUI)
 
 
-type Action =
-    Parse String
+type Action
+    = New
+    | Parse String
 
 
 init : Model
@@ -36,17 +40,32 @@ view model =
                     , onInput Parse
                     ]
                     []
-                , div [ style "width" "50%" ] [ text "Parsing result" ]
+                , div [ style "width" "50%" ]
+                    [ button [ onClick New ] [ text "New" ]
+                    , text "Parsing result"
+                    ]
                 ]
         Just (Ok ui) ->
-            div [] []
+            div [ ]
+                [ button [ onClick New ] [ text "New" ]
+                , textarea []
+                    [ text <| Descriptive.toString <| Descriptive.encode ui ]
+                ]
         Just (Err err) ->
-            div [] []
+            div [ ]
+                [ button [ onClick New ] [ text "New" ]
+                , text <| "Error: " ++ err
+                ]
 
 
 update : Action -> Model -> Model
-update action model =
-    model
+update action _ =
+    case action of
+        New -> Nothing
+        Parse string ->
+            Just
+                <| Result.mapError Json.errorToString
+                <| decodeString GJson.decode string
 
 
 main : Platform.Program () Model Action
