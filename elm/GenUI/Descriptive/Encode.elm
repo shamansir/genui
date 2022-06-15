@@ -7,23 +7,47 @@ import GenUI as G
 type alias Indent = Int
 
 
+type alias Index = Int
+
+
 type alias Descriptive = List ( Indent, String )
+type alias DescriptiveWithIndices = List ( Index, ( Indent, String ) )
 
 
-indent : List ( Indent, String ) -> List ( Indent, String )
+indent : Descriptive -> Descriptive
 indent = indentBy 1
 
 
-indentBy : Int -> List ( Indent, String ) -> List ( Indent, String )
+indentBy : Int -> Descriptive -> Descriptive
 indentBy amount = List.map (Tuple.mapFirst ((+) amount))
 
 
-addIndices :  List ( Indent, String ) ->  List ( Indent, String )
-addIndices = identity
+-- addIndices :  Descriptive -> DescriptiveWithIndices
+-- addIndices = List.indexedMap Tuple.pair
 
 
-flatten : List Descriptive -> List ( Indent, String )
-flatten = List.concat
+-- prependIndices : DescriptiveWithIndices -> Descriptive
+-- prependIndices = List.map (\(idx, (i, str)) -> (i, String.fromInt idx ++ ". " ++ str))
+
+
+indexedList : (a -> Descriptive) -> List a -> Descriptive
+indexedList f =
+    List.indexedMap
+        (\idx ->
+            List.indexedMap
+                (\iidx (indent_, str) ->
+                    if (iidx == 0) then
+                        ( indent_,   String.fromInt idx ++ ". " ++ str )
+                    else
+                        ( indent_, str )
+                )
+                << f
+        )
+    >> List.concat
+
+
+{- flatten : List Descriptive -> List ( Indent, String )
+flatten = List.concat -}
 
 
 def : G.Def -> Descriptive
@@ -59,7 +83,7 @@ def d =
             [ (0, "selection box")
             , (1, "its current values is \"" ++ sd.current ++ "\"")
             , (1, "its possible values are: ")
-            ] ++ (List.map indent <| addIndices <| List.map selectItem sd.values) ++
+            ] ++ (indent <| indexedList selectItem sd.values) ++
             [ (1, case sd.nestAt of
                     Just p -> "nested at property \"" ++ p ++ "\""
                     Nothing -> "not nested at any property"
@@ -70,9 +94,9 @@ def d =
             :: indent (nestShape sd.shape)
         nestDef nd =
             [ (0, "nested panel")
-            [ (1, "by default it is " ++ if nd.expand then "expanded" else "collapsed" ) ]
+            , (1, "by default it is " ++ if nd.expand then "expanded" else "collapsed" )
             , (1, "its inner components are: ")
-            ] ++ (List.map indent <| addIndices <| List.map property nd.children) ++
+            ] ++ (indent <| indexedList property nd.children) ++
             [ (1, case nd.nestAt of
                     Just p -> "nested at JS property \"" ++ p ++ "\""
                     Nothing -> "not nested at any JS property (stored plain in the state)"
@@ -151,14 +175,17 @@ property prop =
             Nothing -> "not nested at any property"
       )
     , (1, if prop.live then "its values are monitored live" else "the changes in the value outside of controls are not tracked")
-    ++ indent (def prop.def)
-    , (1, "the shape of its cell is:" )
-    ] ++ indent (cellShape prop.shape)
+    ] ++ indent (def prop.def)
+    ++
+    ( case prop.shape of
+        Just cs ->
+            (1, "the shape of its cell is:" )
+            ::  indent (cellShape cs)
+        Nothing -> []
+    )
 
 
 encode : G.GenUI -> Descriptive
 encode genui =
-    E.object
-        [ ( "version", E.string genui.version  )
-        , ( "root", E.list property genui.root )
-        ]
+    (0, "GenUI, version " ++ genui.version)
+    :: (indent <| indexedList property genui.root)
