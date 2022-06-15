@@ -47,7 +47,8 @@ let encodeSelectKind
             \(def : { expand : Bool, face: P.Face }) ->
             JSON.object
                 (toMap
-                    { face = encodeFace def.face
+                    { kind = JSON.string "choice"
+                    , face = encodeFace def.face
                     , expand = JSON.bool def.expand
                     })
         , Knob = JSON.object (toMap { kind = JSON.string "knob" })
@@ -84,6 +85,7 @@ let encode
                             , None = JSON.null
                             }
                             prop.property
+                , live = JSON.bool prop.live
                 }
                 // merge
                     { NumInt = \(def : P.IntDef) ->
@@ -195,6 +197,7 @@ let encode
                                                 , None = JSON.null
                                                 }
                                                 def.nestProperty
+                                        , shape = encodeNestShape def.shape
                                         }
                                     )
                                 }

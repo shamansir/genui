@@ -6,6 +6,13 @@ import GenUI as G
 import Json.Decode as D
 
 
+maybeField : String -> a -> D.Decoder a -> D.Decoder a
+maybeField name default decoder =
+    D.field name decoder
+        |> D.maybe
+        |> D.map (Maybe.withDefault default)
+
+
 cellShape : D.Decoder G.CellShape
 cellShape =
     D.map2
@@ -25,7 +32,7 @@ nestShape =
 
 face : D.Decoder G.Face
 face =
-    D.field "face" D.string
+    {- D.field "face" -} D.string
         |> D.andThen
             (\face_ ->
                 case face_ of
@@ -40,7 +47,7 @@ selectItem =
     D.map2
         G.SelectItem
         (D.field "value" D.string)
-        (D.field "face" face)
+        (maybeField "face" G.Default face)
 
 
 selectKind : D.Decoder G.SelectKind
@@ -53,7 +60,7 @@ selectKind =
                         D.map2
                             (\e f -> G.Choice { expand = e, face = f })
                             (D.field "expand" D.bool)
-                            (D.field "face" face)
+                            (maybeField "face" G.Default face)
                     "knob" -> D.succeed G.Knob
                     "switch" -> D.succeed G.Switch
                     _ -> D.fail <| "Unknown face: " ++ kind_
@@ -65,9 +72,7 @@ def kind =
     let
 
         actionDef =
-            D.field "face" face
-                |> D.maybe
-                |> D.map (Maybe.withDefault G.Default)
+           maybeField "face" G.Default face
                 |> D.map G.ActionDef
 
         intDef =
@@ -126,9 +131,7 @@ def kind =
                 (D.field "expand" D.bool)
                 (D.maybe <| D.field "nestAt" D.string)
                 (D.field "shape" nestShape)
-                (D.field "face" face)
-
-
+                (maybeField "face" G.Default face)
 
     in case kind of
 
@@ -154,12 +157,12 @@ property =
         |> D.andThen
             (\kind ->
                 D.map5
-                        G.Property
-                        (D.field "def" <| def kind)
-                        (D.field "name" D.string)
-                        (D.maybe <| D.field "property" D.string)
-                        (D.field "live" D.bool)
-                        (D.maybe <| D.field "shape" cellShape)
+                    G.Property
+                    (D.field "def" <| def kind)
+                    (D.field "name" D.string)
+                    (D.maybe <| D.field "property" D.string)
+                    (D.field "live" D.bool)
+                    (D.maybe <| D.field "shape" cellShape)
             )
 
 
