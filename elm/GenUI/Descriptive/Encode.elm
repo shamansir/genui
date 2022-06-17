@@ -80,8 +80,8 @@ def d =
             (0, "action button with")
             :: indent (face ad.face)
         selectDef sd =
-            [ (0, "selection box")
-            , (1, "its current values is \"" ++ sd.current ++ "\"")
+            [ (0, "it is selection box")
+            , (1, "its current value is \"" ++ sd.current ++ "\"")
             , (1, "its possible values are: ")
             ] ++ (indent <| indexedList selectItem sd.values) ++
             [ (1, case sd.nestAt of

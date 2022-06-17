@@ -48,6 +48,7 @@ let SelectKind =
 let SelectItem =
     { value : Text
     , face : Face
+    , name : Optional Text
     }
 
 

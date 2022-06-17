@@ -128,6 +128,11 @@ selectItem : G.SelectItem -> E.Value
 selectItem si =
     E.object
         [ ( "value", E.string si.value )
+        , ( "name",
+            case si.name of
+                Just n -> E.string n
+                Nothing -> E.null
+          )
         , ( "face", face si.face )
         ]
 

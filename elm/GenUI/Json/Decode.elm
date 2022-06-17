@@ -44,10 +44,11 @@ face =
 
 selectItem : D.Decoder G.SelectItem
 selectItem =
-    D.map2
+    D.map3
         G.SelectItem
         (D.field "value" D.string)
         (maybeField "face" G.Default face)
+        (D.maybe <| D.field "name" D.string)
 
 
 selectKind : D.Decoder G.SelectKind
@@ -118,7 +119,12 @@ def kind =
             D.map5
                 G.SelectDef
                 (D.field "current" D.string)
-                (D.field "values" <| D.list selectItem)
+                (D.field "values" <|
+                    D.oneOf
+                        [ D.list selectItem
+                        , D.map (List.map (\v -> { value = v, face = G.Default, name = Nothing } )) <| D.list D.string
+                        ]
+                )
                 (D.maybe <| D.field "nestAt" D.string)
                 (D.field "kind" selectKind)
                 (D.field "shape" nestShape)

@@ -33,6 +33,7 @@ type SelectKind
 type alias SelectItem =
     { value : String
     , face : Face
+    , name : Maybe String
     }
 
 

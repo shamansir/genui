@@ -64,6 +64,12 @@ let encodeSelectItem
         (toMap
             { face = encodeFace item.face
             , value = JSON.string item.value
+            , name =
+                merge
+                    { Some = \(n : Text) -> JSON.string n
+                    , None = JSON.null
+                    }
+                    item.name
             }
         )
 
