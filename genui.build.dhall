@@ -54,7 +54,7 @@ let select_
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     select name
         { values =
-            List/map Text P.SelectItem (\(t : Text) -> { value = t, face = P.Face.Default } : P.SelectItem) values
+            List/map Text P.SelectItem (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem) values
         , current
         , nestProperty = None Text
         , kind = P.SelectKind.Choice { expand = True, face = P.Face.Default }
