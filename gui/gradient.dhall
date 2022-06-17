@@ -38,6 +38,14 @@ let f_modes =
     [ "disabled", "all"
     ]
 
+let animations =
+    [ "Default animation", "Bernoulli animation", "Random spline animation", "Video mask animation", "detalization", "flow", "color"
+    ]
+
+let codecs =
+    [ "h264_8bit", "h264_10bit", "h265_8bit", "h265_10bit", "webm_vp8", "webm_vp9", "mov_prores"
+    ]
+
 in b.root
     [ b.select_ "product" products "JetBrains"
     , b.select_ "size" resolutions "1920x1080"
@@ -108,5 +116,23 @@ in b.root
     , b.action "undo"
     , b.action "create URL" // b.bindTo "save"
     , b.action "export" // b.bindTo "export_"
-    , b.action "video" // b.bindTo "requestVideo"
+    , b.nest_
+        "video"
+        (b.children
+            [ b.select_ "function" animations "Bernoulli animation"
+                // b.bindTo "animFunc"
+            -- , b.int "fps" { min = +30, max = +60, step = +1, current = +60 }
+            --     // b.bindTo "videoFps"
+            -- , b.int "length" { min = +30, max = +60, step = +1, current = +30 }
+            --     // b.bindTo "videoLength"
+            , b.select_ "codec" codecs "h264_8bit"
+                // b.bindTo "videoCodec"
+            -- , b.toggle_ "invertMask" False
+            --     // b.bindTo "videoInvertMask"
+            , b.int "intensity" { min = +1, max = +20, step = +1, current = +3 }
+                // b.bindTo "videoIntensity"
+            , b.action "request" // b.bindTo "requestVideo"
+            ]
+        )
+        False
     ] : P.GenUI
