@@ -12,9 +12,9 @@ import GenUI.Yaml.Encode as GYaml
 import GenUI.Dhall.Encode as GDhall
 import GenUI.ToGraph as GGraph
 import Graph as Graph
+import Dict exposing (Dict)
 
 import Browser
-import GenUI as G
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -30,7 +30,15 @@ type Output
     | Dhall
 
 
-type alias Model = Maybe (Result String (Output, G.GenUI))
+defaultOutput : Output
+defaultOutput = Descriptive
+
+
+type Model
+    = Empty
+    | ParseError String
+    -- Parsed Output G.GenUI (List (Output, String))
+    | Parsed Output (List (Output, String)) -- (Dict Output String)
 
 
 type Action
@@ -40,13 +48,13 @@ type Action
 
 
 init : Model
-init = Nothing
+init = Empty
 
 
 view : Model -> Html Action
 view model =
     case model of
-        Nothing ->
+        Empty ->
             div
                 [ style "display" "flex"
                 , style "flex-direction" "row"
@@ -62,19 +70,29 @@ view model =
                     , text "Parsing result"
                     ]
                 ]
-        Just (Ok (output, ui)) ->
+        Parsed curOutput outputs ->
             div [ ]
-                [ button [ onClick New ] [ text "New" ]
-                , textarea []
-                    [ text <| case output of
-                        Descriptive -> Descriptive.toString <| Descriptive.encode ui
-                        Json -> Json.encode 4 <| GJson.encode ui
-                        Yaml -> Yaml.toString 4 <| GYaml.encode ui
-                        Dhall -> GDhall.toString <| GDhall.encode ui
-                        Graph -> Graph.toString (always <| Just "*") (always <| Just "*") <| GGraph.toGraph ui
-                    ]
-                ]
-        Just (Err err) ->
+                <| button [ onClick New ] [ text "New" ]
+                :: div []
+                        [ button [ onClick <| SwitchTo Descriptive ] [ text "Descriptive" ]
+                        , button [ onClick <| SwitchTo Json ] [ text "Json" ]
+                        , button [ onClick <| SwitchTo Yaml ] [ text "Yaml" ]
+                        , button [ onClick <| SwitchTo Graph ] [ text "Graph" ]
+                        , button [ onClick <| SwitchTo Dhall ] [ text "Dhall" ]
+                        ]
+                :: List.map
+                    ( \(output, parsed) ->
+                        textarea
+                            [ style "z-index"
+                                <| if output == curOutput then "10000" else "0"
+                            , style "position" "absolute"
+                            , cols 150
+                            , rows 150
+                            ]
+                            [ text parsed ]
+                    )
+                    outputs
+        ParseError err ->
             div [ ]
                 [ button [ onClick New ] [ text "New" ]
                 , text <| "Error: " ++ err
@@ -84,26 +102,32 @@ view model =
 update : Action -> Model -> Model
 update action model =
     let
-        loadOutput : Model -> Output
-        loadOutput =
-            Maybe.map
-                (Result.map Tuple.first >> Result.withDefault Descriptive)
-                >> Maybe.withDefault Descriptive
+        curOutput : Output
+        curOutput =
+            case model of
+                Parsed output _ -> output
+                _ -> defaultOutput
     in
 
     case action of
-        New -> Nothing
+        New -> Empty
         Parse string ->
-            Just
-                <| Result.map (Tuple.pair <| loadOutput model)
-                <| Result.mapError Json.errorToString
-                <| decodeString GJson.decode string
+            case decodeString GJson.decode string of
+                Ok ui ->
+                    Parsed curOutput
+                        [ ( Descriptive, Descriptive.toString <| Descriptive.encode ui )
+                        , ( Json, Json.encode 4 <| GJson.encode ui )
+                        , ( Yaml, Yaml.toString 4 <| GYaml.encode ui )
+                        , ( Dhall, GDhall.toString <| GDhall.encode ui )
+                        , ( Graph, Graph.toString (always <| Just "*") (always <| Just "*") <| GGraph.toGraph ui )
+                        ]
+                Err error ->
+                    ParseError <| Json.errorToString error
         SwitchTo output ->
-            Maybe.map (Result.map <| Tuple.mapFirst <| always output) model
-            {- case model of
-                Just (Ok (_, gui)) ->
-                    Just (Ok (output, gui))
-                _ -> model -}
+            case model of
+                Parsed _ outputs ->
+                    Parsed output outputs
+                _ -> model
 
 
 main : Platform.Program () Model Action

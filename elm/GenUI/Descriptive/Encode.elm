@@ -163,6 +163,10 @@ selectKind sk =
 selectItem : G.SelectItem -> Descriptive
 selectItem si =
     [ (0, "the value: \"" ++ si.value ++ "\"")
+    , (1, "and the name is " ++
+                case si.name of
+                    Just name -> "\"" ++ name ++ "\""
+                    Nothing -> "the same as the value")
     , (1, "its face is:" )
     ] ++ indent (face si.face)
 
