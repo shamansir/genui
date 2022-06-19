@@ -141,6 +141,7 @@ def kind =
 
     in case kind of
 
+        "root" -> D.succeed G.Root
         "action" -> actionDef |> D.map G.Action
         "int" -> intDef |> D.map G.NumInt
         "float" -> floatDef |> D.map G.NumFloat

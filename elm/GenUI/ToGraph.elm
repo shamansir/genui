@@ -8,10 +8,11 @@ import GenUI as G
 toGraph : G.GenUI -> Graph G.Property ()
 toGraph ui =
     let
-        pathToId =
-            List.indexedMap
-                (\idx pos -> pos * (100 ^ idx)) -- FIXME: not very reliable
-            >> List.sum
+        pathToId path =
+            path
+            |> List.indexedMap
+                (\idx pos -> pos * (100 ^ (List.length path - 1 - idx))) -- FIXME: not very reliable
+            |> List.sum
         toParentId path =
             List.take (List.length path - 1) path
                 |> pathToId
@@ -20,12 +21,15 @@ toGraph ui =
             (\path _ prop list ->
                 Graph.Node (pathToId path) prop :: list
             )
-            []
+            [ Graph.Node -1 G.root ]
             ui
         )
         (G.foldWithPath
             (\path _ _ list ->
-                Graph.Edge (toParentId path) (pathToId path) () :: list
+                if (List.length path > 1) then
+                    Graph.Edge (toParentId path) (pathToId path) () :: list
+                else
+                    Graph.Edge -1 (pathToId path) () :: list
             )
             []
             ui)

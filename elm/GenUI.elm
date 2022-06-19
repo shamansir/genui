@@ -61,6 +61,7 @@ type Def
     | Action ActionDef
     | Select SelectDef
     | Nest NestDef
+    | Root
     -- TODO: Gradient
     -- TODO: Progress
 
@@ -80,9 +81,20 @@ type alias GenUI =
     }
 
 
+root : Property
+root =
+    { def = Root
+    , name = "root"
+    , property = Nothing
+    , live = False
+    , shape = Nothing
+    }
+
+
 defToString : Def -> String
 defToString def =
     case def of
+        Root -> "root"
         NumInt _ -> "int"
         NumFloat _ -> "float"
         XY _ -> "xy"
@@ -102,19 +114,23 @@ fold =
 
 
 foldWithPath : (Path -> Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
-foldWithPath f a ui =
+foldWithPath f a =
     let
-        foldProperty path parent prop (index, a_) =
+        foldProperty parentPath parent prop (index, a_) =
             ( index + 1
-            , case prop.def of
-                Nest nestDef ->
-                    f path parent prop
-                        <| Tuple.second
-                        <| List.foldl
-                            (foldProperty (path ++ [ index ]) <| Just prop)
-                            (0, a_)
-                        <| nestDef.children
-                _ -> f path parent prop a_
+            ,
+                let
+                    curPath = parentPath ++ [index]
+                in case prop.def of
+                    Nest nestDef ->
+                        f curPath parent prop
+                            <| Tuple.second
+                            <| List.foldl
+                                (foldProperty curPath <| Just prop)
+                                (0, a_)
+                            <| nestDef.children
+                    _ -> f curPath parent prop a_
             )
     in Tuple.second
-        <| List.foldl (foldProperty [] Nothing) (0, a) ui.root
+        << List.foldl (foldProperty [] Nothing) (0, a)
+        << .root

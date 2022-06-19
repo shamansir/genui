@@ -60,6 +60,7 @@ def d =
                 , ( "face", face nd.face )
                 ]
     in case d of
+        G.Root -> E.object []
         G.NumInt id -> intDef id
         G.NumFloat fd -> floatDef fd
         G.XY xyd -> xyDef xyd
@@ -142,6 +143,7 @@ property prop =
     let
         kind k =
             case k of
+                G.Root -> "root"
                 G.NumInt _ -> "int"
                 G.NumFloat _ -> "float"
                 G.XY _ -> "xy"

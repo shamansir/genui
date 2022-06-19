@@ -106,6 +106,7 @@ def d =
             ++ (1, "the shape of its panel is:" )
             :: indent (nestShape nd.shape)
     in case d of
+        G.Root -> [ (0, "root") ]
         G.NumInt id -> intDef id
         G.NumFloat fd -> floatDef fd
         G.XY xyd -> xyDef xyd
