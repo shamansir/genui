@@ -34,7 +34,7 @@ let encodeNestShape
         (toMap
             { cols = JSON.integer shape.cols
             , rows = JSON.integer shape.rows
-            , pages = JSON.integer shape.rows
+            , pages = JSON.integer shape.pages
             }
         )
 
