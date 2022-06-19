@@ -5,6 +5,9 @@ version : String
 version = "0.2"
 
 
+type alias Path = List Int
+
+
 type Face
     = OfColor String
     | Icon String
@@ -37,7 +40,7 @@ type alias SelectItem =
     }
 
 
-type alias IntDef = {  min : Int, max : Int, step : Int, current : Int }
+type alias IntDef = { min : Int, max : Int, step : Int, current : Int }
 type alias FloatDef = { min : Float, max : Float, step : Float, current : Float }
 type alias XYDef = { x : FloatDef, y : FloatDef }
 type alias ToggleDef = { current : Bool }
@@ -58,6 +61,8 @@ type Def
     | Action ActionDef
     | Select SelectDef
     | Nest NestDef
+    -- TODO: Gradient
+    -- TODO: Progress
 
 
 type alias Property =
@@ -75,4 +80,41 @@ type alias GenUI =
     }
 
 
+defToString : Def -> String
+defToString def =
+    case def of
+        NumInt _ -> "int"
+        NumFloat _ -> "float"
+        XY _ -> "xy"
+        Toggle _ -> "toggle"
+        Color _ -> "color"
+        Textual _ -> "textual"
+        Action _ -> "action"
+        Select _ -> "select"
+        Nest _ -> "nest"
+
+
 -- TODO: fold
+
+fold : (Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
+fold =
+    foldWithPath << always
+
+
+foldWithPath : (Path -> Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
+foldWithPath f a ui =
+    let
+        foldProperty path parent prop (index, a_) =
+            ( index + 1
+            , case prop.def of
+                Nest nestDef ->
+                    f path parent prop
+                        <| Tuple.second
+                        <| List.foldl
+                            (foldProperty (path ++ [ index ]) <| Just prop)
+                            (0, a_)
+                        <| nestDef.children
+                _ -> f path parent prop a_
+            )
+    in Tuple.second
+        <| List.foldl (foldProperty [] Nothing) (0, a) ui.root

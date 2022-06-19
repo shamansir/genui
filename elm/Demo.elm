@@ -5,12 +5,11 @@ import GenUI.Descriptive.Encode as Descriptive
 import Json.Decode as Json
 import Json.Encode as Json
 import Yaml.Encode as Yaml
-import GenUI.Json.Decode as GJson
-import GenUI.Json.Encode as GJson
-import GenUI.Yaml.Decode as GYaml
-import GenUI.Yaml.Encode as GYaml
-import GenUI.Dhall.Encode as GDhall
-import GenUI.ToGraph as GGraph
+import GenUI.Json.Decode as GenUIJson
+import GenUI.Json.Encode as GenUIJson
+import GenUI.Yaml.Encode as GenUIYaml
+import GenUI.Dhall.Encode as GenUIDhall
+import GenUI.ToGraph as GenUIGraph
 import Graph as Graph
 import Dict exposing (Dict)
 
@@ -53,7 +52,22 @@ init = Empty
 
 view : Model -> Html Action
 view model =
-    case model of
+    let
+        modeButton currentMode mode =
+            button
+                [ onClick <| SwitchTo mode
+                , style "background-color" <|
+                    if mode == currentMode then "darkgray"
+                        else "gray"
+                ]
+                [ text <| case mode of
+                    Descriptive -> "Descriptive"
+                    Json -> "Json"
+                    Yaml -> "Yaml"
+                    Graph -> "Graph"
+                    Dhall -> "Dhall"
+                ]
+    in case model of
         Empty ->
             div
                 [ style "display" "flex"
@@ -73,13 +87,9 @@ view model =
         Parsed curOutput outputs ->
             div [ ]
                 <| button [ onClick New ] [ text "New" ]
-                :: div []
-                        [ button [ onClick <| SwitchTo Descriptive ] [ text "Descriptive" ]
-                        , button [ onClick <| SwitchTo Json ] [ text "Json" ]
-                        , button [ onClick <| SwitchTo Yaml ] [ text "Yaml" ]
-                        , button [ onClick <| SwitchTo Graph ] [ text "Graph" ]
-                        , button [ onClick <| SwitchTo Dhall ] [ text "Dhall" ]
-                        ]
+                :: (div []
+                        <| List.map (modeButton curOutput) [ Descriptive, Json, Yaml, Graph, Dhall ]
+                   )
                 :: List.map
                     ( \(output, parsed) ->
                         textarea
@@ -112,14 +122,14 @@ update action model =
     case action of
         New -> Empty
         Parse string ->
-            case decodeString GJson.decode string of
+            case decodeString GenUIJson.decode string of
                 Ok ui ->
                     Parsed curOutput
                         [ ( Descriptive, Descriptive.toString <| Descriptive.encode ui )
-                        , ( Json, Json.encode 4 <| GJson.encode ui )
-                        , ( Yaml, Yaml.toString 4 <| GYaml.encode ui )
-                        , ( Dhall, GDhall.toString <| GDhall.encode ui )
-                        , ( Graph, Graph.toString (always <| Just "*") (always <| Just "*") <| GGraph.toGraph ui )
+                        , ( Json, Json.encode 4 <| GenUIJson.encode ui )
+                        , ( Yaml, Yaml.toString 4 <| GenUIYaml.encode ui )
+                        , ( Dhall, GenUIDhall.toString <| GenUIDhall.encode ui )
+                        , ( Graph, Graph.toString GenUIGraph.nodeToString GenUIGraph.edgeToString <| GenUIGraph.toGraph ui )
                         ]
                 Err error ->
                     ParseError <| Json.errorToString error
