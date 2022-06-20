@@ -116,5 +116,21 @@ in b.root
     , b.action "undo"
     , b.action "create URL" // b.bindTo "save"
     , b.action "export" // b.bindTo "export_"
-    , b.action "video" // b.bindTo "requestVideo"
+    , b.nest_
+        "video"
+        (b.children
+            [ b.select_ "function" animations "Bernoulli animation"
+                // b.bindTo "animFunc"
+            , b.text_ "fps" "60" // b.bindTo "videoFps"
+            , b.text_ "length" "30" // b.bindTo "videoLength"
+            , b.text_ "mask" "" // b.bindTo "maskFilename"
+            , b.toggle_ "invertMask" False // b.bindTo "videoInvertMask"
+            , b.select_ "codec" codecs "h264_8bit"
+                // b.bindTo "videoCodec"
+            , b.float "intensity" { min = 0.1, max = 10.0, step = 0.05, current = 3.0 }
+                // b.bindTo "videoIntensity"
+            , b.action "request" // b.bindTo "requestVideo"
+            ]
+        )
+        False
     ] : P.GenUI
