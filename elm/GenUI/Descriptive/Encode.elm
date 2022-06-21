@@ -1,4 +1,4 @@
-module GenUI.Descriptive.Encode exposing (..)
+module GenUI.Descriptive.Encode exposing (Descriptive, encode, toString)
 
 
 import GenUI as G

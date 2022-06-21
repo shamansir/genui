@@ -1,4 +1,4 @@
-module GenUI.Json.Decode exposing (..)
+module GenUI.Json.Decode exposing (decode)
 
 
 import GenUI as G

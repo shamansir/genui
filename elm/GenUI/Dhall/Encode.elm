@@ -1,4 +1,4 @@
-module GenUI.Dhall.Encode exposing (..)
+module GenUI.Dhall.Encode exposing (Dhall, encode, toString)
 
 
 import GenUI as G

@@ -1,4 +1,13 @@
-module GenUI exposing (..)
+module GenUI exposing
+    ( GenUI
+    , version
+    , Path, Property, Def(..)
+    , Face(..), NestShape, CellShape, SelectKind(..)
+    , SelectItem
+    , IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef
+    , fold, foldWithPath
+    , root, defToString
+    )
 
 
 version : String

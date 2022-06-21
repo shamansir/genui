@@ -1,4 +1,4 @@
-module GenUI.ToGraph exposing (..)
+module GenUI.ToGraph exposing (toGraph, nodeToString, edgeToString)
 
 import Graph exposing (Graph)
 
