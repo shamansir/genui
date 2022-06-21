@@ -107,11 +107,11 @@ in b.root
                 // b.bindTo "flatLinesNum"
             , b.float "dither" { min = 0.0, max = 1.0, step = 0.05, current = 0.0 }
                 // b.bindTo "ditherStrength"
-            , b.toggle_ "logo" True
-                // b.bindTo "logoShown"
             ]
         )
         False
+    , b.toggle_ "logo" True
+        // b.bindTo "logoShown"
 
     , b.action "undo"
     , b.action "create URL" // b.bindTo "save"
