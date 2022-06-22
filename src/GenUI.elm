@@ -41,7 +41,7 @@ module GenUI exposing
 
 {-| Current version, to be accessible from code. -}
 version : String
-version = "0.2"
+version = "1.0.0"
 
 
 {-| A path to the property in the tree. So, all the first-level properties have the path of `[0]`.

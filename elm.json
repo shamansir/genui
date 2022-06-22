@@ -4,7 +4,7 @@
     "name": "shamansir/genui",
     "summary": "The language for definining simple interfaces",
     "license": "BSD-3-Clause",
-    "version": "0.2.0",
+    "version": "1.0.0",
     "exposed-modules": [
         "GenUI",
         "GenUI.Descriptive.Encode",
