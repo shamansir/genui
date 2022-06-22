@@ -1,8 +1,13 @@
 module GenUI.Descriptive.Encode exposing (Descriptive, encode, toString)
 
 
-import GenUI as G
+{-| Converting to Descriptive representation.
 
+@docs Descriptive, encode, toString
+-}
+
+
+import GenUI as G
 
 type alias Indent = Int
 
@@ -10,6 +15,7 @@ type alias Indent = Int
 type alias Index = Int
 
 
+{-| -}
 type alias Descriptive = List ( Indent, String )
 type alias DescriptiveWithIndices = List ( Index, ( Indent, String ) )
 
@@ -190,12 +196,14 @@ property prop =
     )
 
 
+{-| Encode UI to descriptive representation. -}
 encode : G.GenUI -> Descriptive
 encode genui =
     (0, "GenUI, version " ++ genui.version)
     :: (indent <| indexedList property genui.root)
 
 
+{-| Convert descriptive representation to string. -}
 toString : Descriptive -> String
 toString =
     List.map (\(indent_, str) -> (String.fromList <| List.repeat indent_ ' ') ++ str )

@@ -1,6 +1,12 @@
 module GenUI.Yaml.Decode exposing (decode)
 
 
+{-| Decoding from YAML
+
+@docs decode
+-}
+
+
 import GenUI as G
 
 import Yaml.Decode as D
@@ -173,6 +179,7 @@ property =
             )
 
 
+{-| YAML Decoder -}
 decode : D.Decoder G.GenUI
 decode =
     D.map2

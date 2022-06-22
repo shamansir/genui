@@ -1,6 +1,12 @@
 module GenUI.Json.Encode exposing (encode)
 
 
+{-| Encoding to JSON
+
+@docs encode
+-}
+
+
 import GenUI as G
 import Json.Encode as E
 
@@ -164,6 +170,7 @@ property prop =
         ]
 
 
+{-| JSON encoder -}
 encode : G.GenUI -> E.Value
 encode genui =
     E.object

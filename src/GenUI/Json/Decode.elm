@@ -1,10 +1,14 @@
 module GenUI.Json.Decode exposing (decode)
 
 
+{-| Decoding from JSON
+
+@docs decode
+-}
+
 import GenUI as G
 
 import Json.Decode as D
-
 
 maybeField : String -> a -> D.Decoder a -> D.Decoder a
 maybeField name default decoder =
@@ -173,6 +177,7 @@ property =
             )
 
 
+{-| JSON Decoder -}
 decode : D.Decoder G.GenUI
 decode =
     D.map2

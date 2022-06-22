@@ -1,10 +1,22 @@
 module GenUI.ToGraph exposing (toGraph, nodeToString, edgeToString)
 
+{-| Converting to Graph.
+
+@docs toGraph, nodeToString, edgeToString
+
+-}
+
 import Graph exposing (Graph)
 
 import GenUI as G
 
 
+
+{-| Convert GenUI structure to Graph where nodes represent the controls and folders and edges connect child controls to the folders.
+
+The root node has the ID of `-1`,  the ID for other nodes is calculated based on their parent and the position inside.
+
+-}
 toGraph : G.GenUI -> Graph G.Property ()
 toGraph ui =
     let
@@ -22,8 +34,7 @@ toGraph ui =
                 Graph.Node (pathToId path) prop :: list
             )
             [ Graph.Node -1 G.root ]
-            ui
-        )
+            ui)
         (G.foldWithPath
             (\path _ _ list ->
                 if (List.length path > 1) then
@@ -37,11 +48,13 @@ toGraph ui =
         (G.fold ) -}
 
 
+{-| The short representation of the property. -}
 nodeToString : G.Property -> Maybe String
 nodeToString prop =
     Just <| prop.name ++ " :: " ++ G.defToString prop.def
 
 
 
+{-| The short representation of the edge. -}
 edgeToString : () -> Maybe String
 edgeToString _ = Just "*"

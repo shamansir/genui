@@ -1,6 +1,12 @@
 module GenUI.Yaml.Encode exposing (encode)
 
 
+{-| Encoding to YAML
+
+@docs encode
+-}
+
+
 import GenUI as G
 import Yaml.Encode as E
 
@@ -164,6 +170,7 @@ property prop =
         ]
 
 
+{-| YAML encoder -}
 encode : G.GenUI -> E.Encoder
 encode genui =
     E.record
