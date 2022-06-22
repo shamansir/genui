@@ -1,0 +1,32 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://shamansir.github.io/genui.schema.json",
+    "title": "GenUI",
+    "description": "Generative UI definition",
+    "type": "object",
+    "properties": {
+      "version": {
+        "type": "string"
+      },
+      "root": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties":
+                { "kind":
+                    { "enum": [ "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select" ] }
+                , "name": { "type": "string" }
+                , "shape":
+                    { "type": "object"
+                    , "properties": { "cols" : { "type": "integer" }, "rows": "integer" }
+                    , "required": [ "cols", "rows" ]
+                    }
+                , "property": { "type": "string" }
+                , "live": { "type": "boolean" }
+                },
+            "required": [ "kind", "name", "live" ]
+        }
+      }
+    },
+    "required": [ "version", "root" ]
+  }

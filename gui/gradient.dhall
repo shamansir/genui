@@ -112,7 +112,6 @@ in b.root
         False
     , b.toggle_ "logo" True
         // b.bindTo "logoShown"
-
     , b.action "undo"
     , b.action "create URL" // b.bindTo "save"
     , b.action "export" // b.bindTo "export_"
