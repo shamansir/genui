@@ -10,21 +10,21 @@ For an example of such definition, see [`gradient.dhall`](https://github.com/sha
 
 `Elm` version may:
 
-    * Produce
-        * `JSON` definition;
-        * `YAML` definition;
-        * _Descriptive_ definition;
-        * (soon) `DHALL` definition;
-        * A graph of controls with folders as branches and controls as nodes;
-    * Parse
-        * `JSON` definition;
-        * `YAML` definition;
+* Produce
+    * `JSON` definition;
+    * `YAML` definition;
+    * _Descriptive_ definition;
+    * (soon) `DHALL` definition;
+    * A graph of controls with folders as branches and controls as nodes;
+* Parse
+    * `JSON` definition;
+    * `YAML` definition;
 
-The JSON variant is considered as the specification of the language schema. Also, (JSON schema)[https://json-schema.org/] soon to be added to test the produced definitions on similarity.
+The JSON variant is considered as the specification of the language schema. Also, [JSON schema](https://json-schema.org/) soon to be added to test the produced definitions on similarity.
 
 # Generate example
 
-Install `dhall-to-json` and `dhall-to-yaml`. _([How to install](https://docs.dhall-lang.org/tutorials/Getting-started_Generate-JSON-or-YAML.html#installation))_
+Install `dhall-to-json` and `dhall-to-yaml`. ([How to install](https://docs.dhall-lang.org/tutorials/Getting-started_Generate-JSON-or-YAML.html#installation))
 
 And run:
 
