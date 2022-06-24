@@ -22,7 +22,7 @@
                     { "enum": [ "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select" ] }
                 , "name": { "type": "string" }
                 , "shape": { "$ref": "#/$defs/cell_shape" }
-                , "property": { "type": "string" }
+                , "property": { "oneOf": [ { "type": "string" }, { "type": "null" } ] }
                 , "live": { "type": "boolean" }
                 },
             "required": [ "kind", "name", "def" ],
@@ -162,7 +162,7 @@
         "action_def": {
             "type": "object",
             "properties":
-                { "face": { "type": "boolean" }
+                { "face": { "$ref": "#/$defs/face" }
                 }
         },
         "nest_def": {
@@ -202,23 +202,33 @@
                 },
             "required": [ "values", "current" ]
         },
-        "cell_shape": {
-            "type": "object",
-            "properties":
-                { "cols": { "type": "integer" }
-                , "rows": { "type": "integer" }
+        "cell_shape":
+            { "oneOf":
+                [ {
+                    "type": "object",
+                    "properties":
+                        { "cols": { "type": "integer" }
+                        , "rows": { "type": "integer" }
+                        },
+                    "required": [ "cols", "rows" ]
                 },
-            "required": [ "cols", "rows" ]
-        },
-        "nest_shape": {
-            "type": "object",
-            "properties":
-                { "cols": { "type": "integer" }
-                , "rows": { "type": "integer" }
-                , "pages": { "type": "integer" }
+                { "type": "null" }
+                ]
+            },
+        "nest_shape":
+            { "oneOf":
+                [ {
+                    "type": "object",
+                    "properties":
+                        { "cols": { "type": "integer" }
+                        , "rows": { "type": "integer" }
+                        , "pages": { "type": "integer" }
+                        },
+                    "required": [ "cols", "rows", "pages" ]
                 },
-            "required": [ "cols", "rows", "pages" ]
-        },
+                { "type": "null" }
+                ]
+            },
         "face": {
             "oneOf": [
                 { "type": "object"
