@@ -10,23 +10,176 @@
       },
       "root": {
         "type": "array",
-        "items": {
+        "items": { "$ref": "#/$defs/property" }
+      }
+    },
+    "required": [ "version", "root" ],
+    "$defs": {
+        "property": {
             "type": "object",
             "properties":
                 { "kind":
                     { "enum": [ "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select" ] }
                 , "name": { "type": "string" }
-                , "shape":
-                    { "type": "object"
-                    , "properties": { "cols" : { "type": "integer" }, "rows": "integer" }
-                    , "required": [ "cols", "rows" ]
-                    }
+                , "shape":{ "$ref": "#/$defs/cell_shape" }
                 , "property": { "type": "string" }
                 , "live": { "type": "boolean" }
                 },
             "required": [ "kind", "name", "live" ]
+        },
+        "cell_shape": {
+            "type": "object",
+            "properties":
+                { "cols": { "type": "integer" }
+                , "rows": { "type": "integer" }
+                }
+        },
+        "nest_shape": {
+            "type": "object",
+            "properties":
+                { "cols": { "type": "integer" }
+                , "rows": { "type": "integer" }
+                , "pages": { "type": "integer" }
+                }
+        },
+        "face": {
+            "oneOf": [
+                { "type": "object"
+                , "properties":
+                    { "face": { "const": "color" }
+                    , "color": { "type": "string" }
+                    }
+                },
+                { "type": "object"
+                , "properties":
+                    { "face": { "const": "icon" }
+                    , "icon": { "type": "string" }
+                    }
+                },
+                { "type": "null" }
+            ]
+        },
+        "select_kind": {
+            "oneOf": [
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "choice" }
+                    , "face": { "$ref": "#/$defs/face" }
+                    , "expand": { "type": "boolean" }
+                    }
+                },
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "knob" }
+                    }
+                },
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "switch" }
+                    }
+                }
+            ]
+        },
+        "select_item": {
+            "oneOf": [
+                { "type": "string" },
+                { "type": "object"
+                , "properties":
+                    { "value": { "type": "string" }
+                    , "face": { "$ref": "#/$defs/face" }
+                    , "name":
+                        { "oneOf":
+                            [ { "type": "string" }
+                            , { "type": "null" }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "int_def": {
+            "type": "object",
+            "properties":
+                { "min": { "type": "integer" }
+                , "max": { "type": "integer" }
+                , "step": { "type": "integer" }
+                , "current": { "type": "integer" }
+                }
+        },
+        "float_def": {
+            "type": "object",
+            "properties":
+                { "min": { "type": "number" }
+                , "max": { "type": "number" }
+                , "step": { "type": "number" }
+                , "current": { "type": "number" }
+                }
+        },
+        "xy_def": {
+            "type": "object",
+            "properties":
+                { "x": { "$ref": "#/$defs/float_def" }
+                , "y": { "$ref": "#/$defs/float_def" }
+                }
+        },
+        "color_def": {
+            "type": "object",
+            "properties":
+                { "current": { "type": "string" }
+                }
+        },
+        "textual_def": {
+            "type": "object",
+            "properties":
+                { "current": { "type": "string" }
+                }
+        },
+        "toggle_def": {
+            "type": "object",
+            "properties":
+                { "current": { "type": "boolean" }
+                }
+        },
+        "action_def": {
+            "type": "object",
+            "properties":
+                { "face": { "type": "boolean" }
+                }
+        },
+        "nest_def": {
+            "type": "object",
+            "properties":
+                { "expand": { "type": "boolean" }
+                , "face": { "$ref": "#/$defs/face" }
+                , "shape": { "$ref": "#/$defs/nest_shape" }
+                , "children" :
+                    { "type": "array"
+                    , "items": { "$ref": "#/$defs/property" }
+                    }
+                , "nestAt":
+                    { "oneOf":
+                        [ { "type": "string" }, { "type": "null" }
+                        ]
+                    }
+                }
+        },
+        "select_def": {
+            "type": "object",
+            "properties":
+                { "current": { "type": "string" }
+                , "face": { "$ref": "#/$defs/face" }
+                , "kind": { "$ref": "#/$defs/select_kind" }
+                , "shape": { "$ref": "#/$defs/nest_shape" }
+                , "values" :
+                    { "type": "array"
+                    , "items": { "$ref": "#/$defs/select_item" }
+                    }
+                , "nestAt":
+                    { "oneOf":
+                        [ { "type": "string" }, { "type": "null" }
+                        ]
+                    }
+                }
         }
-      }
-    },
-    "required": [ "version", "root" ]
+    }
   }
