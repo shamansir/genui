@@ -1,5 +1,5 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://shamansir.github.io/genui.schema.json",
     "title": "GenUI",
     "description": "Generative UI definition",
@@ -25,13 +25,12 @@
                 , "property": { "type": "string" }
                 , "live": { "type": "boolean" }
                 },
-            "required": [ "kind", "name", "live" ],
+            "required": [ "kind", "name", "def" ],
             "allOf": [
                 {
                     "if": {
                         "properties": { "kind": { "const": "int" } },
                         "required": [ "kind" ]
-
                     },
                     "then": {
                         "properties": { "def": { "$ref": "#/$defs/int_def" } }
@@ -111,76 +110,6 @@
                 }
               ]
         },
-        "cell_shape": {
-            "type": "object",
-            "properties":
-                { "cols": { "type": "integer" }
-                , "rows": { "type": "integer" }
-                }
-        },
-        "nest_shape": {
-            "type": "object",
-            "properties":
-                { "cols": { "type": "integer" }
-                , "rows": { "type": "integer" }
-                , "pages": { "type": "integer" }
-                }
-        },
-        "face": {
-            "oneOf": [
-                { "type": "object"
-                , "properties":
-                    { "face": { "const": "color" }
-                    , "color": { "type": "string" }
-                    }
-                },
-                { "type": "object"
-                , "properties":
-                    { "face": { "const": "icon" }
-                    , "icon": { "type": "string" }
-                    }
-                },
-                { "type": "null" }
-            ]
-        },
-        "select_kind": {
-            "oneOf": [
-                { "type": "object"
-                , "properties":
-                    { "kind": { "const": "choice" }
-                    , "face": { "$ref": "#/$defs/face" }
-                    , "expand": { "type": "boolean" }
-                    }
-                },
-                { "type": "object"
-                , "properties":
-                    { "kind": { "const": "knob" }
-                    }
-                },
-                { "type": "object"
-                , "properties":
-                    { "kind": { "const": "switch" }
-                    }
-                }
-            ]
-        },
-        "select_item": {
-            "oneOf": [
-                { "type": "string" },
-                { "type": "object"
-                , "properties":
-                    { "value": { "type": "string" }
-                    , "face": { "$ref": "#/$defs/face" }
-                    , "name":
-                        { "oneOf":
-                            [ { "type": "string" }
-                            , { "type": "null" }
-                            ]
-                        }
-                    }
-                }
-            ]
-        },
         "int_def": {
             "type": "object",
             "properties":
@@ -188,7 +117,8 @@
                 , "max": { "type": "integer" }
                 , "step": { "type": "integer" }
                 , "current": { "type": "integer" }
-                }
+                },
+            "required": [ "min", "max", "current", "step" ]
         },
         "float_def": {
             "type": "object",
@@ -197,32 +127,37 @@
                 , "max": { "type": "number" }
                 , "step": { "type": "number" }
                 , "current": { "type": "number" }
-                }
+                },
+            "required": [ "min", "max", "current", "step" ]
         },
         "xy_def": {
             "type": "object",
             "properties":
                 { "x": { "$ref": "#/$defs/float_def" }
                 , "y": { "$ref": "#/$defs/float_def" }
-                }
+                },
+            "required": [ "x", "y" ]
         },
         "color_def": {
             "type": "object",
             "properties":
                 { "current": { "type": "string" }
-                }
+                },
+            "required": [ "current" ]
         },
         "textual_def": {
             "type": "object",
             "properties":
                 { "current": { "type": "string" }
-                }
+                },
+            "required": [ "current" ]
         },
         "toggle_def": {
             "type": "object",
             "properties":
                 { "current": { "type": "boolean" }
-                }
+                },
+            "required": [ "current" ]
         },
         "action_def": {
             "type": "object",
@@ -245,7 +180,8 @@
                         [ { "type": "string" }, { "type": "null" }
                         ]
                     }
-                }
+                },
+            "required": [ "children" ]
         },
         "select_def": {
             "type": "object",
@@ -263,7 +199,86 @@
                         [ { "type": "string" }, { "type": "null" }
                         ]
                     }
+                },
+            "required": [ "values", "current" ]
+        },
+        "cell_shape": {
+            "type": "object",
+            "properties":
+                { "cols": { "type": "integer" }
+                , "rows": { "type": "integer" }
+                },
+            "required": [ "cols", "rows" ]
+        },
+        "nest_shape": {
+            "type": "object",
+            "properties":
+                { "cols": { "type": "integer" }
+                , "rows": { "type": "integer" }
+                , "pages": { "type": "integer" }
+                },
+            "required": [ "cols", "rows", "pages" ]
+        },
+        "face": {
+            "oneOf": [
+                { "type": "object"
+                , "properties":
+                    { "face": { "const": "color" }
+                    , "color": { "type": "string" }
+                    }
+                , "required": [ "face", "color" ]
+                },
+                { "type": "object"
+                , "properties":
+                    { "face": { "const": "icon" }
+                    , "icon": { "type": "string" }
+                    }
+                , "required": [ "face", "icon" ]
+                },
+                { "type": "null" }
+            ]
+        },
+        "select_kind": {
+            "oneOf": [
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "choice" }
+                    , "face": { "$ref": "#/$defs/face" }
+                    , "expand": { "type": "boolean" }
+                    }
+                , "required": [ "kind", "expand" ]
+                },
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "knob" }
+                    }
+                , "required": [ "kind" ]
+                },
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "switch" }
+                    }
+                , "required": [ "kind" ]
                 }
+            ]
+        },
+        "select_item": {
+            "oneOf": [
+                { "type": "string" },
+                { "type": "object"
+                , "properties":
+                    { "value": { "type": "string" }
+                    , "face": { "$ref": "#/$defs/face" }
+                    , "name":
+                        { "oneOf":
+                            [ { "type": "string" }
+                            , { "type": "null" }
+                            ]
+                        }
+                    }
+                , "required": [ "value" ]
+                }
+            ]
         }
     }
   }
