@@ -21,11 +21,95 @@
                 { "kind":
                     { "enum": [ "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select" ] }
                 , "name": { "type": "string" }
-                , "shape":{ "$ref": "#/$defs/cell_shape" }
+                , "shape": { "$ref": "#/$defs/cell_shape" }
                 , "property": { "type": "string" }
                 , "live": { "type": "boolean" }
                 },
-            "required": [ "kind", "name", "live" ]
+            "required": [ "kind", "name", "live" ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "int" } },
+                        "required": [ "kind" ]
+
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/int_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "float" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/float_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "xy" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/xy_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "color" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/color_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "text" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/textual_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "toggle" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/toggle_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "action" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/action_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "select" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/select_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "nest" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/nest_def" } }
+                    }
+                }
+              ]
         },
         "cell_shape": {
             "type": "object",
