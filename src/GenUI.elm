@@ -2,6 +2,7 @@ module GenUI exposing
     ( GenUI
     , version
     , Path, Property, Def(..)
+    , Theme(..), Url(..), Icon, Color(..), Gradient(..)
     , Face(..), NestShape, CellShape, SelectKind(..)
     , SelectItem
     , IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef
@@ -41,7 +42,7 @@ module GenUI exposing
 
 {-| Current version, to be accessible from code. -}
 version : String
-version = "1.0.0"
+version = "2.0.0"
 
 
 {-| A path to the property in the tree. So, all the first-level properties have the path of `[0]`.
@@ -49,10 +50,29 @@ The second property that lies in the folder at index `3` has a path `[0, 3, 1]`.
 type alias Path = List Int
 
 
+{-| Icon theme: Light or Dark -}
+type Theme
+    = Dark
+    | Light
+
+
+{-| Icon URL: Remote or local -}
+type Url
+    = Local String
+    | Remote String
+
+
+{-| Icon: its theme and URL -}
+type alias Icon =
+    { theme : Theme
+    , url : Url
+    }
+
+
 {-| The face of the UI cell, used for Tron UI. -}
 type Face
     = OfColor String
-    | Icon String
+    | OfIcon (List Icon)
     | Default
 
 
@@ -73,7 +93,7 @@ type alias CellShape =
 
 {-| How the select switch looks and acts, used for Tron UI. -}
 type SelectKind
-    = Choice { expand : Bool, face : Face }
+    = Pages { expand : Bool, face : Face, shape : NestShape, page : Int }
     | Knob
     | Switch
 
@@ -86,6 +106,16 @@ type alias SelectItem =
     }
 
 
+type Color
+    = Rgba { red : Float, green : Float, blue : Float, alpha : Float }
+    | Hsla { hue : Float, lighness : Float, alpha : Float }
+
+
+type Gradient
+    = Linear (List { color : Color, position : Float })
+    | TwoDimensional (List { color : Color, position : { x : Float, y : Float } })
+
+
 {-| -}
 type alias IntDef = { min : Int, max : Int, step : Int, current : Int }
 {-| -}
@@ -95,20 +125,25 @@ type alias XYDef = { x : FloatDef, y : FloatDef }
 {-| -}
 type alias ToggleDef = { current : Bool }
 {-| -}
-type alias ColorDef = { current : String }
+type alias ColorDef = { current : Color }
 {-| -}
 type alias TextualDef = { current : String }
 {-| -}
 type alias ActionDef = { face : Face }
 {-| -}
-type alias SelectDef = { current : String, values : List SelectItem, nestAt : Maybe String, kind : SelectKind, shape : NestShape }
+type alias SelectDef = { current : String, values : List SelectItem, nestAt : Maybe String, kind : SelectKind }
 {-| -}
 type alias NestDef = { children : List Property, expand : Bool, nestAt : Maybe String, shape : NestShape, face : Face }
+{-| -}
+type alias ProgressDef = { api : Url }
+{-| -}
+type alias GradientDef = { current : Gradient }
 
 
 {-| -}
 type Def
-    = NumInt IntDef
+    = Ghost
+    | NumInt IntDef
     | NumFloat FloatDef
     | XY XYDef
     | Toggle ToggleDef
@@ -117,7 +152,9 @@ type Def
     | Action ActionDef
     | Select SelectDef
     | Nest NestDef
-    | Root
+    | Gradient GradientDef
+    | Progress ProgressDef
+
     -- TODO: Gradient
     -- TODO: Progress
 
@@ -143,7 +180,7 @@ type alias GenUI =
 Don't use it anywhere in the tree except as in the root. -}
 root : Property
 root =
-    { def = Root
+    { def = Ghost
     , name = "root"
     , property = Nothing
     , live = False
@@ -155,7 +192,7 @@ root =
 defToString : Def -> String
 defToString def =
     case def of
-        Root -> "root"
+        Ghost -> "ghost"
         NumInt _ -> "int"
         NumFloat _ -> "float"
         XY _ -> "xy"
@@ -165,6 +202,8 @@ defToString def =
         Action _ -> "action"
         Select _ -> "select"
         Nest _ -> "nest"
+        Gradient _ -> "gradient"
+        Progress _ -> "progress"
 
 
 {-| Fold the interface structure from top to bottom. -}

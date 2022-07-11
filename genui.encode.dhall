@@ -195,6 +195,7 @@ let encode
                                 , def = JSON.object
                                     (toMap
                                         { current = JSON.string def.current
+                                        {- , expand = JSON.bool def.expand -}
                                         , values = JSON.array (List/map P.SelectItem JSON.Type encodeSelectItem def.values)
                                         , kind = encodeSelectKind def.kind
                                         , nestAt =
