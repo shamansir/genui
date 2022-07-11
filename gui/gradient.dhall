@@ -26,7 +26,7 @@ let distributions =
     [ "truncated_normal", "normal", "untruncated_normal", "uniform"
     ]
 
-let achitectures =
+let architectures =
     [ "perceptron", "densenet", "resnet", "resnet_concat", "chain", "plexus"
     ]
 
@@ -71,7 +71,7 @@ in b.root
             , b.int "variance" { min = +1, max = +10000, step = +1, current = +2000 }
             , b.select_ "mode" modes "fan_in"
             , b.select_ "distribution" distributions "truncated_normal"
-            , b.select_ "achitecture" achitectures "densenet"
+            , b.select_ "architecture" architectures "densenet"
             , b.select_ "activation" activations "sigmoid"
             , b.select_ "outActivation" activations "sigmoid"
             , b.select_ "fMode" f_modes "disabled"
