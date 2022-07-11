@@ -26,11 +26,24 @@ The JSON variant is considered as the specification of the language schema. Also
 
 Install `dhall-to-json` and `dhall-to-yaml`. ([How to install](https://docs.dhall-lang.org/tutorials/Getting-started_Generate-JSON-or-YAML.html#installation))
 
+For MacOS, it is:
+
+`brew install dhall-to-json dhall-to-yaml`
+
 And run:
 
 ```bash
 sh ./generate-yaml.sh gradient
 sh ./generate-json.sh gradient
+```
+
+# Test according to schema
+
+`npm install -g ajv-cli` or `brew install ajv`
+
+```bash
+sh ./test-json.sh gradient
+sh ./test-json.sh gradient.dev
 ```
 
 # Demo
