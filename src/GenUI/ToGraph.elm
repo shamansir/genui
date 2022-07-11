@@ -11,6 +11,26 @@ import Graph exposing (Graph)
 import GenUI as G
 
 
+pathToId : List Int -> Int
+pathToId path =
+    let
+        pathLen = List.length path
+    in path
+        |> List.indexedMap
+            (\idx pos -> pos * (100 ^ (pathLen - 1 - idx))) -- FIXME: not very reliable
+        |> List.sum
+
+
+toParentId : List Int -> Int
+toParentId path =
+    let
+        pathLen = List.length path
+    in
+        List.take
+            (pathLen - 1)
+            path
+            |> pathToId
+
 
 {-| Convert GenUI structure to Graph where nodes represent the controls and folders and edges connect child controls to the folders.
 
@@ -19,16 +39,7 @@ The root node has the ID of `-1`,  the ID for other nodes is calculated based on
 -}
 toGraph : G.GenUI -> Graph G.Property ()
 toGraph ui =
-    let
-        pathToId path =
-            path
-            |> List.indexedMap
-                (\idx pos -> pos * (100 ^ (List.length path - 1 - idx))) -- FIXME: not very reliable
-            |> List.sum
-        toParentId path =
-            List.take (List.length path - 1) path
-                |> pathToId
-    in Graph.fromNodesAndEdges
+    Graph.fromNodesAndEdges
         (G.foldWithPath
             (\path _ prop list ->
                 Graph.Node (pathToId path) prop :: list
