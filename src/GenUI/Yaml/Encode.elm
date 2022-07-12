@@ -39,7 +39,7 @@ def d =
                 ]
         colorDef cd =
             E.record
-                [ ( "current", E.string cd.current )
+                [ ( "current", color cd.current )
                 ]
         textDef cd =
             E.record
@@ -55,7 +55,6 @@ def d =
                 , ( "kind", selectKind sd.kind )
                 , ( "values", E.list selectItem sd.values )
                 , ( "current", E.string sd.current )
-                , ( "shape", nestShape sd.shape )
                 ]
         nestDef nd =
             E.record
@@ -65,8 +64,29 @@ def d =
                 , ( "shape", nestShape nd.shape )
                 , ( "face", face nd.face )
                 ]
+        gradientDef gd =
+            E.record
+                [
+                    ( "current"
+                    , case gd.current of
+                        G.Linear linear ->
+                            E.record
+                                [ ( "type", E.string "linear" )
+                                , ( "stops", E.list gstop1 linear )
+                                ]
+                        G.TwoDimensional twod ->
+                            E.record
+                                [ ( "type", E.string "2d" )
+                                , ( "stops", E.list gstop2 twod )
+                                ]
+                    )
+                ]
+        progressDef pd =
+            E.record
+                [ ( "api", url pd.api )
+                ]
     in case d of
-        G.Root -> E.record []
+        G.Ghost -> E.record []
         G.NumInt id -> intDef id
         G.NumFloat fd -> floatDef fd
         G.XY xyd -> xyDef xyd
@@ -76,6 +96,8 @@ def d =
         G.Action ad -> actionDef ad
         G.Select sd -> selectDef sd
         G.Nest nd -> nestDef nd
+        G.Gradient gd -> gradientDef gd
+        G.Progress pd -> progressDef pd
 
 
 cellShape : G.CellShape -> E.Encoder
@@ -95,18 +117,83 @@ nestShape ns =
         ]
 
 
+color : G.Color -> E.Encoder
+color c =
+    case c of
+        G.Rgba rgba ->
+            E.record
+                [ ( "r", E.float rgba.red )
+                , ( "g", E.float rgba.green )
+                , ( "b", E.float rgba.blue )
+                , ( "a", E.float rgba.alpha )
+                ]
+        G.Hsla hsla ->
+            E.record
+                [ ( "h", E.float hsla.hue )
+                , ( "s", E.float hsla.saturation )
+                , ( "l", E.float hsla.lightness )
+                , ( "a", E.float hsla.alpha )
+                ]
+
+
+icon : G.Icon -> E.Encoder
+icon i =
+    E.record
+        [ ( "url", url i.url )
+        , ( "theme", theme i.theme )
+        ]
+
+
+url : G.Url -> E.Encoder
+url u =
+    case u of
+        G.Local local ->
+            E.record
+                [ ( "type", E.string "local" )
+                , ( "value", E.string local )
+                ]
+        G.Remote remote ->
+            E.record
+                [ ( "type", E.string "remote" )
+                , ( "value", E.string remote )
+                ]
+
+
+theme : G.Theme -> E.Encoder
+theme t = E.string <| case t of
+    G.Dark -> "dark"
+    G.Light -> "light"
+
+
+gstop1 : { color : G.Color, position : Float } -> E.Encoder
+gstop1 s =
+    E.record
+        [ ( "color", color s.color )
+        , ( "position", E.float s.position )
+        ]
+
+
+gstop2 : { color : G.Color, position : { x : Float, y : Float } } -> E.Encoder
+gstop2 s =
+    E.record
+        [ ( "color", color s.color )
+        , ( "x", E.float s.position.x )
+        , ( "y", E.float s.position.y )
+        ]
+
+
 face : G.Face -> E.Encoder
 face f =
     case f of
-        G.OfColor color ->
+        G.OfColor c ->
             E.record
                 [ ( "face", E.string "color" )
-                , ( "color", E.string color )
+                , ( "color", color c )
                 ]
-        G.Icon icon ->
+        G.OfIcon is ->
             E.record
                 [ ( "face", E.string "icon" )
-                , ( "icon", E.string icon )
+                , ( "icons", E.list icon is )
                 ]
         G.Default ->
             E.null
@@ -115,11 +202,13 @@ face f =
 selectKind : G.SelectKind -> E.Encoder
 selectKind sk =
     case sk of
-        G.Choice c ->
+        G.Pages c ->
             E.record
-                [ ( "kind", E.string "choice" )
+                [ ( "kind", E.string "pages" )
                 , ( "expand", E.bool c.expand )
                 , ( "face", face c.face )
+                , ( "shape", nestShape c.shape )
+                , ( "page", E.int c.page )
                 ]
         G.Knob ->
             E.record
@@ -149,7 +238,7 @@ property prop =
     let
         kind k =
             case k of
-                G.Root -> "root"
+                G.Ghost -> "ghost"
                 G.NumInt _ -> "int"
                 G.NumFloat _ -> "float"
                 G.XY _ -> "xy"
@@ -159,6 +248,8 @@ property prop =
                 G.Toggle _ -> "toggle"
                 G.Nest _ -> "nest"
                 G.Select _ -> "select"
+                G.Gradient _ -> "gradient"
+                G.Progress _ -> "progress"
     in
     E.record
         [ ( "def", def prop.def )
@@ -168,6 +259,7 @@ property prop =
         , ( "live", E.bool prop.live )
         , ( "shape", Maybe.withDefault E.null <| Maybe.map cellShape prop.shape )
         ]
+
 
 
 {-| YAML encoder -}

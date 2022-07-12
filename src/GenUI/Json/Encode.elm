@@ -39,7 +39,7 @@ def d =
                 ]
         colorDef cd =
             E.object
-                [ ( "current", E.string cd.current )
+                [ ( "current", color cd.current )
                 ]
         textDef cd =
             E.object
@@ -55,7 +55,6 @@ def d =
                 , ( "kind", selectKind sd.kind )
                 , ( "values", E.list selectItem sd.values )
                 , ( "current", E.string sd.current )
-                , ( "shape", nestShape sd.shape )
                 ]
         nestDef nd =
             E.object
@@ -65,8 +64,29 @@ def d =
                 , ( "shape", nestShape nd.shape )
                 , ( "face", face nd.face )
                 ]
+        gradientDef gd =
+            E.object
+                [
+                    ( "current"
+                    , case gd.current of
+                        G.Linear linear ->
+                            E.object
+                                [ ( "type", E.string "linear" )
+                                , ( "stops", E.list gstop1 linear )
+                                ]
+                        G.TwoDimensional twod ->
+                            E.object
+                                [ ( "type", E.string "2d" )
+                                , ( "stops", E.list gstop2 twod )
+                                ]
+                    )
+                ]
+        progressDef pd =
+            E.object
+                [ ( "api", url pd.api )
+                ]
     in case d of
-        G.Root -> E.object []
+        G.Ghost -> E.object []
         G.NumInt id -> intDef id
         G.NumFloat fd -> floatDef fd
         G.XY xyd -> xyDef xyd
@@ -76,6 +96,8 @@ def d =
         G.Action ad -> actionDef ad
         G.Select sd -> selectDef sd
         G.Nest nd -> nestDef nd
+        G.Gradient gd -> gradientDef gd
+        G.Progress pd -> progressDef pd
 
 
 cellShape : G.CellShape -> E.Value
@@ -95,18 +117,83 @@ nestShape ns =
         ]
 
 
+color : G.Color -> E.Value
+color c =
+    case c of
+        G.Rgba rgba ->
+            E.object
+                [ ( "r", E.float rgba.red )
+                , ( "g", E.float rgba.green )
+                , ( "b", E.float rgba.blue )
+                , ( "a", E.float rgba.alpha )
+                ]
+        G.Hsla hsla ->
+            E.object
+                [ ( "h", E.float hsla.hue )
+                , ( "s", E.float hsla.saturation )
+                , ( "l", E.float hsla.lightness )
+                , ( "a", E.float hsla.alpha )
+                ]
+
+
+icon : G.Icon -> E.Value
+icon i =
+    E.object
+        [ ( "url", url i.url )
+        , ( "theme", theme i.theme )
+        ]
+
+
+url : G.Url -> E.Value
+url u =
+    case u of
+        G.Local local ->
+            E.object
+                [ ( "type", E.string "local" )
+                , ( "value", E.string local )
+                ]
+        G.Remote remote ->
+            E.object
+                [ ( "type", E.string "remote" )
+                , ( "value", E.string remote )
+                ]
+
+
+theme : G.Theme -> E.Value
+theme t = E.string <| case t of
+    G.Dark -> "dark"
+    G.Light -> "light"
+
+
+gstop1 : { color : G.Color, position : Float } -> E.Value
+gstop1 s =
+    E.object
+        [ ( "color", color s.color )
+        , ( "position", E.float s.position )
+        ]
+
+
+gstop2 : { color : G.Color, position : { x : Float, y : Float } } -> E.Value
+gstop2 s =
+    E.object
+        [ ( "color", color s.color )
+        , ( "x", E.float s.position.x )
+        , ( "y", E.float s.position.y )
+        ]
+
+
 face : G.Face -> E.Value
 face f =
     case f of
-        G.OfColor color ->
+        G.OfColor c ->
             E.object
                 [ ( "face", E.string "color" )
-                , ( "color", E.string color )
+                , ( "color", color c )
                 ]
-        G.Icon icon ->
+        G.OfIcon is ->
             E.object
                 [ ( "face", E.string "icon" )
-                , ( "icon", E.string icon )
+                , ( "icons", E.list icon is )
                 ]
         G.Default ->
             E.null
@@ -115,11 +202,13 @@ face f =
 selectKind : G.SelectKind -> E.Value
 selectKind sk =
     case sk of
-        G.Choice c ->
+        G.Pages c ->
             E.object
-                [ ( "kind", E.string "choice" )
+                [ ( "kind", E.string "pages" )
                 , ( "expand", E.bool c.expand )
                 , ( "face", face c.face )
+                , ( "shape", nestShape c.shape )
+                , ( "page", E.int c.page )
                 ]
         G.Knob ->
             E.object
@@ -149,7 +238,7 @@ property prop =
     let
         kind k =
             case k of
-                G.Root -> "root"
+                G.Ghost -> "ghost"
                 G.NumInt _ -> "int"
                 G.NumFloat _ -> "float"
                 G.XY _ -> "xy"
@@ -159,6 +248,8 @@ property prop =
                 G.Toggle _ -> "toggle"
                 G.Nest _ -> "nest"
                 G.Select _ -> "select"
+                G.Gradient _ -> "gradient"
+                G.Progress _ -> "progress"
     in
     E.object
         [ ( "def", def prop.def )
@@ -170,7 +261,8 @@ property prop =
         ]
 
 
-{-| JSON encoder -}
+
+{-| YAML encoder -}
 encode : G.GenUI -> E.Value
 encode genui =
     E.object

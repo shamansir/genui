@@ -71,7 +71,7 @@ type alias Icon =
 
 {-| The face of the UI cell, used for Tron UI. -}
 type Face
-    = OfColor String
+    = OfColor Color
     | OfIcon (List Icon)
     | Default
 
@@ -108,7 +108,7 @@ type alias SelectItem =
 
 type Color
     = Rgba { red : Float, green : Float, blue : Float, alpha : Float }
-    | Hsla { hue : Float, lighness : Float, alpha : Float }
+    | Hsla { hue : Float, saturation : Float, lightness : Float, alpha : Float }
 
 
 type Gradient
