@@ -65,22 +65,17 @@ def d =
                 , ( "face", face nd.face )
                 ]
         gradientDef gd =
-            E.object
-                [
-                    ( "current"
-                    , case gd.current of
-                        G.Linear linear ->
-                            E.object
-                                [ ( "type", E.string "linear" )
-                                , ( "stops", E.list gstop1 linear )
-                                ]
-                        G.TwoDimensional twod ->
-                            E.object
-                                [ ( "type", E.string "2d" )
-                                , ( "stops", E.list gstop2 twod )
-                                ]
-                    )
-                ]
+            case gd.current of
+                G.Linear linear ->
+                    E.object
+                        [ ( "type", E.string "linear" )
+                        , ( "stops", E.list gstop1 linear )
+                        ]
+                G.TwoDimensional twod ->
+                    E.object
+                        [ ( "type", E.string "2d" )
+                        , ( "stops", E.list gstop2 twod )
+                        ]
         progressDef pd =
             E.object
                 [ ( "api", url pd.api )

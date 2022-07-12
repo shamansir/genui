@@ -34,14 +34,83 @@ nestShape =
         (D.field "pages" D.int)
 
 
+color : D.Decoder G.Color
+color =
+    D.oneOf
+        [ D.map4
+            (\r g b a -> G.Rgba { red = r, green = g, blue = b, alpha = a })
+            (D.field "r" D.float)
+            (D.field "g" D.float)
+            (D.field "b" D.float)
+            (D.field "a" D.float)
+        , D.map4
+            (\h s l a -> G.Hsla { hue = h, saturation = s, lightness = l, alpha = a })
+            (D.field "h" D.float)
+            (D.field "s" D.float)
+            (D.field "l" D.float)
+            (D.field "a" D.float)
+        ]
+
+
+icon : D.Decoder G.Icon
+icon =
+    D.map2
+        G.Icon
+        (D.field "theme" theme)
+        (D.field "url" url)
+
+
+theme : D.Decoder G.Theme
+theme =
+    D.string
+        |> D.map
+            (\s ->
+                case s of
+                    "light" -> G.Light
+                    "dark" -> G.Dark
+                    _ -> G.Light
+            )
+
+
+url : D.Decoder G.Url
+url =
+    D.map2
+        (\t v ->
+            case t of
+                "local" -> G.Local v
+                "remote" -> G.Remote v
+                _  -> G.Remote v
+        )
+        (D.field "type" D.string)
+        (D.field "value" D.string)
+
+
+
+gstop1 : D.Decoder G.ColorStop
+gstop1 =
+    D.map2
+        G.ColorStop
+        (D.field "color" color)
+        (D.field "position" D.float)
+
+
+gstop2 : D.Decoder G.ColorStop2D
+gstop2 =
+    D.map3
+        (\c x y -> { color = c, position = { x = x, y = y } })
+        (D.field "color" color)
+        (D.field "x" D.float)
+        (D.field "y" D.float)
+
+
 face : D.Decoder G.Face
 face =
     {- D.field "face" -} D.string
         |> D.andThen
             (\face_ ->
                 case face_ of
-                    "icon" -> D.field "icon" D.string |> D.map G.Icon
-                    "color" -> D.field "color" D.string |> D.map G.OfColor
+                    "icons" -> D.field "icons" (D.list icon) |> D.map G.OfIcon
+                    "color" -> D.field "color" color |> D.map G.OfColor
                     _ -> D.fail <| "Unknown face: " ++ face_
             )
 
@@ -62,10 +131,15 @@ selectKind =
             (\kind_ ->
                 case kind_ of
                     "choice" ->
-                        D.map2
-                            (\e f -> G.Choice { expand = e, face = f })
+                        D.map4
+                            (\e f s p ->
+                                G.Pages
+                                    { expand = e, face = f, shape = s, page = p }
+                            )
                             (D.field "expand" D.bool)
                             (maybeField "face" G.Default face)
+                            (D.field "shape" nestShape)
+                            (D.field "page" D.int)
                     "knob" -> D.succeed G.Knob
                     "switch" -> D.succeed G.Switch
                     _ -> D.fail <| "Unknown face: " ++ kind_
@@ -107,7 +181,7 @@ def kind =
         colorDef =
             D.map
                 G.ColorDef
-                (D.field "current" D.string)
+                (D.field "current" color)
 
         textDef =
             D.map
@@ -120,7 +194,7 @@ def kind =
                 (D.field "current" D.bool)
 
         selectDef =
-            D.map5
+            D.map4
                 G.SelectDef
                 (D.field "current" D.string)
                 (D.field "values" <|
@@ -131,7 +205,6 @@ def kind =
                 )
                 (D.maybe <| D.field "nestAt" D.string)
                 (D.field "kind" selectKind)
-                (D.field "shape" nestShape)
 
 
         nestDef =
@@ -143,9 +216,27 @@ def kind =
                 (D.field "shape" nestShape)
                 (maybeField "face" G.Default face)
 
+        progressDef =
+            D.map
+                G.ProgressDef
+                (D.field "api" url)
+
+        gradientDef =
+            D.map
+                G.GradientDef
+                (D.oneOf
+                    [ D.map
+                        G.Linear
+                        (D.field "stops" <| D.list gstop1)
+                    , D.map
+                        G.TwoDimensional
+                        (D.field "stops" <| D.list gstop2)
+                    ]
+                )
+
     in case kind of
 
-        "root" -> D.succeed G.Root
+        "ghost" -> D.succeed G.Ghost
         "action" -> actionDef |> D.map G.Action
         "int" -> intDef |> D.map G.NumInt
         "float" -> floatDef |> D.map G.NumFloat
@@ -155,7 +246,8 @@ def kind =
         "toggle" -> toggleDef |> D.map G.Toggle
         "nest" -> nestDef |> D.map G.Nest
         "select" -> selectDef |> D.map G.Select
-
+        "progress" -> progressDef |> D.map G.Progress
+        "gradient" -> gradientDef |> D.map G.Gradient
 
         _ -> D.fail <| "unknown kind " ++ kind
 
