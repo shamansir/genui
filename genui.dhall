@@ -13,7 +13,7 @@ let HSLAColor = { hue : Double, saturation: Double, lightness : Double, alpha : 
 let Color =
     < RGBA : RGBAColor
     | HSLA : HSLAColor
-    -- | HEX : { }
+    | HEX : Text
     >
 
 
@@ -105,13 +105,13 @@ let IntDef : Type = { min : Integer, max : Integer, step : Integer, current : In
 let FloatDef : Type = { min : Double, max : Double, step : Double, current : Double }
 let XYDef : Type = { x : FloatDef, y : FloatDef }
 let ToggleDef : Type = { current : Bool }
-let ColorDef : Type = { current : Text }
+let ColorDef : Type = { current : Color }
 let TextualDef : Type = { current : Text }
 let ActionDef : Type = { face : Face }
 let SelectDef : Type = { current : Text, values : List SelectItem, nestProperty : Optional Text, kind : SelectKind }
 let NestDef : Type = { face : Face, children : List JSON.Type, expand : Bool, nestProperty : Optional Text, shape : NestShape.Type }
 let ProgressDef : Type = { api : URL } -- { cancel : Bool, link : Bool }
-let GradientDef : Type = Gradient
+let GradientDef : Type = { current : Gradient }
 
 
 let Def : Type =

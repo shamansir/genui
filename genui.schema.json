@@ -6,7 +6,8 @@
     "type": "object",
     "properties": {
       "version": {
-        "type": "string"
+        "type": "string",
+        "const": "2.0.0"
       },
       "root": {
         "type": "array",

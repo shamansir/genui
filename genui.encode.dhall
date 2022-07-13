@@ -11,6 +11,7 @@ let encodeColor
     -> merge
         { RGBA = \(c : P.RGBAColor) -> JSON.object (toMap { r = JSON.double c.red, g = JSON.double c.green, b = JSON.double c.blue, a = JSON.double c.alpha })
         , HSLA = \(c : P.HSLAColor) -> JSON.object (toMap { h = JSON.double c.hue, s = JSON.double c.saturation, l = JSON.double c.lightness, a = JSON.double c.alpha })
+        , HEX = \(c : Text) -> JSON.object (toMap { hex = JSON.string c })
         }
         color
 
@@ -260,7 +261,7 @@ let encode
                                 { kind = JSON.string "color"
                                 , def = JSON.object
                                     (toMap
-                                        { current = JSON.string def.current
+                                        { current = encodeColor def.current
                                         }
                                     )
                                 }
@@ -324,7 +325,11 @@ let encode
                                 }
                     , Gradient = \(def : P.GradientDef) ->
                                 { kind = JSON.string "gradient"
-                                , def = encodeGradient def
+                                , def = JSON.object
+                                    (toMap
+                                        { current = encodeGradient def.current
+                                        }
+                                    )
                                 }
                     , Progress = \(def : P.ProgressDef) ->
                                 { kind = JSON.string "progress"
