@@ -5,12 +5,57 @@ let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 let List/map = https://prelude.dhall-lang.org/List/map
 
 
+let encodeColor
+    : P.Color -> JSON.Type
+    = \(color : P.Color)
+    -> merge
+        { RGBA = \(c : P.RGBAColor) -> JSON.object (toMap { r = JSON.double c.red, g = JSON.double c.green, b = JSON.double c.blue, a = JSON.double c.alpha })
+        , HSLA = \(c : P.HSLAColor) -> JSON.object (toMap { h = JSON.double c.hue, s = JSON.double c.saturation, l = JSON.double c.lightness, a = JSON.double c.alpha })
+        }
+        color
+
+
+let encodeTheme
+    : P.Theme -> JSON.Type
+    = \(theme : P.Theme)
+    -> merge
+        { Dark = JSON.string "dark"
+        , Light = JSON.string "light"
+        }
+        theme
+
+
+let encodeUrl
+    : P.URL -> JSON.Type
+    = \(url : P.URL)
+    -> merge
+        { Local = \(s : Text) ->
+            JSON.object (toMap { type = JSON.string "local", value = JSON.string s })
+        , Remote = \(s : Text) ->
+            JSON.object (toMap { type = JSON.string "remote", value = JSON.string s })
+        }
+        url
+
+
+let encodeIcon
+    : P.Icon -> JSON.Type
+    = \(icon : P.Icon)
+    -> JSON.object
+        (toMap
+            { theme = encodeTheme icon.theme
+            , url = encodeUrl icon.url
+            }
+        )
+
+
 let encodeFace
     : P.Face -> JSON.Type
     = \(face : P.Face)
     -> merge
-        { Color = \(color : Text) -> JSON.object (toMap { face = JSON.string "color", color = JSON.string color })
-        , Icon = \(icon : Text) -> JSON.object (toMap { face = JSON.string "icon", icon = JSON.string icon })
+        { Color = \(color : P.Color) ->
+            JSON.object (toMap { face = JSON.string "color", color = encodeColor color })
+        , Icon = \(icons : List P.Icon) ->
+            JSON.object (toMap { face = JSON.string "icon", icons = JSON.array (List/map P.Icon JSON.Type encodeIcon icons) })
         , Default = JSON.null
         }
         face
@@ -43,13 +88,15 @@ let encodeSelectKind
     : P.SelectKind -> JSON.Type
     = \(kind : P.SelectKind)
     -> merge
-        { Choice =
-            \(def : { expand : Bool, face: P.Face }) ->
+        { Pages =
+            \(def : { expand : Bool, face: P.Face, page : Integer, shape : P.NestShape.Type }) ->
             JSON.object
                 (toMap
                     { kind = JSON.string "choice"
                     , face = encodeFace def.face
                     , expand = JSON.bool def.expand
+                    , shape = encodeNestShape def.shape
+                    , page = JSON.integer def.page
                     })
         , Knob = JSON.object (toMap { kind = JSON.string "knob" })
         , Switch = JSON.object (toMap { kind = JSON.string "switch" })
@@ -74,6 +121,70 @@ let encodeSelectItem
         )
 
 
+let encodeStop
+    : P.Stop -> JSON.Type
+    = \(stop : P.Stop)
+    -> JSON.object
+        (toMap
+            { color = encodeColor stop.color
+            , position = JSON.double stop.position
+            }
+        )
+
+
+let encodeStop2d
+    : P.Stop2D -> JSON.Type
+    = \(stop : P.Stop2D)
+    -> JSON.object
+        (toMap
+            { color = encodeColor stop.color
+            , position =
+                JSON.object
+                    (toMap
+                        { x = JSON.double stop.position.x
+                        , y = JSON.double stop.position.y
+                        }
+                    )
+            }
+        )
+
+
+let encodeGradient
+    : P.Gradient -> JSON.Type
+    = \(gradient : P.Gradient)
+    -> merge
+        { Linear =
+            \(stops : List P.Stop) ->
+            JSON.object
+                (toMap
+                    { type = JSON.string "linear"
+                    , stops =
+                        JSON.array
+                            (List/map
+                                P.Stop
+                                JSON.Type
+                                encodeStop
+                                stops
+                            )
+                    })
+        , TwoDimensional =
+            \(stops : List P.Stop2D) ->
+            JSON.object
+                (toMap
+                    { type = JSON.string "2d"
+                    , stops =
+                        JSON.array
+                            (List/map
+                                P.Stop2D
+                                JSON.Type
+                                encodeStop2d
+                                stops
+                            )
+                    })
+        }
+        gradient
+
+
 let encode
     : P.Property.Type -> JSON.Type
     = \(prop : P.Property.Type)
@@ -94,7 +205,11 @@ let encode
                 , live = JSON.bool prop.live
                 }
                 // merge
-                    { NumInt = \(def : P.IntDef) ->
+                    { Ghost =
+                                { kind = JSON.string "ghost"
+                                , def = JSON.null
+                                }
+                    , NumInt = \(def : P.IntDef) ->
                                 { kind = JSON.string "int"
                                 , def = JSON.object
                                     (toMap
@@ -204,8 +319,18 @@ let encode
                                                 , None = JSON.null
                                                 }
                                                 def.nestProperty
-                                        , shape = encodeNestShape def.shape
                                         }
+                                    )
+                                }
+                    , Gradient = \(def : P.GradientDef) ->
+                                { kind = JSON.string "gradient"
+                                , def = encodeGradient def
+                                }
+                    , Progress = \(def : P.ProgressDef) ->
+                                { kind = JSON.string "progress"
+                                , def = JSON.object
+                                    (toMap
+                                        { api = encodeUrl def.api }
                                     )
                                 }
                     }

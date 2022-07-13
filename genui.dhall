@@ -4,6 +4,19 @@
 let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 
 
+let RGBAColor = { red : Double, green: Double, blue : Double, alpha : Double }
+
+
+let HSLAColor = { hue : Double, saturation: Double, lightness : Double, alpha : Double }
+
+
+let Color =
+    < RGBA : RGBAColor
+    | HSLA : HSLAColor
+    -- | HEX : { }
+    >
+
+
 let Theme =
     < Dark
     | Light
@@ -23,7 +36,7 @@ let Icon =
 
 
 let Face =
-    < Color : Text
+    < Color : Color
     | Icon : List Icon
     | Default
     >
@@ -69,16 +82,17 @@ let SelectItem =
     }
 
 
-let Color =
-    < RGBA : { red : Double, green: Double, blue : Double, alpha : Double }
-    | HSLA : { hue : Double, saturation: Double, lightness : Double, alpha : Double }
-    -- | HEX : { }
-    >
+let Stop =
+    { color: Color, position : Double }
+
+
+let Stop2D =
+    { color: Color, position : { x : Double, y : Double } }
 
 
 let Gradient =
-    < Linear : List { color: Color, position : Double }
-    | TwoDimensional : List { color: Color, position : { x : Double, y : Double } }
+    < Linear : List Stop
+    | TwoDimensional : List Stop2D
     {- | Radial :
         { start : { x : Double, y : Double }
         , end : { x : Double, y : Double }
@@ -97,7 +111,7 @@ let ActionDef : Type = { face : Face }
 let SelectDef : Type = { current : Text, values : List SelectItem, nestProperty : Optional Text, kind : SelectKind }
 let NestDef : Type = { face : Face, children : List JSON.Type, expand : Bool, nestProperty : Optional Text, shape : NestShape.Type }
 let ProgressDef : Type = { api : URL } -- { cancel : Bool, link : Bool }
-let GradientDef : Type = { current : Gradient }
+let GradientDef : Type = Gradient
 
 
 let Def : Type =
@@ -143,5 +157,8 @@ in
     , Property
     , Def
     , NestShape, CellShape, Face, SelectKind, SelectItem
-    , IntDef, FloatDef, XYDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ToggleDef
+    , Color, RGBAColor, HSLAColor
+    , Gradient, Stop, Stop2D
+    , URL, Icon, Theme
+    , IntDef, FloatDef, XYDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ToggleDef, GradientDef, ProgressDef
     }
