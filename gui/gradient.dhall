@@ -47,73 +47,73 @@ let codecs =
     ]
 
 in b.root
-    [ b.select_ "product" products "JetBrains"
-    , b.select_ "size" resolutions "1920x1080"
-        // b.bindTo "resolution"
+    [ b.select "product" products "JetBrains"
+    , b.select "size" resolutions "1920x1080"
+        // b.bind_to "resolution"
     , b.float "quality" { min = 0.1, max = 4.0, step = 0.05, current = 1.0 }
-        // b.bindTo "resolutionFactor"
+        // b.bind_to "resolutionFactor"
     , b.float "zoom" { min = 0.5, max = 3.0, step = 0.01, current = 1.0 }
-        // b.bindTo "scale"
+        // b.bind_to "scale"
     , b.int "rotate" { min = -180, max = +180, step = +5, current = +0 }
-        // b.bindTo "rotation"
+        // b.bind_to "rotation"
     , b.int "horizontal" { min = -1000, max = +1000, step = +10, current = +0 }
-        // b.bindTo "offsetX"
+        // b.bind_to "offsetX"
     , b.int "vertical" { min = -1000, max = +1000, step = +10, current = +0 }
-        // b.bindTo "offsetY"
+        // b.bind_to "offsetY"
     , b.action "color map"
-        // b.bindTo "callGradientTool"
-    , b.nest_
+        // b.bind_to "callGradientTool"
+    , b.nest
         "neuro"
         (b.children
             [ b.int "seed" { min = +0, max = +50000, step = +1, current = +5 }
             , b.int "depth" { min = +1, max = +10, step = +1, current = +5 }
             , b.int "width" { min = +1, max = +10, step = +1, current = +5 }
             , b.int "variance" { min = +1, max = +10000, step = +1, current = +2000 }
-            , b.select_ "mode" modes "fan_in"
-            , b.select_ "distribution" distributions "truncated_normal"
-            , b.select_ "architecture" architectures "densenet"
-            , b.select_ "activation" activations "sigmoid"
-            , b.select_ "outActivation" activations "sigmoid"
-            , b.select_ "fMode" f_modes "disabled"
+            , b.select "mode" modes "fan_in"
+            , b.select "distribution" distributions "truncated_normal"
+            , b.select "architecture" architectures "densenet"
+            , b.select "activation" activations "sigmoid"
+            , b.select "outActivation" activations "sigmoid"
+            , b.select "fMode" f_modes "disabled"
             ]
         )
         False
-    , b.nest_
+    , b.nest
         "evolve"
         (b.children
             [ b.float "α" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
-                // b.bindTo "alpha"
+                // b.bind_to "alpha"
             , b.float "β" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
-                // b.bindTo "beta"
+                // b.bind_to "beta"
             , b.float "γ" { min = 0.0, max = 1.0, step = 0.01, current = 0.5 }
-                // b.bindTo "gamma"
+                // b.bind_to "gamma"
             ]
         )
         False
-    , b.nest_
+    , b.nest
         "mutation"
         (b.children
-            [ b.action "mild" // b.bindTo "randomMid"
-            , b.action "hard" // b.bindTo "randomMax"
+            [ b.action "mild" // b.bind_to "randomMid"
+            , b.action "hard" // b.bind_to "randomMax"
             ]
         )
         False
-    , b.nest_
+    , b.nest
         "lab"
         (b.children
-            [ b.toggle_ "flat colors" False
-                // b.bindTo "flatColors"
+            [ b.toggle "flat colors" False
+                // b.bind_to "flatColors"
             , b.int "flat color qty" { min = +5, max = +30, step = +1, current = +5 }
-                // b.bindTo "flatLinesNum"
+                // b.bind_to "flatLinesNum"
             , b.float "dither" { min = 0.0, max = 1.0, step = 0.05, current = 0.0 }
-                // b.bindTo "ditherStrength"
+                // b.bind_to "ditherStrength"
             ]
         )
         False
-    , b.toggle_ "logo" True
-        // b.bindTo "logoShown"
+    , b.toggle "logo" True
+        // b.bind_to "logoShown"
     , b.action "undo"
-    , b.action "create URL" // b.bindTo "save"
-    , b.action "export" // b.bindTo "export_"
-    , b.action "video" // b.bindTo "requestVideo"
+    , b.action "create URL" // b.bind_to "save"
+    , b.action "export" // b.bind_to "export_"
+    , b.action "video" // b.bind_to "requestVideo"
     ] : P.GenUI

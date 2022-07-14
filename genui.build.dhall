@@ -15,8 +15,12 @@ let float
     P.Property::{ name, def = P.Def.NumFloat def }
 
 let xy
+    = \(name : Text) -> \(def : P.XYDef) ->
+    P.Property::{ name, def = P.Def.XY def }
+
+let x_y
     = \(name : Text) -> \(xdef : P.FloatDef) -> \(ydef : P.FloatDef) ->
-    P.Property::{ name, def = P.Def.XY { x = xdef, y = ydef } }
+    xy name { x = xdef, y = ydef }
 
 let color
     = \(name : Text) -> \(color : P.Color) ->
@@ -77,15 +81,81 @@ let root
 {- modify property -}
 
 let with_face
-    = \(face : P.Face) -> { face }
+    = \(property : P.Property.Type) -> \(face : P.Face) ->
+    property
+        //
+        { def =
+            merge
+                { Ghost = P.Def.Ghost
+                , NumInt = \(idef : P.IntDef) -> P.Def.NumInt idef
+                , NumFloat = \(fdef : P.FloatDef) -> P.Def.NumFloat fdef
+                , XY = \(xydef : P.XYDef) -> P.Def.XY xydef
+                , Toggle = \(tdef : P.ToggleDef) -> P.Def.Toggle tdef
+                , Color = \(cdef : P.ColorDef) -> P.Def.Color cdef
+                , Textual = \(tdef : P.TextualDef) -> P.Def.Textual tdef
+                , Action = \(adef : P.ActionDef) -> P.Def.Action (adef // { face })
+                , Gradient = \(gdef : P.GradientDef) -> P.Def.Gradient gdef
+                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { face })
+                , Progress = \(pdef : P.ProgressDef) -> P.Def.Progress pdef
+                , Select =
+                    \(sdef : P.SelectDef) ->
+                        P.Def.Select
+                            ( sdef
+                                //
+                                    { kind =
+                                        merge
+                                            { Knob = P.SelectKind.Knob
+                                            , Switch = P.SelectKind.Switch
+                                            , Pages = \(ps : P.Pages) -> P.SelectKind.Pages (ps // { face })
+                                            }
+                                            sdef.kind
+                                    }
+                            )
+                }
+                property.def
+        }
+
 
 let with_shape
-    = \(shape : P.NestShape.Type) -> { shape }
-    -- FIXME: doesn't work with Select
+    : P.Property.Type -> P.NestShape.Type -> P.Property.Type
+    = \(property : P.Property.Type) -> \(shape : P.NestShape.Type) ->
+    property
+        //
+        { def =
+            merge
+                { Ghost = P.Def.Ghost
+                , NumInt = \(idef : P.IntDef) -> P.Def.NumInt idef
+                , NumFloat = \(fdef : P.FloatDef) -> P.Def.NumFloat fdef
+                , XY = \(xydef : P.XYDef) -> P.Def.XY xydef
+                , Toggle = \(tdef : P.ToggleDef) -> P.Def.Toggle tdef
+                , Color = \(cdef : P.ColorDef) -> P.Def.Color cdef
+                , Textual = \(tdef : P.TextualDef) -> P.Def.Textual tdef
+                , Action = \(adef : P.ActionDef) -> P.Def.Action adef
+                , Gradient = \(gdef : P.GradientDef) -> P.Def.Gradient gdef
+                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { shape })
+                , Progress = \(pdef : P.ProgressDef) -> P.Def.Progress pdef
+                , Select =
+                    \(sdef : P.SelectDef) ->
+                        P.Def.Select
+                            ( sdef
+                                //
+                                    { kind =
+                                        merge
+                                            { Knob = P.SelectKind.Knob
+                                            , Switch = P.SelectKind.Switch
+                                            , Pages = \(ps : P.Pages) -> P.SelectKind.Pages (ps // { shape })
+                                            }
+                                            sdef.kind
+                                    }
+                            )
+                }
+                property.def
+        }
 
 let with_cshape
-    = \(shape : P.CellShape.Type) -> { shape }
-    -- FIXME: doesn't work with Select
+    : P.Property.Type -> P.CellShape.Type -> P.Property.Type
+    = \(property : P.Property.Type) -> \(shape : P.CellShape.Type) ->
+    property // { shape = Some shape }
 
 let bind_to
     = \(propName : Text) ->
@@ -94,6 +164,10 @@ let bind_to
 let nest_at
     = \(propName : Text) ->
     { nestProperty = Some propName }
+
+let live
+    = \(property : P.Property.Type) ->
+    property // { live = True }
 
 {- construct P.Color -}
 
@@ -114,7 +188,7 @@ let _hsl
     _hsla h s l 1.0
 
 let _hex
-    = \(name : Text) -> \(hex : Text) ->
+    = \(hex : Text) ->
     P.Color.HEX hex
 
 {- construct P.Face -}
@@ -166,9 +240,9 @@ let _2d
     P.Gradient.TwoDimensional stops
 
 in
-    { int, float, xy, color, text, toggle, action, progress, gradient, select, nest
+    { int, float, xy, x_y, color, text, toggle, action, progress, gradient, select, nest
     , root, children
-    , bind_to, nest_at, with_face, with_shape, with_cshape
+    , bind_to, nest_at, live, with_face, with_shape, with_cshape
     , _rgba, _rgb, _hsla, _hsl, _hex
     , _color_f, _icon_f, _l_icon_f
     , _local, _remote

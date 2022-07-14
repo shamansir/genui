@@ -68,8 +68,12 @@ let CellShape =
     }
 
 
+let Pages =
+    { expand : Bool, face : Face, shape : NestShape.Type, page : Integer }
+
+
 let SelectKind =
-    < Pages : { expand : Bool, face : Face, shape : NestShape.Type, page : Integer }
+    < Pages : Pages
     | Knob
     | Switch
     >
@@ -156,7 +160,7 @@ in
     { GenUI
     , Property
     , Def
-    , NestShape, CellShape, Face, SelectKind, SelectItem
+    , NestShape, CellShape, Face, SelectKind, SelectItem, Pages
     , Color, RGBAColor, HSLAColor
     , Gradient, Stop, Stop2D
     , URL, Icon, Theme
