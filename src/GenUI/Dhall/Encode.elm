@@ -8,8 +8,8 @@ module GenUI.Dhall.Encode exposing (Dhall, encode, toString)
 
 
 import GenUI as G
-import Indent exposing (Indented, indent)
 
+import Util.Indent exposing (Indented, indent)
 
 {-| -}
 type alias Dhall =

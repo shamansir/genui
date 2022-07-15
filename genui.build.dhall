@@ -76,6 +76,8 @@ let select_knob
         }
     }
 
+-- TODO: select with faces
+
 let nest
     = \(name : Text) -> \(children : List JSON.Type) -> \(form : P.NestForm) ->
     P.Property::{ name, def = P.Def.Nest

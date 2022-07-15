@@ -1,4 +1,4 @@
-module Indent exposing (..)
+module Util.Indent exposing (..)
 
 
 type alias Indent =
