@@ -67,13 +67,18 @@ let CellShape =
         }
     }
 
+let NestForm =
+    < Expanded
+    | Collapsed
+    >
 
-let Pages =
-    { expand : Bool, face : Face, shape : NestShape.Type, page : Integer }
+
+let Choice =
+    { form : NestForm, face : Face, shape : NestShape.Type, page : Integer }
 
 
 let SelectKind =
-    < Pages : Pages
+    < Choice : Choice
     | Knob
     | Switch
     >
@@ -104,6 +109,11 @@ let Gradient =
         } -}
     >
 
+let ZoomKind =
+    < PlusMinus
+    | Steps : List Double
+    >
+
 
 let IntDef : Type = { min : Integer, max : Integer, step : Integer, current : Integer }
 let FloatDef : Type = { min : Double, max : Double, step : Double, current : Double }
@@ -113,9 +123,10 @@ let ColorDef : Type = { current : Color }
 let TextualDef : Type = { current : Text }
 let ActionDef : Type = { face : Face }
 let SelectDef : Type = { current : Text, values : List SelectItem, nestProperty : Optional Text, kind : SelectKind }
-let NestDef : Type = { face : Face, children : List JSON.Type, expand : Bool, nestProperty : Optional Text, shape : NestShape.Type }
+let NestDef : Type = { face : Face, children : List JSON.Type, form : NestForm, nestProperty : Optional Text, shape : NestShape.Type, page : Integer }
 let ProgressDef : Type = { api : URL } -- { cancel : Bool, link : Bool }
 let GradientDef : Type = { current : Gradient }
+let ZoomDef : Type = { current : Double, kind : ZoomKind }
 
 
 let Def : Type =
@@ -127,10 +138,11 @@ let Def : Type =
     | Color : ColorDef
     | Textual : TextualDef
     | Action : ActionDef
+    | Zoom : ZoomDef
+    | Progress : ProgressDef
+    | Gradient : GradientDef
     | Select : SelectDef
     | Nest : NestDef
-    | Gradient : GradientDef
-    | Progress : ProgressDef
     >
 
 
@@ -160,9 +172,9 @@ in
     { GenUI
     , Property
     , Def
-    , NestShape, CellShape, Face, SelectKind, SelectItem, Pages
+    , NestShape, CellShape, NestForm, Face, SelectKind, SelectItem, Choice, ZoomKind
     , Color, RGBAColor, HSLAColor
     , Gradient, Stop, Stop2D
     , URL, Icon, Theme
-    , IntDef, FloatDef, XYDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ToggleDef, GradientDef, ProgressDef
+    , IntDef, FloatDef, XYDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ToggleDef, GradientDef, ProgressDef, ZoomDef
     }

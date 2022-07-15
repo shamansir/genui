@@ -20,7 +20,7 @@
             "type": "object",
             "properties":
                 { "kind":
-                    { "enum": [ "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select", "progress", "gradient", "zoom" ] }
+                    { "enum": [ "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select", "zoom" ] }
                 , "name": { "type": "string" }
                 , "shape": { "$ref": "#/$defs/cell_shape" }
                 , "property": { "oneOf": [ { "type": "string" }, { "type": "null" } ] }
@@ -108,33 +108,6 @@
                     "then": {
                         "properties": { "def": { "$ref": "#/$defs/nest_def" } }
                     }
-                },
-                {
-                    "if": {
-                        "properties": { "kind": { "const": "progress" } },
-                        "required": [ "kind" ]
-                    },
-                    "then": {
-                        "properties": { "def": { "$ref": "#/$defs/progress_def" } }
-                    }
-                },
-                {
-                    "if": {
-                        "properties": { "kind": { "const": "gradient" } },
-                        "required": [ "kind" ]
-                    },
-                    "then": {
-                        "properties": { "def": { "$ref": "#/$defs/gradient_def" } }
-                    }
-                },
-                {
-                    "if": {
-                        "properties": { "kind": { "const": "zoom" } },
-                        "required": [ "kind" ]
-                    },
-                    "then": {
-                        "properties": { "def": { "$ref": "#/$defs/zoom_def" } }
-                    }
                 }
               ]
         },
@@ -169,7 +142,7 @@
         "color_def": {
             "type": "object",
             "properties":
-                { "current": { "$ref": "#/$defs/color" }
+                { "current": { "type": "string" }
                 },
             "required": [ "current" ]
         },
@@ -196,10 +169,9 @@
         "nest_def": {
             "type": "object",
             "properties":
-                { "form": { "$ref": "#/$defs/form" }
+                { "expand": { "type": "boolean" }
                 , "face": { "$ref": "#/$defs/face" }
                 , "shape": { "$ref": "#/$defs/nest_shape" }
-                , "page": { "type": "integer" }
                 , "children" :
                     { "type": "array"
                     , "items": { "$ref": "#/$defs/property" }
@@ -216,7 +188,9 @@
             "type": "object",
             "properties":
                 { "current": { "type": "string" }
+                , "face": { "$ref": "#/$defs/face" }
                 , "kind": { "$ref": "#/$defs/select_kind" }
+                , "shape": { "$ref": "#/$defs/nest_shape" }
                 , "values" :
                     { "type": "array"
                     , "items": { "$ref": "#/$defs/select_item" }
@@ -228,28 +202,6 @@
                     }
                 },
             "required": [ "values", "current" ]
-        },
-        "progress_def": {
-            "type": "object",
-            "properties":
-                { "api": { "$ref": "#/$defs/url" }
-                },
-            "required": [ "api" ]
-        },
-        "gradient_def": {
-            "type": "object",
-            "properties":
-                { "current": { "$ref": "#/$defs/gradient" }
-                },
-            "required": [ "current" ]
-        },
-        "zoom_def": {
-            "type": "object",
-            "properties":
-                { "current": { "type": "number" }
-                , "steps": { "type": "array", "items": { "type" : "number" } }
-                },
-            "required": [ "current", "steps" ]
         },
         "cell_shape":
             { "oneOf":
@@ -283,19 +235,16 @@
                 { "type": "object"
                 , "properties":
                     { "face": { "const": "color" }
-                    , "color": { "$ref": "#/$defs/color" }
+                    , "color": { "type": "string" }
                     }
                 , "required": [ "face", "color" ]
                 },
                 { "type": "object"
                 , "properties":
                     { "face": { "const": "icon" }
-                    , "icons":
-                        { "type": "array"
-                        , "items": { "$ref": "#/$defs/icon" }
-                        }
+                    , "icon": { "type": "string" }
                     }
-                , "required": [ "face", "icons" ]
+                , "required": [ "face", "icon" ]
                 },
                 { "type": "null" }
             ]
@@ -306,11 +255,9 @@
                 , "properties":
                     { "kind": { "const": "choice" }
                     , "face": { "$ref": "#/$defs/face" }
-                    , "shape": { "$ref": "#/$defs/nest_shape" }
-                    , "form": { "$ref": "#/$defs/form" }
-                    , "page": { "type": "integer" }
+                    , "expand": { "type": "boolean" }
                     }
-                , "required": [ "kind", "form", "page" ]
+                , "required": [ "kind", "expand" ]
                 },
                 { "type": "object"
                 , "properties":
@@ -343,99 +290,6 @@
                 , "required": [ "value" ]
                 }
             ]
-        },
-        "form": { "enum": [ "expanded", "collapsed" ] },
-        "theme": { "enum": [ "dark", "light" ] },
-        "icon": {
-            "type": "object",
-            "properties":
-                { "theme": { "$ref": "#/$defs/theme" }
-                , "url": { "$ref": "#/$defs/url" }
-                },
-            "required": [ "theme", "url" ]
-        },
-        "url": {
-            "type": "object",
-            "properties":
-                { "type": { "enum": [ "local", "remote" ] }
-                , "value": { "type": "string" }
-                },
-            "required": [ "type", "value" ]
-        },
-        "color": {
-            "oneOf": [
-                { "type": "object"
-                , "properties":
-                    { "hex": { "type": "string" } }
-                , "required" : [ "hex" ]
-                },
-                { "type": "object"
-                , "properties":
-                    { "r": { "type": "number" }
-                    , "g": { "type": "number" }
-                    , "b": { "type": "number" }
-                    , "a": { "type": "number" }
-                    }
-                , "required" : [ "r", "g", "b", "a" ]
-                },
-                { "type": "object"
-                , "properties":
-                    { "h": { "type": "number" }
-                    , "s": { "type": "number" }
-                    , "l": { "type": "number" }
-                    , "a": { "type": "number" }
-                    }
-                , "required" : [ "h", "s", "l", "a" ]
-                }
-            ]
-        },
-        "gradient": {
-            "oneOf": [
-                { "type": "object"
-                , "properties":
-                    { "type": { "const": "linear" }
-                    , "stops":
-                        {
-                            "type": "array",
-                            "items": { "$ref": "#/$defs/stop" }
-                        }
-                    }
-                , "required": [ "type", "stops" ]
-                },
-                { "type": "object"
-                , "properties":
-                    { "type": { "const": "2d" }
-                    , "stops":
-                        {
-                            "type": "array",
-                            "items": { "$ref": "#/$defs/stop2" }
-                        }
-                    }
-                , "required": [ "type", "stops" ]
-                }
-            ]
-        },
-        "stop": {
-            "type": "object",
-            "properties":
-                { "position": { "type": "number" }
-                , "color": { "$ref": "#/$defs/color" }
-                },
-            "required": [ "position", "color" ]
-        },
-        "stop2": {
-            "type": "object",
-            "properties":
-                { "position":
-                    { "type": "object"
-                    , "properties":
-                        { "x": { "type": "number" }
-                        , "y": { "type": "number" }
-                        }
-                    }
-                , "color": { "$ref": "#/$defs/color" }
-                },
-            "required": [ "position", "color" ]
         }
     }
   }

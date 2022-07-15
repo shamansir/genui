@@ -84,18 +84,26 @@ let encodeNestShape
             }
         )
 
+let encodeNestForm
+    : P.NestForm -> JSON.Type
+    = \(form : P.NestForm)
+    -> merge
+        { Expanded = JSON.string "expanded"
+        , Collapsed = JSON.string "collapsed"
+        }
+        form
 
 let encodeSelectKind
     : P.SelectKind -> JSON.Type
     = \(kind : P.SelectKind)
     -> merge
-        { Pages =
-            \(def : { expand : Bool, face: P.Face, page : Integer, shape : P.NestShape.Type }) ->
+        { Choice =
+            \(def : P.Choice) ->
             JSON.object
                 (toMap
                     { kind = JSON.string "choice"
                     , face = encodeFace def.face
-                    , expand = JSON.bool def.expand
+                    , form = encodeNestForm def.form
                     , shape = encodeNestShape def.shape
                     , page = JSON.integer def.page
                     })
@@ -289,14 +297,46 @@ let encode
                                         }
                                     )
                                 }
+                    , Zoom = \(def : P.ZoomDef) ->
+                                { kind = JSON.string "zoom"
+                                , def = JSON.object
+                                    (toMap
+                                        { current = JSON.double def.current
+                                        , steps =
+                                            JSON.array
+                                            (merge
+                                                { Steps = \(steps : List Double) ->
+                                                    List/map Double JSON.Type JSON.double steps
+                                                , PlusMinus = ([] : List JSON.Type)
+                                                }
+                                                def.kind)
+                                            }
+                                    )
+                                }
+                    , Progress = \(def : P.ProgressDef) ->
+                                { kind = JSON.string "progress"
+                                , def = JSON.object
+                                    (toMap
+                                        { api = encodeUrl def.api }
+                                    )
+                                }
+                    , Gradient = \(def : P.GradientDef) ->
+                                { kind = JSON.string "gradient"
+                                , def = JSON.object
+                                    (toMap
+                                        { current = encodeGradient def.current
+                                        }
+                                    )
+                                }
                     , Nest = \(def : P.NestDef) ->
                                 { kind = JSON.string "nest"
                                 , def = JSON.object
                                     (toMap
-                                        { expand = JSON.bool def.expand
-                                        , children = JSON.array def.children
+                                        { children = JSON.array def.children
                                         , shape = encodeNestShape def.shape
                                         , face = encodeFace def.face
+                                        , form = encodeNestForm def.form
+                                        , page = JSON.integer def.page
                                         , nestAt =
                                             merge
                                                 { Some = \(prop : Text) -> JSON.string prop
@@ -321,21 +361,6 @@ let encode
                                                 }
                                                 def.nestProperty
                                         }
-                                    )
-                                }
-                    , Gradient = \(def : P.GradientDef) ->
-                                { kind = JSON.string "gradient"
-                                , def = JSON.object
-                                    (toMap
-                                        { current = encodeGradient def.current
-                                        }
-                                    )
-                                }
-                    , Progress = \(def : P.ProgressDef) ->
-                                { kind = JSON.string "progress"
-                                , def = JSON.object
-                                    (toMap
-                                        { api = encodeUrl def.api }
                                     )
                                 }
                     }

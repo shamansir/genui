@@ -46,6 +46,14 @@ let gradient
     = \(name : Text) -> \(g : P.Gradient) ->
     P.Property::{ name, def = P.Def.Gradient { current = g } }
 
+let zoom
+    = \(name : Text) ->
+    P.Property::{ name, def = P.Def.Zoom { current = 1.0, kind = P.ZoomKind.PlusMinus } }
+
+let zoom_by
+    = \(name : Text) -> \(current : Double) -> \(steps : List Double) ->
+    P.Property::{ name, def = P.Def.Zoom { current, kind = P.ZoomKind.Steps steps } }
+
 let select
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     P.Property::{ name, def = P.Def.Select
@@ -53,18 +61,30 @@ let select
             List/map Text P.SelectItem (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem) values
         , current
         , nestProperty = None Text
-        , kind = P.SelectKind.Pages { expand = True, face = P.Face.Default, page = +1, shape = P.NestShape.default }
+        , kind = P.SelectKind.Choice { form = P.NestForm.Expanded, face = P.Face.Default, page = +1, shape = P.NestShape.default }
+        }
+    }
+
+let select_knob
+    = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
+    P.Property::{ name, def = P.Def.Select
+        { values =
+            List/map Text P.SelectItem (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem) values
+        , current
+        , nestProperty = None Text
+        , kind = P.SelectKind.Knob
         }
     }
 
 let nest
-    = \(name : Text) -> \(children : List JSON.Type) -> \(expand : Bool) ->
+    = \(name : Text) -> \(children : List JSON.Type) -> \(form : P.NestForm) ->
     P.Property::{ name, def = P.Def.Nest
         { children
-        , expand
+        , form
         , nestProperty = None Text
         , shape = P.NestShape.default
         , face = P.Face.Default
+        , page = +0
         }
     }
 
@@ -80,83 +100,6 @@ let root
 
 {- modify property -}
 
-let with_face
-    = \(property : P.Property.Type) -> \(face : P.Face) ->
-    property
-        //
-        { def =
-            merge
-                { Ghost = P.Def.Ghost
-                , NumInt = \(idef : P.IntDef) -> P.Def.NumInt idef
-                , NumFloat = \(fdef : P.FloatDef) -> P.Def.NumFloat fdef
-                , XY = \(xydef : P.XYDef) -> P.Def.XY xydef
-                , Toggle = \(tdef : P.ToggleDef) -> P.Def.Toggle tdef
-                , Color = \(cdef : P.ColorDef) -> P.Def.Color cdef
-                , Textual = \(tdef : P.TextualDef) -> P.Def.Textual tdef
-                , Action = \(adef : P.ActionDef) -> P.Def.Action (adef // { face })
-                , Gradient = \(gdef : P.GradientDef) -> P.Def.Gradient gdef
-                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { face })
-                , Progress = \(pdef : P.ProgressDef) -> P.Def.Progress pdef
-                , Select =
-                    \(sdef : P.SelectDef) ->
-                        P.Def.Select
-                            ( sdef
-                                //
-                                    { kind =
-                                        merge
-                                            { Knob = P.SelectKind.Knob
-                                            , Switch = P.SelectKind.Switch
-                                            , Pages = \(ps : P.Pages) -> P.SelectKind.Pages (ps // { face })
-                                            }
-                                            sdef.kind
-                                    }
-                            )
-                }
-                property.def
-        }
-
-
-let with_shape
-    : P.Property.Type -> P.NestShape.Type -> P.Property.Type
-    = \(property : P.Property.Type) -> \(shape : P.NestShape.Type) ->
-    property
-        //
-        { def =
-            merge
-                { Ghost = P.Def.Ghost
-                , NumInt = \(idef : P.IntDef) -> P.Def.NumInt idef
-                , NumFloat = \(fdef : P.FloatDef) -> P.Def.NumFloat fdef
-                , XY = \(xydef : P.XYDef) -> P.Def.XY xydef
-                , Toggle = \(tdef : P.ToggleDef) -> P.Def.Toggle tdef
-                , Color = \(cdef : P.ColorDef) -> P.Def.Color cdef
-                , Textual = \(tdef : P.TextualDef) -> P.Def.Textual tdef
-                , Action = \(adef : P.ActionDef) -> P.Def.Action adef
-                , Gradient = \(gdef : P.GradientDef) -> P.Def.Gradient gdef
-                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { shape })
-                , Progress = \(pdef : P.ProgressDef) -> P.Def.Progress pdef
-                , Select =
-                    \(sdef : P.SelectDef) ->
-                        P.Def.Select
-                            ( sdef
-                                //
-                                    { kind =
-                                        merge
-                                            { Knob = P.SelectKind.Knob
-                                            , Switch = P.SelectKind.Switch
-                                            , Pages = \(ps : P.Pages) -> P.SelectKind.Pages (ps // { shape })
-                                            }
-                                            sdef.kind
-                                    }
-                            )
-                }
-                property.def
-        }
-
-let with_cshape
-    : P.Property.Type -> P.CellShape.Type -> P.Property.Type
-    = \(property : P.Property.Type) -> \(shape : P.CellShape.Type) ->
-    property // { shape = Some shape }
-
 let bind_to
     = \(propName : Text) ->
     { property = Some propName }
@@ -166,8 +109,108 @@ let nest_at
     { nestProperty = Some propName }
 
 let live
-    = \(property : P.Property.Type) ->
-    property // { live = True }
+    = { live = True }
+    -- = \(property : P.Property.Type) ->
+    -- property // { live = True }
+
+let ___def_update =
+    { Ghost = P.Def.Ghost
+    , NumInt = \(idef : P.IntDef) -> P.Def.NumInt idef
+    , NumFloat = \(fdef : P.FloatDef) -> P.Def.NumFloat fdef
+    , XY = \(xydef : P.XYDef) -> P.Def.XY xydef
+    , Toggle = \(tdef : P.ToggleDef) -> P.Def.Toggle tdef
+    , Color = \(cdef : P.ColorDef) -> P.Def.Color cdef
+    , Textual = \(tdef : P.TextualDef) -> P.Def.Textual tdef
+    , Action = \(adef : P.ActionDef) -> P.Def.Action adef
+    , Gradient = \(gdef : P.GradientDef) -> P.Def.Gradient gdef
+    , Nest = \(ndef : P.NestDef) -> P.Def.Nest ndef
+    , Progress = \(pdef : P.ProgressDef) -> P.Def.Progress pdef
+    , Select = \(sdef : P.SelectDef) -> P.Def.Select sdef
+    , Zoom = \(zdef : P.ZoomDef) -> P.Def.Zoom zdef
+    }
+
+let ___update_choice
+    : (P.Choice -> P.Choice) -> P.SelectDef -> P.SelectDef
+    =  \(fn : P.Choice -> P.Choice)
+    -> \(sdef : P.SelectDef) ->
+    sdef
+        //
+            { kind =
+                merge
+                    { Knob = P.SelectKind.Knob
+                    , Switch = P.SelectKind.Switch
+                    , Choice = \(ps : P.Choice) -> P.SelectKind.Choice (fn ps)
+                    }
+                    sdef.kind
+            }
+
+let with_face
+    = \(property : P.Property.Type) -> \(face : P.Face) ->
+    property
+        //
+        { def =
+            merge
+                (___def_update // {
+                , Action = \(adef : P.ActionDef) -> P.Def.Action (adef // { face })
+                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { face })
+                , Select =
+                    \(sdef : P.SelectDef) ->
+                        P.Def.Select
+                            (___update_choice
+                                (\(ps : P.Choice) -> ps // { face })
+                                sdef
+                            )
+                })
+                property.def
+        }
+
+let with_shape
+    : P.Property.Type -> P.NestShape.Type -> P.Property.Type
+    = \(property : P.Property.Type) -> \(shape : P.NestShape.Type) ->
+    property
+        //
+        { def =
+            merge
+                (___def_update // {
+                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { shape })
+                , Select =
+                    \(sdef : P.SelectDef) ->
+                        P.Def.Select
+                            (___update_choice
+                                (\(ps : P.Choice) -> ps // { shape })
+                                sdef
+                            )
+                })
+                property.def
+        }
+
+let with_cshape
+    : P.Property.Type -> P.CellShape.Type -> P.Property.Type
+    = \(property : P.Property.Type) -> \(shape : P.CellShape.Type) ->
+    property // { shape = Some shape }
+
+let go_to_page
+    : P.Property.Type -> Integer -> P.Property.Type
+    = \(property : P.Property.Type) -> \(page : Integer) ->
+        property
+        //
+        { def =
+            merge
+                (___def_update // {
+                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { page })
+                , Select =
+                    \(sdef : P.SelectDef) ->
+                        P.Def.Select
+                            (___update_choice
+                                (\(ps : P.Choice) -> ps // { page })
+                                sdef
+                            )
+                })
+                property.def
+        }
+
+let _expanded : P.NestForm = P.NestForm.Expanded
+let _collapsed : P.NestForm = P.NestForm.Collapsed
 
 {- construct P.Color -}
 
@@ -240,9 +283,9 @@ let _2d
     P.Gradient.TwoDimensional stops
 
 in
-    { int, float, xy, x_y, color, text, toggle, action, progress, gradient, select, nest
+    { int, float, xy, x_y, color, text, toggle, action, progress, gradient, select, nest, zoom, zoom_by
     , root, children
-    , bind_to, nest_at, live, with_face, with_shape, with_cshape
+    , bind_to, nest_at, live, with_face, with_shape, with_cshape, go_to_page, _expanded, _collapsed
     , _rgba, _rgb, _hsla, _hsl, _hex
     , _color_f, _icon_f, _l_icon_f
     , _local, _remote

@@ -56,9 +56,18 @@ in b.root
             [ b.action "child1" // b.bind_to "c1"
             , b.action "child2" // b.bind_to "c2"
             , b.action "child3"
-            , b.toggle "toggle" True
+            , b.toggle "toggle" True // b.live
             , b.color "hsl" (b._hsl 210.0 8.0 51.0)
+            , b.nest
+                "subnest"
+                (b.children
+                    [ b.action "act"
+                    , b.zoom "zoom"
+                    , b.zoom_by "zoom_by" 1.0 [ 0.1, 0.3, 0.5, 1.0, 2.0, 3.0 ]
+                    ]
+                )
+                b._expanded
             ]
         )
-        False
+        b._collapsed
     ] : P.GenUI

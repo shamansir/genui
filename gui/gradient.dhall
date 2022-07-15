@@ -77,7 +77,7 @@ in b.root
             , b.select "fMode" f_modes "disabled"
             ]
         )
-        False
+        b._collapsed
     , b.nest
         "evolve"
         (b.children
@@ -89,7 +89,7 @@ in b.root
                 // b.bind_to "gamma"
             ]
         )
-        False
+        b._collapsed
     , b.nest
         "mutation"
         (b.children
@@ -97,7 +97,7 @@ in b.root
             , b.action "hard" // b.bind_to "randomMax"
             ]
         )
-        False
+        b._collapsed
     , b.nest
         "lab"
         (b.children
@@ -109,7 +109,7 @@ in b.root
                 // b.bind_to "ditherStrength"
             ]
         )
-        False
+        b._collapsed
     , b.toggle "logo" True
         // b.bind_to "logoShown"
     , b.action "undo"
