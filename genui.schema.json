@@ -248,8 +248,9 @@
             "properties":
                 { "current": { "type": "number" }
                 , "steps": { "type": "array", "items": { "type" : "number" } }
+                , "kind": { "enum": [ "plusminus", "steps" ] }
                 },
-            "required": [ "current", "steps" ]
+            "required": [ "current", "steps", "kind" ]
         },
         "cell_shape":
             { "oneOf":

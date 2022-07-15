@@ -310,7 +310,14 @@ let encode
                                                 , PlusMinus = ([] : List JSON.Type)
                                                 }
                                                 def.kind)
-                                            }
+                                        , kind =
+                                            JSON.string
+                                            (merge
+                                                { Steps = \(s : List Double) -> "steps"
+                                                , PlusMinus = "plusminus"
+                                                }
+                                                def.kind)
+                                        }
                                     )
                                 }
                     , Progress = \(def : P.ProgressDef) ->

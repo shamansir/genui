@@ -59,10 +59,11 @@ def d =
         nestDef nd =
             E.record
                 [ ( "nestAt", Maybe.withDefault E.null <| Maybe.map E.string nd.nestAt )
-                , ( "expand", E.bool nd.expand )
+                , ( "form", form nd.form )
                 , ( "children", E.list property nd.children )
                 , ( "shape", nestShape nd.shape )
                 , ( "face", face nd.face )
+                , ( "page", E.int nd.page )
                 ]
         gradientDef gd =
             case gd.current of
@@ -80,6 +81,12 @@ def d =
             E.record
                 [ ( "api", url pd.api )
                 ]
+        zoomDef zd =
+            E.record
+                [ ( "current", E.float zd.current )
+                , ( "kind", zoomKind zd.kind )
+                , ( "steps", zoomSteps zd.kind )
+                ]
     in case d of
         G.Ghost -> E.record []
         G.NumInt id -> intDef id
@@ -93,6 +100,7 @@ def d =
         G.Nest nd -> nestDef nd
         G.Gradient gd -> gradientDef gd
         G.Progress pd -> progressDef pd
+        G.Zoom zd -> zoomDef zd
 
 
 cellShape : G.CellShape -> E.Encoder
@@ -194,13 +202,33 @@ face f =
             E.null
 
 
+form : G.Form -> E.Encoder
+form f =
+    E.string <| case f of
+        G.Expanded -> "expanded"
+        G.Collapsed -> "collapsed"
+
+
+zoomKind : G.ZoomKind -> E.Encoder
+zoomKind zk =
+    E.string <| case zk of
+        G.PlusMinus -> "plusminus"
+        G.Steps _ -> "steps"
+
+
+zoomSteps : G.ZoomKind -> E.Encoder
+zoomSteps zk =
+    E.list E.float <| case zk of
+        G.PlusMinus -> []
+        G.Steps steps -> steps
+
 selectKind : G.SelectKind -> E.Encoder
 selectKind sk =
     case sk of
-        G.Pages c ->
+        G.Choice c ->
             E.record
                 [ ( "kind", E.string "pages" )
-                , ( "expand", E.bool c.expand )
+                , ( "form", form c.form )
                 , ( "face", face c.face )
                 , ( "shape", nestShape c.shape )
                 , ( "page", E.int c.page )
@@ -213,6 +241,7 @@ selectKind sk =
             E.record
                 [ ( "kind", E.string "switch" )
                 ]
+
 
 
 selectItem : G.SelectItem -> E.Encoder
@@ -245,6 +274,7 @@ property prop =
                 G.Select _ -> "select"
                 G.Gradient _ -> "gradient"
                 G.Progress _ -> "progress"
+                G.Zoom _ -> "zoom"
     in
     E.record
         [ ( "def", def prop.def )

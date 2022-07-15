@@ -72,6 +72,18 @@ theme =
             )
 
 
+form : D.Decoder G.Form
+form =
+    D.string
+        |> D.map
+            (\s ->
+                case s of
+                    "expanded" -> G.Expanded
+                    "collapsed" -> G.Collapsed
+                    _ -> G.Expanded
+            )
+
+
 url : D.Decoder G.Url
 url =
     D.map2
@@ -132,11 +144,11 @@ selectKind =
                 case kind_ of
                     "choice" ->
                         D.map4
-                            (\e f s p ->
-                                G.Pages
-                                    { expand = e, face = f, shape = s, page = p }
+                            (\fr fc s p ->
+                                G.Choice
+                                    { form = fr, face = fc, shape = s, page = p }
                             )
-                            (D.field "expand" D.bool)
+                            (maybeField "form" G.Expanded form)
                             (maybeField "face" G.Default face)
                             (D.field "shape" nestShape)
                             (D.field "page" D.int)
@@ -208,13 +220,14 @@ def kind =
 
 
         nestDef =
-            D.map5
+            D.map6
                 G.NestDef
                 (D.field "children" <| D.list property)
-                (D.field "expand" D.bool)
+                (maybeField "form" G.Expanded form)
                 (D.maybe <| D.field "nestAt" D.string)
                 (D.field "shape" nestShape)
                 (maybeField "face" G.Default face)
+                (D.field "page" D.int)
 
         progressDef =
             D.map
@@ -234,6 +247,18 @@ def kind =
                     ]
                 )
 
+        zoomDef =
+            D.map2
+                (\current stops ->
+                    { current = current
+                    , kind =
+                        if List.isEmpty stops then
+                            G.PlusMinus else G.Steps stops
+                    }
+                )
+                (D.field "current" D.float)
+                (D.field "stops" <| D.list D.float)
+
     in case kind of
 
         "ghost" -> D.succeed G.Ghost
@@ -248,6 +273,7 @@ def kind =
         "select" -> selectDef |> D.map G.Select
         "progress" -> progressDef |> D.map G.Progress
         "gradient" -> gradientDef |> D.map G.Gradient
+        "zoom" -> zoomDef |> D.map G.Zoom
 
         _ -> D.fail <| "unknown kind " ++ kind
 

@@ -3,9 +3,9 @@ module GenUI exposing
     , version
     , Path, Property, Def(..)
     , Theme(..), Url(..), Icon, Color(..), Gradient(..), ColorStop, ColorStop2D
-    , Face(..), NestShape, CellShape, SelectKind(..)
+    , Face(..), Form(..), NestShape, CellShape, SelectKind(..), ZoomKind(..)
     , SelectItem
-    , IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ProgressDef, GradientDef
+    , IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ProgressDef, GradientDef, ZoomDef
     , fold, foldWithParent, foldWithPath
     , root, defToString
     )
@@ -93,7 +93,7 @@ type alias CellShape =
 
 {-| How the select switch looks and acts, used for Tron UI. -}
 type SelectKind
-    = Pages { expand : Bool, face : Face, shape : NestShape, page : Int }
+    = Choice { form : Form, face : Face, shape : NestShape, page : Int }
     | Knob
     | Switch
 
@@ -115,6 +115,17 @@ type Color
 {-| -}
 type alias ColorStop = { color : Color, position : Float }
 
+
+{-| -}
+type Form
+    = Expanded
+    | Collapsed
+
+
+{-| -}
+type ZoomKind
+    = PlusMinus
+    | Steps (List Float)
 
 
 {-| -}
@@ -144,9 +155,11 @@ type alias ActionDef = { face : Face }
 {-| -}
 type alias SelectDef = { current : String, values : List SelectItem, nestAt : Maybe String, kind : SelectKind }
 {-| -}
-type alias NestDef = { children : List Property, expand : Bool, nestAt : Maybe String, shape : NestShape, face : Face }
+type alias NestDef = { children : List Property, form : Form, nestAt : Maybe String, shape : NestShape, face : Face, page : Int }
 {-| -}
 type alias ProgressDef = { api : Url }
+{-| -}
+type alias ZoomDef = { current : Float, kind : ZoomKind }
 {-| -}
 type alias GradientDef = { current : Gradient }
 
@@ -165,9 +178,7 @@ type Def
     | Nest NestDef
     | Gradient GradientDef
     | Progress ProgressDef
-
-    -- TODO: Gradient
-    -- TODO: Progress
+    | Zoom ZoomDef
 
 
 {-| -}
@@ -215,6 +226,7 @@ defToString def =
         Nest _ -> "nest"
         Gradient _ -> "gradient"
         Progress _ -> "progress"
+        Zoom _ -> "zoom"
 
 
 {-| Fold the interface structure from top to bottom. -}
