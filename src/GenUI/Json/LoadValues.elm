@@ -3,112 +3,98 @@ module GenUI.Json.LoadValues exposing (loadValues)
 import GenUI as G
 import GenUI.Color as Color exposing (Color)
 import GenUI.Gradient as Gradient exposing (Gradient)
-
 import Json.Decode as D
 
 
-type X
-    = XIntV
-    | XFloatV
-    | XXYV
-    | XBoolV
-    | XColorV
-    | XTextV
-    | XSelectV
-    | XGradientV
-    | XZoomV
-
-
-type V
-    = IntV Int
-    | FloatV Float
-    | XYV { x : Float, y : Float }
-    | BoolV Bool
-    | ColorV Color
-    | TextV String
-    | SelectV String
-    | GradientV Gradient
-    | ZoomV Float
-
-
-type alias PPath = List String
-
-
-loadExpectations : G.GenUI -> List ( PPath, X )
-loadExpectations =
+loadValues : D.Value -> G.GenUI -> G.GenUI
+loadValues root =
     let
-        foldF ppath _ prop list =
-            case prop.def of
-                G.Ghost -> list
-                G.NumInt _ -> (ppath, XIntV)::list
-                G.NumFloat _ -> (ppath, XFloatV)::list
-                G.XY _ -> (ppath, XXYV)::list
-                G.Toggle _ -> (ppath, XBoolV)::list
-                G.Color _ -> (ppath, XColorV)::list
-                G.Gradient _ -> (ppath, XGradientV)::list
-                G.Textual _ -> (ppath, XTextV)::list
-                G.Action _ -> list
-                G.Select _ -> (ppath, XSelectV)::list
-                G.Progress _ -> list
-                G.Zoom _ -> (ppath, XZoomV)::list
-                G.Nest _ -> list -- fold will visit children by itself
-    in
-        G.foldWithPropPath foldF []
+        updateDef pPath def =
+            case def of
+                G.NumInt nd ->
+                    helper pPath D.int <| \ci -> G.NumInt { nd | current = ci }
 
+                G.NumFloat fd ->
+                    helper pPath D.float <| \cf -> G.NumFloat { fd | current = cf }
 
-extractExpectations : D.Value -> List ( PPath, X ) -> List ( PPath, Maybe V )
-extractExpectations root _ =
-    []
-
-
-applyValues : List ( PPath, V ) -> G.GenUI -> G.GenUI
-applyValues updates =
-    let
-        updateF prop v =
-            { prop
-            | def =
-                case ( prop.def, v ) of
-                    ( G.NumInt nd, IntV ci ) ->
-                        G.NumInt { nd | current = ci }
-                    ( G.NumFloat fd, FloatV cf ) ->
-                        G.NumFloat { fd | current = cf }
-                    ( G.XY xyd, XYV cxy ) ->
-                        let
-                            ( xd, yd ) = ( xyd.x, xyd.y )
-                        in
+                G.XY xyd ->
+                    helper pPath
+                        (D.map2
+                            (\x y -> { x = x, y = y })
+                            (D.field "x" D.float)
+                            (D.field "y" D.float)
+                        )
+                    <|
+                        \cxy ->
+                            let
+                                ( xd, yd ) =
+                                    ( xyd.x, xyd.y )
+                            in
                             G.XY
                                 { x = { xd | current = cxy.x }
                                 , y = { yd | current = cxy.y }
                                 }
-                    ( G.Toggle bd, BoolV cb ) ->
-                        G.Toggle { bd | current = cb }
-                    ( G.Color cd, ColorV cc ) ->
-                        G.Color { cd | current = cc }
-                    ( G.Gradient gd, GradientV cg ) ->
-                        G.Gradient { gd | current = cg }
-                    ( G.Textual td, TextV ct ) ->
-                        G.Textual { td | current = ct }
-                    ( G.Select sd, SelectV cs ) ->
-                        G.Select { sd | current = cs }
-                    ( G.Zoom zd, ZoomV cz ) ->
-                        G.Zoom { zd | current = cz }
-                    _ -> prop.def
-            }
-    in G.update
-        (\(_, pPath) prop ->
-            -- FIXME: veery slow, looks up through the whole list every time
-            --        could be solved with `GenUI a` and every property holding a value
-            updates
-                |> List.foldl
-                    (\(otherPath, v) justProp ->
-                        if (pPath == otherPath)
-                            then Just <| updateF prop v
-                            else justProp
-                    )
-                    (Just prop)
 
+                G.Toggle bd ->
+                    helper pPath D.bool <| \cb -> G.Toggle { bd | current = cb }
+
+                G.Color cd ->
+                    helper pPath
+                        (D.string
+                            |> D.map Color.fromString
+                            |> D.andThen
+                                (\resColor ->
+                                    case resColor of
+                                        Ok color ->
+                                            D.succeed color
+
+                                        Err failure ->
+                                            D.fail failure
+                                )
+                        )
+                    <|
+                        \cc -> G.Color { cd | current = cc }
+
+                G.Gradient gd ->
+                    helper pPath
+                        (D.string
+                            |> D.map Gradient.fromString
+                            |> D.andThen
+                                (\resColor ->
+                                    case resColor of
+                                        Ok color ->
+                                            D.succeed color
+
+                                        Err failure ->
+                                            D.fail failure
+                                )
+                        )
+                    <|
+                        \cg -> G.Gradient { gd | current = cg }
+
+                G.Textual td ->
+                    helper pPath D.string <| \ct -> G.Textual { td | current = ct }
+
+                G.Select sd ->
+                    helper pPath D.string <| \cs -> G.Select { sd | current = cs }
+
+                G.Zoom zd ->
+                    helper pPath D.float <| \cz -> G.Zoom { zd | current = cz }
+
+                _ ->
+                    Result.Ok def
+
+        helper : G.PropPath -> D.Decoder x -> (x -> G.Def) -> Result D.Error G.Def
+        helper pPath decoder modifyDef =
+            root
+                |> D.decodeValue (D.at pPath decoder)
+                |> Result.map modifyDef
+    in
+    G.update
+        (\( _, pPath ) prop ->
+            Just
+                { prop
+                | def = updateDef pPath prop.def
+                    |> Result.withDefault prop.def
+                }
         )
-
-
-loadValues : D.Value -> G.GenUI -> G.GenUI
-loadValues root ui = ui -- TODO: use `D.at`

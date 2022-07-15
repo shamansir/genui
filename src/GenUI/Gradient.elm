@@ -32,43 +32,45 @@ toString c =
             "2d(" ++ (String.join "|" <| List.map s2 tdstops) ++ ")"
 
 
-fromString : String -> Maybe Gradient
+fromString : String -> Result String Gradient
 fromString str =
     let
         extractS1 s1 =
             case String.split ";" s1 of
                 mcolor::mpos::_ ->
-                    Maybe.map2
+                    Result.map2
                         (\p color -> { position = p, color = color })
-                        (String.toFloat mpos)
+                        (String.toFloat mpos |> Result.fromMaybe ("failed to parse" ++ mpos))
                         (Color.fromString mcolor)
-                _ -> Nothing
+                _ -> Err <| "failed to parse " ++ s1
         extractS2 s2 =
             case String.split ";" s2 of
                 mcolor::mpos::_ ->
                     case String.split "," mpos of
                         mx::my::_ ->
-                            Maybe.map3
+                            Result.map3
                                 (\x y color -> { position = { x = x, y = y }, color = color })
-                                (String.toFloat mx)
-                                (String.toFloat my)
+                                (String.toFloat mx |> Result.fromMaybe ("failed to parse " ++ mx))
+                                (String.toFloat my |> Result.fromMaybe ("failed to parse " ++ my))
                                 (Color.fromString mcolor)
-                        _ -> Nothing
-                _ -> Nothing
+                        _ -> Err <| "failed to split " ++ mpos
+                _ -> Err <| "failed to parse " ++ s2
     in if String.startsWith "lin" str then
             str
                 |> String.slice 4 -1
                 |> String.split "|"
                 |> List.map extractS1
+                |> List.map Result.toMaybe
                 |> List.filterMap identity
                 |> Linear
-                |> Just
+                |> Ok
         else if String.startsWith "2d" str then
             str
                 |> String.slice 3 -1
                 |> String.split "|"
                 |> List.map extractS2
+                |> List.map Result.toMaybe
                 |> List.filterMap identity
                 |> TwoDimensional
-                |> Just
-        else Nothing
+                |> Ok
+        else Err <| "failed to parse: " ++ str
