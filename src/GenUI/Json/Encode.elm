@@ -8,6 +8,9 @@ module GenUI.Json.Encode exposing (encode)
 
 
 import GenUI as G
+import GenUI.Color as G
+import GenUI.Gradient as G
+
 import Json.Encode as E
 
 
@@ -138,6 +141,10 @@ color c =
                 , ( "l", E.float hsla.lightness )
                 , ( "a", E.float hsla.alpha )
                 ]
+        G.Hex hex ->
+            E.object
+                [ ( "hex", E.string hex )
+                ]
 
 
 icon : G.Icon -> E.Value
@@ -169,7 +176,7 @@ theme t = E.string <| case t of
     G.Light -> "light"
 
 
-gstop1 : { color : G.Color, position : Float } -> E.Value
+gstop1 : G.Stop -> E.Value
 gstop1 s =
     E.object
         [ ( "color", color s.color )
@@ -177,7 +184,7 @@ gstop1 s =
         ]
 
 
-gstop2 : { color : G.Color, position : { x : Float, y : Float } } -> E.Value
+gstop2 : G.Stop2D -> E.Value
 gstop2 s =
     E.object
         [ ( "color", color s.color )

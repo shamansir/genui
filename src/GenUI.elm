@@ -2,7 +2,7 @@ module GenUI exposing
     ( GenUI
     , version
     , Path, Property, Def(..)
-    , Theme(..), Url(..), Icon, Color(..), Gradient(..), ColorStop, ColorStop2D
+    , Theme(..), Url(..), Icon
     , Face(..), Form(..), NestShape, CellShape, SelectKind(..), ZoomKind(..)
     , SelectItem
     , IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ProgressDef, GradientDef, ZoomDef
@@ -38,6 +38,10 @@ module GenUI exposing
 @docs Face, NestShape, CellShape, SelectKind, SelectItem
 
 -}
+
+
+import GenUI.Color exposing (Color(..))
+import GenUI.Gradient exposing (Gradient(..), Stop, Stop2D)
 
 
 {-| Current version, to be accessible from code. -}
@@ -107,16 +111,6 @@ type alias SelectItem =
 
 
 {-| -}
-type Color
-    = Rgba { red : Float, green : Float, blue : Float, alpha : Float }
-    | Hsla { hue : Float, saturation : Float, lightness : Float, alpha : Float }
-
-
-{-| -}
-type alias ColorStop = { color : Color, position : Float }
-
-
-{-| -}
 type Form
     = Expanded
     | Collapsed
@@ -126,16 +120,6 @@ type Form
 type ZoomKind
     = PlusMinus
     | Steps (List Float)
-
-
-{-| -}
-type alias ColorStop2D = { color : Color, position : { x : Float, y : Float } }
-
-
-{-| -}
-type Gradient
-    = Linear (List ColorStop)
-    | TwoDimensional (List ColorStop2D)
 
 
 {-| -}

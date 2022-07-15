@@ -8,6 +8,8 @@ module GenUI.Yaml.Decode exposing (decode)
 
 
 import GenUI as G
+import GenUI.Color as G
+import GenUI.Gradient as G
 
 import Yaml.Decode as D
 
@@ -51,6 +53,9 @@ color =
             (D.field "s" D.float)
             (D.field "l" D.float)
             (D.field "a" D.float)
+        , D.map
+            G.Hex
+            (D.field "hex" D.string)
         ]
 
 
@@ -100,15 +105,15 @@ url =
 
 
 
-gstop1 : D.Decoder G.ColorStop
+gstop1 : D.Decoder G.Stop
 gstop1 =
     D.map2
-        G.ColorStop
+        G.Stop
         (D.field "color" color)
         (D.field "position" D.float)
 
 
-gstop2 : D.Decoder G.ColorStop2D
+gstop2 : D.Decoder G.Stop2D
 gstop2 =
     D.map3
         (\c x y -> { color = c, position = { x = x, y = y } })

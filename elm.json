@@ -4,15 +4,21 @@
     "name": "shamansir/genui",
     "summary": "The language for definining simple interfaces",
     "license": "BSD-3-Clause",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "exposed-modules": [
         "GenUI",
         "GenUI.Descriptive.Encode",
         "GenUI.Json.Encode",
         "GenUI.Json.Decode",
+        "GenUI.Json.ToValues",
+        "GenUI.Json.FromValues",
         "GenUI.Yaml.Encode",
         "GenUI.Yaml.Decode",
-        "GenUI.ToGraph"
+        "GenUI.Yaml.ToValues",
+        "GenUI.Yaml.FromValues",
+        "GenUI.ToGraph",
+        "GenUI.Color",
+        "GenUI.Gradient"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {

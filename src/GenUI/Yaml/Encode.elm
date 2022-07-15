@@ -8,6 +8,9 @@ module GenUI.Yaml.Encode exposing (encode)
 
 
 import GenUI as G
+import GenUI.Color as G
+import GenUI.Gradient as G
+
 import Yaml.Encode as E
 
 
@@ -136,6 +139,10 @@ color c =
                 , ( "s", E.float hsla.saturation )
                 , ( "l", E.float hsla.lightness )
                 , ( "a", E.float hsla.alpha )
+                ]
+        G.Hex hex ->
+            E.record
+                [ ( "hex", E.string hex )
                 ]
 
 
