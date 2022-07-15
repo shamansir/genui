@@ -1,12 +1,13 @@
 module GenUI exposing
     ( GenUI
     , version
-    , Path, Property, Def(..)
+    , Path, PropPath, Property, Def(..)
     , Theme(..), Url(..), Icon
     , Face(..), Form(..), NestShape, CellShape, SelectKind(..), ZoomKind(..)
     , SelectItem
     , IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef, ProgressDef, GradientDef, ZoomDef
-    , fold, foldWithParent, foldWithPath
+    , fold, foldWithParent, foldWithPath, foldWithPropPath, foldWithPaths
+    , find, findP
     , root, defToString
     )
 
@@ -27,7 +28,11 @@ module GenUI exposing
 
 # Folding
 
-@docs fold, foldWithParent, foldWithPath
+@docs fold, foldWithParent, foldWithPath, foldWithPropPath, foldWithPaths
+
+# Find
+
+@docs find, findP
 
 # Helpers
 
@@ -52,6 +57,11 @@ version = "2.0.0"
 {-| A path to the property in the tree. So, all the first-level properties have the path of `[0]`.
 The second property that lies in the folder at index `3` has a path `[0, 3, 1]`. -}
 type alias Path = List Int
+
+
+{-| A path to the property in the tree. So, all the first-level properties have the path of `[0]`.
+The second property that lies in the folder at index `3` has a path `[0, 3, 1]`. -}
+type alias PropPath = List String
 
 
 {-| Icon theme: Light or Dark -}
@@ -225,15 +235,31 @@ foldWithParent =
     foldWithPath << always
 
 
-{-| Fold the interface structure from top to bottom. The function gets path and the parent property and the second argument and the third one is the property being folded itselfs. -}
+{-| Fold the interface structure from top to bottom. The function gets path and the parent property and the second argument and the third one is the property being folded itself. -}
 foldWithPath : (Path -> Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
-foldWithPath f a =
+foldWithPath f =
+    foldWithPaths (f << Tuple.first)
+
+
+{-| Fold the interface structure from top to bottom. The function gets property-path and the parent property and the second argument and the third one is the property being folded itself. -}
+foldWithPropPath : (PropPath -> Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
+foldWithPropPath f =
+    foldWithPaths (f << Tuple.second)
+
+
+{-| Fold the interface structure from top to bottom. The function gets index-path, property-name-path and the parent property and the second argument and the third one is the property being folded itself. -}
+foldWithPaths : ((Path, PropPath) -> Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
+foldWithPaths f a =
     let
-        foldProperty parentPath parent prop (index, a_) =
+        foldProperty ( iPath, sPath ) parent prop (index, a_) =
             ( index + 1
             ,
                 let
-                    curPath = parentPath ++ [index]
+                    curPath =
+                        ( iPath ++ [index]
+                        , sPath ++
+                            [ prop.property |> Maybe.withDefault prop.name ]
+                        )
                 in case prop.def of
                     Nest nestDef ->
                         f curPath parent prop
@@ -245,5 +271,32 @@ foldWithPath f a =
                     _ -> f curPath parent prop a_
             )
     in Tuple.second
-        << List.foldl (foldProperty [] Nothing) (0, a)
+        << List.foldl (foldProperty ( [], [] ) Nothing) (0, a)
         << .root
+
+
+{-| Find property by index-based path. Traverses/folds the tree, so could be slow for a complex structure -}
+find : Path -> GenUI -> Maybe Property
+find iPath =
+    foldWithPath
+        (\oPath _ prop foundBefore ->
+            case foundBefore of
+                Just found -> Just found
+                Nothing -> if oPath == iPath then Just prop else Nothing
+        )
+        Nothing
+
+
+{-| Find property by property-based path. Traverses/folds the tree, so could be slow for a complex structure -}
+findP : PropPath -> GenUI -> Maybe Property
+findP iPath =
+    foldWithPropPath
+        (\oPath _ prop foundBefore ->
+            case foundBefore of
+                Just found -> Just found
+                Nothing -> if oPath == iPath then Just prop else Nothing
+        )
+        Nothing
+
+
+-- TODO: update
