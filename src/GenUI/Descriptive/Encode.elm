@@ -8,7 +8,11 @@ module GenUI.Descriptive.Encode exposing (Descriptive, encode, toString)
 
 import GenUI as G
 
-import Util.Indent exposing (Indented, indent)
+import Util.Indent exposing (Indented, indent, indented)
+
+import GenUI.Color as Color
+import GenUI.Gradient as Gradient
+
 
 
 type alias Descriptive = Indented
@@ -50,7 +54,7 @@ def d =
             ]
 
         colorDef cd =
-            [ ( 0, "color field, current value is " ++ cd.current ) ]
+            [ ( 0, "color field, current value is " ++ Color.toString cd.current ) ]
 
         textDef cd =
             [ ( 0, "text field, current value is \"" ++ cd.current ++ "\"" ) ]
@@ -76,18 +80,14 @@ def d =
                    , ( 1, "visually it is:" )
                    ]
                 ++ indent (selectKind sd.kind)
-                ++ ( 1, "the shape of its panel is:" )
-                :: indent (nestShape sd.shape)
 
         nestDef nd =
             [ ( 0, "nested panel" )
             , ( 1
               , "by default it is "
-                    ++ (if nd.expand then
-                            "expanded"
-
-                        else
-                            "collapsed"
+                    ++ (case nd.form of
+                            G.Expanded -> "expanded"
+                            G.Collapsed -> "collapsed"
                        )
               )
             , ( 1, "its inner components are: " )
@@ -106,10 +106,21 @@ def d =
                 ++ indent (face nd.face)
                 ++ ( 1, "the shape of its panel is:" )
                 :: indent (nestShape nd.shape)
+
+        gradientDef gd =
+            [ ( 0, "gradient editor, current value is " ++ Gradient.toString gd.current ) ]
+
+        progressDef pd =
+            [ ( 0, "some progress display, its api is at " ++ url pd.api ) ]
+
+        zoomDef zd =
+            [ ( 0, "zoom control, current zoom is " ++ String.fromFloat zd.current ) ]
+
+
     in
     case d of
-        G.Root ->
-            [ ( 0, "root" ) ]
+        G.Ghost ->
+            [ ( 0, "ghost" ) ]
 
         G.NumInt id ->
             intDef id
@@ -138,6 +149,15 @@ def d =
         G.Nest nd ->
             nestDef nd
 
+        G.Gradient gd ->
+            gradientDef gd
+
+        G.Progress pd ->
+            progressDef pd
+
+        G.Zoom zd ->
+            zoomDef zd
+
 
 cellShape : G.CellShape -> Descriptive
 cellShape cs =
@@ -160,10 +180,11 @@ face : G.Face -> Descriptive
 face f =
     case f of
         G.OfColor color ->
-            [ ( 0, "represented with color " ++ color ) ]
+            [ ( 0, "represented with color " ++ Color.toString color ) ]
 
-        G.Icon icon ->
-            [ ( 0, "has icon " ++ icon ) ]
+        G.OfIcon icons ->
+            ( 0, "has icons: ")
+                :: (indent <| indexedList (indented << icon) icons)
 
         G.Default ->
             [ ( 0, "default face" ) ]
@@ -173,19 +194,18 @@ selectKind : G.SelectKind -> Descriptive
 selectKind sk =
     case sk of
         G.Choice c ->
-            [ ( 0, "just a choice" )
-            , ( 1
+               ( 0, "just a choice" )
+            :: ( 1
               , "by default it is "
-                    ++ (if c.expand then
-                            "expanded"
-
-                        else
-                            "collapsed"
+                    ++ (case c.form of
+                            G.Expanded -> "expanded"
+                            G.Collapsed -> "collapsed"
                        )
               )
-            , ( 1, "its face is:" )
-            ]
-                ++ indent (face c.face)
+            :: ( 1, "its face is:" )
+            :: indent (face c.face)
+            ++ ( 1, "the shape of its panel is:" )
+            :: indent (nestShape c.shape)
 
         G.Knob ->
             [ ( 0, "a switch between values as a knob" ) ]
@@ -210,6 +230,23 @@ selectItem si =
     , ( 1, "its face is:" )
     ]
         ++ indent (face si.face)
+
+
+url : G.Url -> String
+url u =
+    case u of
+        G.Local local -> "@local://" ++ local
+        G.Remote remote -> remote
+
+
+icon : G.Icon -> String
+icon i =
+    let
+        themeString =
+            case i.theme of
+                G.Dark -> "dark"
+                G.Light -> "light"
+    in "for " ++ themeString ++ " theme at " ++ url i.url
 
 
 property : G.Property -> Descriptive

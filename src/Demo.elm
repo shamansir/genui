@@ -91,7 +91,7 @@ view model =
                     []
                 , div [ style "width" "50%" ]
                     [ button [ onClick New ] [ text "New" ]
-                    , text "Parsing result"
+                    , text "Insert JSON"
                     ]
                 ]
         Parsed curOutput _ outputs ->

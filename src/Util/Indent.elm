@@ -28,6 +28,9 @@ indentBy amount =
     List.map (Tuple.mapFirst ((+) amount))
 
 
+indented : String -> Indented
+indented s = [ ( 0, s ) ]
+
 
 -- addIndices :  Indented -> IndentedWithIndices
 -- addIndices = List.indexedMap Tuple.pair

@@ -7,42 +7,19 @@ module GenUI.Dhall.Encode exposing (Dhall, encode, toString)
 -}
 
 
+
 import GenUI as G
 
-import Util.Indent exposing (Indented, indent)
+import Util.Indent exposing (Indented, indent, indented)
 
-{-| -}
-type alias Dhall =
-    Indented
-
-
-{-| Encode UI to DHALL.
--}
-encode : G.GenUI -> Dhall
-encode genui =
-    ( 0, "GenUI, version " ++ genui.version )
-        :: (indent <| List.map property genui.root)
+import GenUI.Color as Color
+import GenUI.Gradient as Gradient
 
 
-{-| Convert DHALL to string.
--}
-toString : Dhall -> String
-toString =
-    List.map (\( indent_, str ) -> (String.fromList <| List.repeat indent_ ' ') ++ str)
-        >> String.join "\n"
+type alias Dhall = Indented
 
 
-indent : Dhall -> Dhall
-indent =
-    indentBy 1
-
-
-indentBy : Int -> Dhall -> Dhall
-indentBy amount =
-    List.map (Tuple.mapFirst ((+) amount))
-
-
-def : G.Def -> Descriptive
+def : G.Def -> Dhall
 def d =
     let
         intDef id =
@@ -78,7 +55,7 @@ def d =
             ]
 
         colorDef cd =
-            [ ( 0, "color field, current value is " ++ cd.current ) ]
+            [ ( 0, "color field, current value is " ++ Color.toString cd.current ) ]
 
         textDef cd =
             [ ( 0, "text field, current value is \"" ++ cd.current ++ "\"" ) ]
@@ -104,18 +81,14 @@ def d =
                    , ( 1, "visually it is:" )
                    ]
                 ++ indent (selectKind sd.kind)
-                ++ ( 1, "the shape of its panel is:" )
-                :: indent (nestShape sd.shape)
 
         nestDef nd =
             [ ( 0, "nested panel" )
             , ( 1
               , "by default it is "
-                    ++ (if nd.expand then
-                            "expanded"
-
-                        else
-                            "collapsed"
+                    ++ (case nd.form of
+                            G.Expanded -> "expanded"
+                            G.Collapsed -> "collapsed"
                        )
               )
             , ( 1, "its inner components are: " )
@@ -134,10 +107,21 @@ def d =
                 ++ indent (face nd.face)
                 ++ ( 1, "the shape of its panel is:" )
                 :: indent (nestShape nd.shape)
+
+        gradientDef gd =
+            [ ( 0, "gradient editor, current value is " ++ Gradient.toString gd.current ) ]
+
+        progressDef pd =
+            [ ( 0, "some progress display, its api is at " ++ url pd.api ) ]
+
+        zoomDef zd =
+            [ ( 0, "zoom control, current zoom is " ++ String.fromFloat zd.current ) ]
+
+
     in
     case d of
-        G.Root ->
-            [ ( 0, "root" ) ]
+        G.Ghost ->
+            [ ( 0, "ghost" ) ]
 
         G.NumInt id ->
             intDef id
@@ -166,8 +150,17 @@ def d =
         G.Nest nd ->
             nestDef nd
 
+        G.Gradient gd ->
+            gradientDef gd
 
-cellShape : G.CellShape -> Descriptive
+        G.Progress pd ->
+            progressDef pd
+
+        G.Zoom zd ->
+            zoomDef zd
+
+
+cellShape : G.CellShape -> Dhall
 cellShape cs =
     [ ( 0, "cell shape with" )
     , ( 1, String.fromInt cs.cols ++ " columns" )
@@ -184,36 +177,36 @@ nestShape ns =
     ]
 
 
-face : G.Face -> Descriptive
+face : G.Face -> Dhall
 face f =
     case f of
         G.OfColor color ->
-            [ ( 0, "represented with color " ++ color ) ]
+            [ ( 0, "represented with color " ++ Color.toString color ) ]
 
-        G.Icon icon ->
-            [ ( 0, "has icon " ++ icon ) ]
+        G.OfIcon icons ->
+            ( 0, "has icons: ")
+                :: (indent <| indexedList (indented << icon) icons)
 
         G.Default ->
             [ ( 0, "default face" ) ]
 
 
-selectKind : G.SelectKind -> Descriptive
+selectKind : G.SelectKind -> Dhall
 selectKind sk =
     case sk of
         G.Choice c ->
-            [ ( 0, "just a choice" )
-            , ( 1
+               ( 0, "just a choice" )
+            :: ( 1
               , "by default it is "
-                    ++ (if c.expand then
-                            "expanded"
-
-                        else
-                            "collapsed"
+                    ++ (case c.form of
+                            G.Expanded -> "expanded"
+                            G.Collapsed -> "collapsed"
                        )
               )
-            , ( 1, "its face is:" )
-            ]
-                ++ indent (face c.face)
+            :: ( 1, "its face is:" )
+            :: indent (face c.face)
+            ++ ( 1, "the shape of its panel is:" )
+            :: indent (nestShape c.shape)
 
         G.Knob ->
             [ ( 0, "a switch between values as a knob" ) ]
@@ -222,7 +215,7 @@ selectKind sk =
             [ ( 0, "a switch between values" ) ]
 
 
-selectItem : G.SelectItem -> Descriptive
+selectItem : G.SelectItem -> Dhall
 selectItem si =
     [ ( 0, "the value: \"" ++ si.value ++ "\"" )
     , ( 1
@@ -240,7 +233,24 @@ selectItem si =
         ++ indent (face si.face)
 
 
-property : G.Property -> Descriptive
+url : G.Url -> String
+url u =
+    case u of
+        G.Local local -> "@local://" ++ local
+        G.Remote remote -> remote
+
+
+icon : G.Icon -> String
+icon i =
+    let
+        themeString =
+            case i.theme of
+                G.Dark -> "dark"
+                G.Light -> "light"
+    in "for " ++ themeString ++ " theme at " ++ url i.url
+
+
+property : G.Property -> Dhall
 property prop =
     [ ( 0, "property \"" ++ prop.name ++ "\"" )
     , ( 1
@@ -268,3 +278,36 @@ property prop =
                 Nothing ->
                     []
            )
+
+
+{-| Convert UI to DHALL
+-}
+encode : G.GenUI -> Dhall
+encode genui =
+    ( 0, "GenUI, version " ++ genui.version )
+        :: (indent <| indexedList property genui.root)
+
+
+{-| Convert DHALL to string.
+-}
+toString : Dhall -> String
+toString =
+    List.map (\( indent_, str ) -> (String.fromList <| List.repeat indent_ ' ') ++ str)
+        >> String.join "\n"
+
+
+indexedList : (a -> Indented) -> List a -> Indented
+indexedList f =
+    List.indexedMap
+        (\idx ->
+            List.indexedMap
+                (\iidx ( indent_, str ) ->
+                    if iidx == 0 then
+                        ( indent_, String.fromInt idx ++ ". " ++ str )
+
+                    else
+                        ( indent_, str )
+                )
+                << f
+        )
+        >> List.concat

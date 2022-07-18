@@ -28,11 +28,11 @@ toValue { def, property, name } =
         G.Textual td ->
             E.string td.current
         G.Action _ ->
-            E.null
+            E.string "[[action]]"
         G.Select sd ->
             E.string sd.current
         G.Progress _ ->
-            E.null
+            E.string "[[progress]]"
         G.Zoom zd ->
             E.float zd.current
         G.Nest nd ->
