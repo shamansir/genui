@@ -8,7 +8,7 @@ module GenUI.Descriptive.Encode exposing (Descriptive, encode, toString)
 
 import GenUI as G
 
-import Indent exposing (Indented, indent)
+import Util.Indent exposing (Indented, indent)
 
 
 type alias Descriptive = Indented

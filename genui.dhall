@@ -115,8 +115,8 @@ let ZoomKind =
     >
 
 
-let IntDef : Type = { min : Integer, max : Integer, step : Integer, current : Integer }
-let FloatDef : Type = { min : Double, max : Double, step : Double, current : Double }
+let IntDef : Type = { min : Integer, max : Integer, step : Integer, current : Integer {-, asText : Bool -} }
+let FloatDef : Type = { min : Double, max : Double, step : Double, current : Double {-, asText : Bool -} }
 let XYDef : Type = { x : FloatDef, y : FloatDef }
 let ToggleDef : Type = { current : Bool }
 let ColorDef : Type = { current : Color }
@@ -153,11 +153,13 @@ let Property =
         , property : Optional Text
         , live : Bool
         , shape : Optional CellShape.Type
+        , triggerOn : List Text
         }
     , default =
         { property = None Text
         , live = False
         , shape = None CellShape.Type
+        , triggerOn = ([] : List Text)
         }
     }
 

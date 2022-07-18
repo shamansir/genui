@@ -1,17 +1,23 @@
 module Demo exposing (..)
 
 
-import GenUI.Descriptive.Encode as Descriptive
+import Graph as Graph
+import Dict exposing (Dict)
+
 import Json.Decode as Json
 import Json.Encode as Json
 import Yaml.Encode as Yaml
+
+import GenUI as G
 import GenUI.Json.Decode as GenUIJson
 import GenUI.Json.Encode as GenUIJson
+import GenUI.Json.LoadValues as GenUIJson
+import GenUI.Json.ToValues as GenUIJson
 import GenUI.Yaml.Encode as GenUIYaml
 import GenUI.Dhall.Encode as GenUIDhall
+import GenUI.Descriptive.Encode as Descriptive
 import GenUI.ToGraph as GenUIGraph
-import Graph as Graph
-import Dict exposing (Dict)
+
 
 import Browser
 
@@ -27,6 +33,9 @@ type Output
     | Yaml
     | Graph
     | Dhall
+    | Values
+    -- | ValuesJson
+    -- | ValuesYaml
 
 
 defaultOutput : Output
@@ -36,14 +45,14 @@ defaultOutput = Descriptive
 type Model
     = Empty
     | ParseError String
-    -- Parsed Output G.GenUI (List (Output, String))
-    | Parsed Output (List (Output, String)) -- (Dict Output String)
+    | Parsed Output G.GenUI (List (Output, String))  -- (Dict Output String)
 
 
 type Action
     = New
     | Parse String
     | SwitchTo Output
+    -- FromUrl String
 
 
 init : Model
@@ -66,6 +75,7 @@ view model =
                     Yaml -> "Yaml"
                     Graph -> "Graph"
                     Dhall -> "Dhall"
+                    Values -> "Values"
                 ]
     in case model of
         Empty ->
@@ -84,11 +94,11 @@ view model =
                     , text "Parsing result"
                     ]
                 ]
-        Parsed curOutput outputs ->
+        Parsed curOutput _ outputs ->
             div [ ]
                 <| button [ onClick New ] [ text "New" ]
                 :: (div []
-                        <| List.map (modeButton curOutput) [ Descriptive, Json, Yaml, Graph, Dhall ]
+                        <| List.map (modeButton curOutput) [ Descriptive, Json, Yaml, Graph, Dhall, Values ]
                    )
                 :: List.map
                     ( \(output, parsed) ->
@@ -115,7 +125,7 @@ update action model =
         curOutput : Output
         curOutput =
             case model of
-                Parsed output _ -> output
+                Parsed output _ _ -> output
                 _ -> defaultOutput
     in
 
@@ -124,19 +134,20 @@ update action model =
         Parse string ->
             case decodeString GenUIJson.decode string of
                 Ok ui ->
-                    Parsed curOutput
+                    Parsed curOutput ui
                         [ ( Descriptive, Descriptive.toString <| Descriptive.encode ui )
                         , ( Json, Json.encode 4 <| GenUIJson.encode ui )
                         , ( Yaml, Yaml.toString 4 <| GenUIYaml.encode ui )
                         , ( Dhall, GenUIDhall.toString <| GenUIDhall.encode ui )
                         , ( Graph, Graph.toString GenUIGraph.nodeToString GenUIGraph.edgeToString <| GenUIGraph.toGraph ui )
+                        , ( Values, Json.encode 4 <| GenUIJson.toValues ui )
                         ]
                 Err error ->
                     ParseError <| Json.errorToString error
         SwitchTo output ->
             case model of
-                Parsed _ outputs ->
-                    Parsed output outputs
+                Parsed _ ui outputs ->
+                    Parsed output ui outputs
                 _ -> model
 
 

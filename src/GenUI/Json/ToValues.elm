@@ -1,4 +1,4 @@
-module GenUI.Json.ToValues exposing (expose)
+module GenUI.Json.ToValues exposing (toValues)
 
 import GenUI as G
 import GenUI.Color as Color
@@ -41,7 +41,7 @@ toValue { def, property, name } =
     )
 
 
-expose : G.GenUI -> E.Value
-expose genui =
+toValues : G.GenUI -> E.Value
+toValues genui =
     E.object
         <| List.map toValue genui.root

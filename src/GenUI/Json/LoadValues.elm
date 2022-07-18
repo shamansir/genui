@@ -49,7 +49,7 @@ loadValues root =
                                             D.succeed color
 
                                         Err failure ->
-                                            D.fail failure
+                                            D.fail <| Color.errorToString failure
                                 )
                         )
                     <|

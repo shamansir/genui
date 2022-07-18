@@ -4,6 +4,7 @@ const addProp = (gui, prop, state, actions, update) => {
     const def = prop.def;
     const property = prop.property || prop.name;
     const name = prop.name || prop.property;
+    // FIXME: add `live()`
     let control;
     switch (prop.kind) {
         case 'select':
@@ -16,6 +17,7 @@ const addProp = (gui, prop, state, actions, update) => {
             control = gui.add(state, property, def.min, def.max, def.step).name(name).onFinishChange((val) => { update(property, val); });
             return { property, control };
         case 'text': case 'color':
+            // FIXME: color as dat.gui color control
             state[property] = def.current;
             control = gui.add(state, property).name(name).onFinishChange((val) => { update(property, val); });
             return { property, control };
@@ -53,6 +55,7 @@ const addProp = (gui, prop, state, actions, update) => {
             const y = xyFolder.add(state[property], 'y', def.y.min, def.y.max, def.y.step).name(name).onFinishChange((val) => { update(property, { y: val }); });
             control = xyFolder;
             return { property, control, children : { x : { control : x.control }, y : { control : y.control } } };
+        // TODO: progress, gradient
         default:
             console.warn('property was not handled, because of its unsupported kind', prop.kind, property);
             break;

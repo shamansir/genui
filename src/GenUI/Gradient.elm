@@ -1,8 +1,16 @@
-module GenUI.Gradient exposing (Stop, Stop2D, Gradient(..), toString, fromString)
+module GenUI.Gradient exposing (Stop, Stop2D, Gradient(..), toString, fromString, ParseError)
 
 
 import GenUI.Color as Color exposing (Color)
 import Html exposing (s)
+
+
+type ParseError
+    = WrongStop Int String
+    | WrongColor Int Color.ParseError
+    | WrongLinear String
+    | Wrong2D String
+    | WrongCompletely String
 
 
 {-| -}
@@ -40,8 +48,9 @@ fromString str =
                 mcolor::mpos::_ ->
                     Result.map2
                         (\p color -> { position = p, color = color })
-                        (String.toFloat mpos |> Result.fromMaybe ("failed to parse" ++ mpos))
-                        (Color.fromString mcolor)
+                        (String.toFloat mpos |> Result.fromMaybe ("Failed to parse" ++ mpos))
+                        (Color.fromString mcolor
+                        |> Result.mapError Color.errorToString)
                 _ -> Err <| "failed to parse " ++ s1
         extractS2 s2 =
             case String.split ";" s2 of
@@ -50,9 +59,9 @@ fromString str =
                         mx::my::_ ->
                             Result.map3
                                 (\x y color -> { position = { x = x, y = y }, color = color })
-                                (String.toFloat mx |> Result.fromMaybe ("failed to parse " ++ mx))
-                                (String.toFloat my |> Result.fromMaybe ("failed to parse " ++ my))
-                                (Color.fromString mcolor)
+                                (String.toFloat mx |> Result.fromMaybe ("Failed to parse " ++ mx))
+                                (String.toFloat my |> Result.fromMaybe ("Failed to parse " ++ my))
+                                (Color.fromString mcolor |> Result.mapError Color.errorToString)
                         _ -> Err <| "failed to split " ++ mpos
                 _ -> Err <| "failed to parse " ++ s2
     in if String.startsWith "lin" str then

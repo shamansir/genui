@@ -212,6 +212,7 @@ let encode
                             }
                             prop.property
                 , live = JSON.bool prop.live
+                , triggerOn = JSON.array (List/map Text JSON.Type JSON.string prop.triggerOn)
                 }
                 // merge
                     { Ghost =
