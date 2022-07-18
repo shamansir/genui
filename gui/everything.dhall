@@ -5,6 +5,10 @@ let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 
 let select_items = [ "A", "B", "C", "D", "E", "F", "G" ]
 
+let select_knob_items = [ "NN", "OO", "PP", "QQ", "RR", "SS", "TT" ]
+
+let select_switch_items = [ "UU", "VV", "WW", "XX", "YY", "ZZ" ]
+
 in b.root
     [ b.int "int" { min = -180, max = +180, step = +5, current = +10 }
     , b.float "float" { min = 0.1, max = 4.0, step = 0.05, current = 1.0 }
@@ -58,11 +62,15 @@ in b.root
             , b.action "child3"
             , b.toggle "toggle" True // b.live
             , b.color "hsl" (b._hsl 210.0 8.0 51.0)
+            , b.text "text" "foo"
+            , b.select_knob "sel_knob" select_knob_items "NN"
+            , b.select_switch "sel_swi" select_switch_items "UU"
             , b.nest
                 "subnest"
                 (b.children
                     [ b.action "act"
                     , b.zoom "zoom"
+                    , b.ghost "aa"
                     , b.zoom_by "zoom_by" 1.0 [ 0.1, 0.3, 0.5, 1.0, 2.0, 3.0 ]
                     ]
                 )

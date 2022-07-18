@@ -6,6 +6,10 @@ let Property/encode = ./genui.encode.dhall
 let VERSION = ./VERSION.dhall
 
 
+let ghost
+    = \(name : Text) ->
+    P.Property::{ name, def = P.Def.Ghost }
+
 let int
     = \(name : Text) -> \(def : P.IntDef) ->
     P.Property::{ name, def = P.Def.NumInt def }
@@ -54,29 +58,72 @@ let zoom_by
     = \(name : Text) -> \(current : Double) -> \(steps : List Double) ->
     P.Property::{ name, def = P.Def.Zoom { current, kind = P.ZoomKind.Steps steps } }
 
-let select
-    = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
+
+let NameValue = { name : Text, value : Text }
+
+let ValueIcon = { value : Text, dark : P.URL, light : P.URL }
+
+let ValueNameIcon = { value : Text, name : Text, dark : P.URL, light : P.URL }
+
+let __select
+    : ∀(valueT : Type) -> (valueT -> P.SelectItem) -> P.SelectKind -> Text -> List valueT -> Text -> P.Property.Type
+    = \(valueT : Type) -> \(convert : valueT -> P.SelectItem) -> \(kind : P.SelectKind) -> \(name : Text) -> \(values : List valueT) -> \(current : Text) ->
     P.Property::{ name, def = P.Def.Select
         { values =
-            List/map Text P.SelectItem (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem) values
+            List/map valueT P.SelectItem convert values
         , current
         , nestProperty = None Text
-        , kind = P.SelectKind.Choice { form = P.NestForm.Expanded, face = P.Face.Default, page = +1, shape = P.NestShape.default }
+        , kind = kind
         }
     }
+
+let select
+    = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
+    __select
+        Text
+        (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem)
+        (P.SelectKind.Choice { form = P.NestForm.Expanded, face = P.Face.Default, page = +1, shape = P.NestShape.default })
+        name
+        values
+        current
 
 let select_knob
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
-    P.Property::{ name, def = P.Def.Select
-        { values =
-            List/map Text P.SelectItem (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem) values
-        , current
-        , nestProperty = None Text
-        , kind = P.SelectKind.Knob
-        }
-    }
+    __select
+        Text
+        (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem)
+        P.SelectKind.Knob
+        name
+        values
+        current
 
--- TODO: select with faces
+
+let select_switch
+    = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
+    __select
+        Text
+        (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem)
+        P.SelectKind.Switch
+        name
+        values
+        current
+
+
+let select_w_faces
+    = \(name : Text) -> \(values : List ValueIcon) -> \(current : Text) ->
+    __select
+        ValueIcon
+        (\(t : ValueIcon) ->
+            { value = t.value
+            , face = P.Face.Icon [ { theme = P.Theme.Light, url = t.light }, { theme = P.Theme.Dark, url = t.dark } ]
+            , name = None Text
+            } : P.SelectItem
+        )
+        P.SelectKind.Switch
+        name
+        values
+        current
+
 
 let nest
     = \(name : Text) -> \(children : List JSON.Type) -> \(form : P.NestForm) ->
@@ -285,7 +332,8 @@ let _2d
     P.Gradient.TwoDimensional stops
 
 in
-    { int, float, xy, x_y, color, text, toggle, action, progress, gradient, select, nest, zoom, zoom_by
+    { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, select, nest, zoom, zoom_by
+    , select_knob, select_switch
     , root, children
     , bind_to, nest_at, live, with_face, with_shape, with_cshape, go_to_page, _expanded, _collapsed
     , _rgba, _rgb, _hsla, _hsl, _hex
