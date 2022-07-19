@@ -20,7 +20,7 @@
             "type": "object",
             "properties":
                 { "kind":
-                    { "enum": [ "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select", "progress", "gradient", "zoom" ] }
+                    { "enum": [ "ghost", "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select", "progress", "gradient", "zoom" ] }
                 , "name": { "type": "string" }
                 , "shape": { "$ref": "#/$defs/cell_shape" }
                 , "property": { "oneOf": [ { "type": "string" }, { "type": "null" } ] }
@@ -28,6 +28,15 @@
                 },
             "required": [ "kind", "name", "def" ],
             "allOf": [
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "ghost" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/ghost_def" } }
+                    }
+                },
                 {
                     "if": {
                         "properties": { "kind": { "const": "int" } },
@@ -138,6 +147,10 @@
                 }
               ]
         },
+        "ghost_def": {
+            "type": "object",
+            "properties": { }
+        },
         "int_def": {
             "type": "object",
             "properties":
@@ -239,9 +252,29 @@
         "gradient_def": {
             "type": "object",
             "properties":
-                { "current": { "$ref": "#/$defs/gradient" }
+                { "type": { "enum" : [ "linear", "2d" ]  }
                 },
-            "required": [ "current" ]
+            "required": [ "type", "current" ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "type": { "const": "linear" } },
+                        "required": [ "current" ]
+                    },
+                    "then": {
+                        "properties": { "current": { "$ref": "#/$defs/stops" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "type": { "const": "2d" } },
+                        "required": [ "current" ]
+                    },
+                    "then": {
+                        "properties": { "current": { "$ref": "#/$defs/stops2d" } }
+                    }
+                }
+            ]
         },
         "zoom_def": {
             "type": "object",
@@ -390,32 +423,14 @@
                 }
             ]
         },
-        "gradient": {
-            "oneOf": [
-                { "type": "object"
-                , "properties":
-                    { "type": { "const": "linear" }
-                    , "stops":
-                        {
-                            "type": "array",
-                            "items": { "$ref": "#/$defs/stop" }
-                        }
-                    }
-                , "required": [ "type", "stops" ]
-                },
-                { "type": "object"
-                , "properties":
-                    { "type": { "const": "2d" }
-                    , "stops":
-                        {
-                            "type": "array",
-                            "items": { "$ref": "#/$defs/stop2" }
-                        }
-                    }
-                , "required": [ "type", "stops" ]
-                }
-            ]
-        },
+        "stops":
+            { "type": "array"
+            , "items": { "$ref": "#/$defs/stop" }
+            },
+        "stops2d":
+            { "type": "array"
+            , "items": { "$ref": "#/$defs/stop2" }
+            },
         "stop": {
             "type": "object",
             "properties":
@@ -427,16 +442,11 @@
         "stop2": {
             "type": "object",
             "properties":
-                { "position":
-                    { "type": "object"
-                    , "properties":
-                        { "x": { "type": "number" }
-                        , "y": { "type": "number" }
-                        }
-                    }
+                { "x": { "type": "number" }
+                , "y": { "type": "number" }
                 , "color": { "$ref": "#/$defs/color" }
                 },
-            "required": [ "position", "color" ]
+            "required": [ "x", "y", "color" ]
         }
     }
   }

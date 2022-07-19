@@ -73,12 +73,12 @@ def d =
                 G.Linear linear ->
                     E.object
                         [ ( "type", E.string "linear" )
-                        , ( "stops", E.list gstop1 linear )
+                        , ( "current", E.list gstop1 linear )
                         ]
                 G.TwoDimensional twod ->
                     E.object
                         [ ( "type", E.string "2d" )
-                        , ( "stops", E.list gstop2 twod )
+                        , ( "current", E.list gstop2 twod )
                         ]
         progressDef pd =
             E.object

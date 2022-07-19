@@ -242,27 +242,26 @@ def kind =
         gradientDef =
             D.map
                 G.GradientDef
-                (D.oneOf
+                <| D.oneOf
                     [ D.map
                         G.Linear
-                        (D.field "stops" <| D.list gstop1)
+                        (D.field "current" <| D.list gstop1)
                     , D.map
                         G.TwoDimensional
-                        (D.field "stops" <| D.list gstop2)
+                        (D.field "current" <| D.list gstop2)
                     ]
-                )
 
         zoomDef =
             D.map2
-                (\current stops ->
+                (\current steps ->
                     { current = current
                     , kind =
-                        if List.isEmpty stops then
-                            G.PlusMinus else G.Steps stops
+                        if List.isEmpty steps then
+                            G.PlusMinus else G.Steps steps
                     }
                 )
                 (D.field "current" D.float)
-                (D.field "stops" <| D.list D.float)
+                (D.field "steps" <| D.list D.float)
 
     in case kind of
 

@@ -147,13 +147,8 @@ let encodeStop2d
     -> JSON.object
         (toMap
             { color = encodeColor stop.color
-            , position =
-                JSON.object
-                    (toMap
-                        { x = JSON.double stop.position.x
-                        , y = JSON.double stop.position.y
-                        }
-                    )
+            , x = JSON.double stop.position.x
+            , y = JSON.double stop.position.y
             }
         )
 
@@ -167,7 +162,7 @@ let encodeGradient
             JSON.object
                 (toMap
                     { type = JSON.string "linear"
-                    , stops =
+                    , current =
                         JSON.array
                             (List/map
                                 P.Stop
@@ -181,7 +176,7 @@ let encodeGradient
             JSON.object
                 (toMap
                     { type = JSON.string "2d"
-                    , stops =
+                    , current =
                         JSON.array
                             (List/map
                                 P.Stop2D
@@ -217,7 +212,7 @@ let encode
                 // merge
                     { Ghost =
                                 { kind = JSON.string "ghost"
-                                , def = JSON.null
+                                , def = JSON.object (toMap { ghost = JSON.null})
                                 }
                     , NumInt = \(def : P.IntDef) ->
                                 { kind = JSON.string "int"
@@ -330,11 +325,7 @@ let encode
                                 }
                     , Gradient = \(def : P.GradientDef) ->
                                 { kind = JSON.string "gradient"
-                                , def = JSON.object
-                                    (toMap
-                                        { current = encodeGradient def.current
-                                        }
-                                    )
+                                , def = encodeGradient def.current
                                 }
                     , Nest = \(def : P.NestDef) ->
                                 { kind = JSON.string "nest"
