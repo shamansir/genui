@@ -432,7 +432,7 @@ update f gui =
                                                     { nextDef
                                                         | children =
                                                             nestDef.children
-                                                                |> List.foldl (foldProperty curPath) ( 0, [] )
+                                                                |> List.foldr (foldProperty curPath) ( 0, [] )
                                                                 |> Tuple.second
                                                                 |> List.filterMap identity
                                                     }
@@ -455,7 +455,7 @@ update f gui =
     { version = gui.version
     , root =
         gui.root
-            |> List.foldl (foldProperty ( [], [] )) ( 0, [] )
+            |> List.foldr (foldProperty ( [], [] )) ( 0, [] )
             |> Tuple.second
             |> List.filterMap identity
     }
