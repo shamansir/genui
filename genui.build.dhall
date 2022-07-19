@@ -63,7 +63,13 @@ let NameValue = { name : Text, value : Text }
 
 let ValueIcon = { value : Text, dark : P.URL, light : P.URL }
 
-let ValueNameIcon = { value : Text, name : Text, dark : P.URL, light : P.URL }
+let NameValueIcon = { name : Text, value : Text, dark : P.URL, light : P.URL }
+
+let _nv = \(name : Text) -> \(value : Text) -> { name, value }
+
+let _vi = \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> { value, dark, light }
+
+let _nvi = \(name : Text) -> \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> { name, value, dark, light }
 
 let __select
     : ∀(valueT : Type) -> (valueT -> P.SelectItem) -> P.SelectKind -> Text -> List valueT -> Text -> P.Property.Type
@@ -109,7 +115,7 @@ let select_switch
         current
 
 
-let select_w_faces
+let select_icons
     = \(name : Text) -> \(values : List ValueIcon) -> \(current : Text) ->
     __select
         ValueIcon
@@ -117,6 +123,38 @@ let select_w_faces
             { value = t.value
             , face = P.Face.Icon [ { theme = P.Theme.Light, url = t.light }, { theme = P.Theme.Dark, url = t.dark } ]
             , name = None Text
+            } : P.SelectItem
+        )
+        P.SelectKind.Switch
+        name
+        values
+        current
+
+
+let select_nv
+    = \(name : Text) -> \(values : List NameValue) -> \(current : Text) ->
+    __select
+        NameValue
+        (\(t : NameValue) ->
+            { value = t.value
+            , face = P.Face.Default
+            , name = Some t.name
+            } : P.SelectItem
+        )
+        P.SelectKind.Switch
+        name
+        values
+        current
+
+
+let select_nvi
+    = \(name : Text) -> \(values : List NameValueIcon) -> \(current : Text) ->
+    __select
+        NameValueIcon
+        (\(t : NameValueIcon) ->
+            { value = t.value
+            , face = P.Face.Icon [ { theme = P.Theme.Light, url = t.light }, { theme = P.Theme.Dark, url = t.dark } ]
+            , name = Some t.name
             } : P.SelectItem
         )
         P.SelectKind.Switch
@@ -362,7 +400,7 @@ let _2d
 
 in
     { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, select, nest, zoom, zoom_by
-    , select_knob, select_switch
+    , select_knob, select_switch, select_icons, select_nv, select_nvi
     , root, children
     , bind_to, nest_at, live, with_face, no_face, with_shape, with_cshape, go_to_page, _expanded, _collapsed
     , _rgba, _rgb, _hsla, _hsl, _hex
@@ -370,4 +408,5 @@ in
     , _local, _remote
     , _dark, _light
     , _s, _s2, _linear, _2d
+    , _nv, _vi, _nvi
     }

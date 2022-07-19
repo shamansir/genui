@@ -164,7 +164,7 @@ def propName name d =
                 , ( 1, q name )
                 , ( 1, "( b.children" )
                 ]
-                ++ (indent <| array <| List.map Tuple.second children) ++
+                ++ (indent <| indent <| array <| List.map Tuple.second children) ++
                 [ ( 1, ")")
                 , ( 1, case nd.form of
                         G.Expanded -> "b._expanded"
@@ -185,7 +185,7 @@ def propName name d =
 
         zoomDef zd =
             ( noSelects
-            , [ ( 0, "zoom control, current zoom is " ++ String.fromFloat zd.current ) ] -- FIXME
+            , [ ( 0, "b.zoom " ++ q name ) ] -- FIXME
             )
 
 
@@ -278,54 +278,16 @@ face f =
         G.Default ->
             [ ( 0, "b.no_face" ) ]
 
-{-
-selectKind : G.SelectKind -> Indented
-selectKind sk =
-    case sk of
-        G.Choice c ->
-               ( 0, "just a choice" )
-            :: ( 1
-              , "by default it is "
-                    ++ (case c.form of
-                            G.Expanded -> "expanded"
-                            G.Collapsed -> "collapsed"
-                       )
-              )
-            :: ( 1, "its face is:" )
-            :: indent (face c.face)
-            ++ ( 1, "the shape of its panel is:" )
-            :: indent ([ ( 0, nestShape c.shape ) ])
-
-        G.Knob ->
-            [ ( 0, "a switch between values as a knob" ) ]
-
-        G.Switch ->
-            [ ( 0, "a switch between values" ) ]
-
-
-selectItem : G.SelectItem -> String
-selectItem si =
-    [ ( 0, "the value: \"" ++ si.value ++ "\"" )
-    , ( 1
-      , "and the name is "
-            ++ (case si.name of
-                    Just name ->
-                        "\"" ++ name ++ "\""
-
-                    Nothing ->
-                        "the same as the value"
-               )
-      )
-    , ( 1, "its face is:" )
-    ]
-        ++ indent (face si.face) -}
+selectItems : ( String, List G.SelectItem ) -> String
+selectItems ( propName, items ) =
+    "let " ++ propName ++ "_items = [ " ++ (String.join ", " <| List.map (q << .value) items) ++ " ]"
 
 
 url : G.Url -> String
 url u =
     case u of
-        G.Local local -> "b._local " ++ local
-        G.Remote remote -> "b._remote " ++ remote
+        G.Local local -> "b._local " ++ q local
+        G.Remote remote -> "b._remote " ++ q remote
 
 
 icon : G.Icon -> String
@@ -345,36 +307,12 @@ property prop =
         ( selects, def_ ) = def propName prop.name prop.def
     in
         ( selects
-        , def_ -- FIXME: `bindTo`, `live`, etc.
+        , case prop.property of
+            Just boundTo ->
+                def_ ++ [ (1, "// bindTo " ++ q boundTo) ]
+                 -- FIXME: `live`, etc.
+            Nothing -> def_
         )
-    {-
-    [ ( 0, "property \"" ++ prop.name ++ "\"" )
-    , ( 1
-      , case prop.property of
-            Just p ->
-                "bound to JS property \"" ++ p ++ "\""
-
-            Nothing ->
-                "not nested at any property"
-      )
-    , ( 1
-      , if prop.live then
-            "its values are monitored live"
-
-        else
-            "the changes in the value outside of controls are not tracked"
-      )
-    ]
-        ++ indent (def prop.def)
-        ++ (case prop.shape of
-                Just cs ->
-                    ( 1, "the shape of its cell is:" )
-                        :: indent (cellShape cs)
-
-                Nothing ->
-                    []
-           )
-    -}
 
 
 {-| Convert UI to DHALL
@@ -388,15 +326,7 @@ encode genui =
             |> mergeSelects
     in
         ( selects
-        ,
-            {- [ (0, "let P = ./genui.dhall") -- FIXME:
-            , (0, "let b = ../genui.build.dhall") -- FIXME:
-            , (0, "")
-            ] ++
-            [ (0, "in b.root") ] ++
-            (indent <| -}
-            array <| List.map Tuple.second children {- )
-            ++ [ ( 0, ": P.GenUI" ) ] -}
+        , array <| List.map Tuple.second children
         )
 
 
@@ -409,10 +339,15 @@ toString (selects, children) =
     , (0, "")
     -- FIXME: add select items
     ] ++
-    [ (0, "in b.root") ] ++
-    (indent <| children)
+        (Dict.toList selects
+            |> List.map selectItems
+            |> List.map indented
+            |> List.concat
+        )
+    ++ (0, "in b.root")
+    :: (indent <| children)
     ++ [ ( 0, ": P.GenUI" )
     ]
     |>
-    List.map (\( indent_, str ) -> (String.fromList <| List.repeat indent_ ' ') ++ str)
+    List.map (\( indent_, str ) -> (String.fromList <| List.repeat (indent_ * 4) ' ') ++ str)
         >> String.join "\n"
