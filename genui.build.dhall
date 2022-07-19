@@ -193,6 +193,27 @@ let ___update_choice
                     sdef.kind
             }
 
+let no_face
+    = \(property : P.Property.Type) ->
+    property
+        //
+        { def =
+            merge
+                (___def_update // {
+                , Action = \(adef : P.ActionDef) -> P.Def.Action (adef // { face = P.Face.Default })
+                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { face = P.Face.Default })
+                , Select =
+                    \(sdef : P.SelectDef) ->
+                        P.Def.Select
+                            (___update_choice
+                                (\(ps : P.Choice) -> ps // { face = P.Face.Default })
+                                sdef
+                            )
+                })
+                property.def
+        }
+
+
 let with_face
     = \(property : P.Property.Type) -> \(face : P.Face) ->
     property
@@ -298,6 +319,14 @@ let _l_icon_f
     : P.URL -> P.Face
     = \(url : P.URL) -> P.Face.Icon [ { theme = P.Theme.Light, url } ]
 
+let _dark = P.Theme.Dark
+
+let _light = P.Theme.Light
+
+let _icons_f
+    : List P.Icon -> P.Face
+    = \(icons : List P.Icon) -> P.Face.Icon icons
+
 {- construct P.URL -}
 
 let _local
@@ -335,9 +364,10 @@ in
     { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, select, nest, zoom, zoom_by
     , select_knob, select_switch
     , root, children
-    , bind_to, nest_at, live, with_face, with_shape, with_cshape, go_to_page, _expanded, _collapsed
+    , bind_to, nest_at, live, with_face, no_face, with_shape, with_cshape, go_to_page, _expanded, _collapsed
     , _rgba, _rgb, _hsla, _hsl, _hex
-    , _color_f, _icon_f, _l_icon_f
+    , _color_f, _icon_f, _icons_f, _l_icon_f
     , _local, _remote
+    , _dark, _light
     , _s, _s2, _linear, _2d
     }

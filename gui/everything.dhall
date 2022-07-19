@@ -1,8 +1,6 @@
 let P = ../genui.dhall
 let b = ../genui.build.dhall
 
-let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
-
 let select_items = [ "A", "B", "C", "D", "E", "F", "G" ]
 
 let select_knob_items = [ "NN", "OO", "PP", "QQ", "RR", "SS", "TT" ]
