@@ -4,26 +4,33 @@ const addProp = (gui, prop, state, actions, update) => {
     const def = prop.def;
     const property = prop.property || prop.name;
     const name = prop.name || prop.property;
-    // FIXME: add `live()`
     let control;
     switch (prop.kind) {
         case 'select':
             state[property] = def.current;
             const values = def.values.map((v) => v.value);
             control = gui.add(state, property, values).name(name).onFinishChange((val) => { update(property, val); });
+            if (prop.live) { control.live(); }
             return { property, control, values : def.values };
-        case 'float': case 'int':
+        case 'float': case 'int': // FIXME: add zoom
             state[property] = def.current;
             control = gui.add(state, property, def.min, def.max, def.step).name(name).onFinishChange((val) => { update(property, val); });
+            if (prop.live) { control.live(); }
             return { property, control };
-        case 'text': case 'color':
-            // FIXME: color as dat.gui color control
+        case 'text':
             state[property] = def.current;
             control = gui.add(state, property).name(name).onFinishChange((val) => { update(property, val); });
+            if (prop.live) { control.live(); }
+            return { property, control };
+        case 'color':
+            state[property] = def.current;
+            control = gui.addColor(state, property).name(name).onFinishChange((val) => { update(property, val); });
+            if (prop.live) { control.live(); }
             return { property, control };
         case 'toggle':
             state[property] = def.current;
             control = gui.add(state, property).name(name).onFinishChange((val) => { update(property, val); });
+            if (prop.live) { control.live(); }
             return { property, control };
         case 'nest':
             const nestFolder = gui.addFolder(name);
@@ -39,7 +46,7 @@ const addProp = (gui, prop, state, actions, update) => {
                 }
             });
             return { property, control, children : mapping };
-        case 'action':
+        case 'action': case 'progress': case 'gradient':
             if (actions.hasOwnProperty(property)) {
                 control = gui.add(actions, property).name(name);
                 return { property, control };
@@ -54,6 +61,8 @@ const addProp = (gui, prop, state, actions, update) => {
             const x = xyFolder.add(state[property], 'x', def.x.min, def.x.max, def.x.step).name(name).onFinishChange((val) => { update(property, { x: val }); });
             const y = xyFolder.add(state[property], 'y', def.y.min, def.y.max, def.y.step).name(name).onFinishChange((val) => { update(property, { y: val }); });
             control = xyFolder;
+            if (prop.live) { x.control.live(); }
+            if (prop.live) { y.control.live(); }
             return { property, control, children : { x : { control : x.control }, y : { control : y.control } } };
         // TODO: progress, gradient
         default:

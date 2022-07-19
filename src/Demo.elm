@@ -52,6 +52,8 @@ type Action
     = New
     | Parse String
     | SwitchTo Output
+    | LoadValues String
+    | NoOp
     -- FromUrl String
 
 
@@ -108,6 +110,9 @@ view model =
                             , style "position" "absolute"
                             , cols 150
                             , rows 150
+                            , onInput
+                                <| if output == Values then LoadValues
+                                else always NoOp
                             ]
                             [ text parsed ]
                     )
@@ -127,27 +132,38 @@ update action model =
             case model of
                 Parsed output _ _ -> output
                 _ -> defaultOutput
+        makeOutputs ui =
+            [ ( Descriptive, Descriptive.toString <| Descriptive.encode ui )
+            , ( Json, Json.encode 4 <| GenUIJson.encode ui )
+            , ( Yaml, Yaml.toString 4 <| GenUIYaml.encode ui )
+            , ( Dhall, GenUIDhall.toString <| GenUIDhall.encode ui )
+            , ( Graph, Graph.toString GenUIGraph.nodeToString GenUIGraph.edgeToString <| GenUIGraph.toGraph ui )
+            , ( Values, Json.encode 4 <| GenUIJson.toValues ui )
+            ]
+
     in
 
     case action of
+        NoOp -> model
         New -> Empty
         Parse string ->
             case decodeString GenUIJson.decode string of
                 Ok ui ->
-                    Parsed curOutput ui
-                        [ ( Descriptive, Descriptive.toString <| Descriptive.encode ui )
-                        , ( Json, Json.encode 4 <| GenUIJson.encode ui )
-                        , ( Yaml, Yaml.toString 4 <| GenUIYaml.encode ui )
-                        , ( Dhall, GenUIDhall.toString <| GenUIDhall.encode ui )
-                        , ( Graph, Graph.toString GenUIGraph.nodeToString GenUIGraph.edgeToString <| GenUIGraph.toGraph ui )
-                        , ( Values, Json.encode 4 <| GenUIJson.toValues ui )
-                        ]
+                    Parsed curOutput ui <| makeOutputs ui
                 Err error ->
                     ParseError <| Json.errorToString error
         SwitchTo output ->
             case model of
                 Parsed _ ui outputs ->
                     Parsed output ui outputs
+                _ -> model
+        LoadValues valuesJson ->
+            case model of
+                Parsed _ ui _ ->
+                    Json.decodeString Json.value valuesJson
+                        |> Result.map (\value -> GenUIJson.loadValues value ui)
+                        |> Result.map (\nextUi -> Parsed curOutput nextUi <| makeOutputs nextUi)
+                        |> Result.withDefault model
                 _ -> model
 
 
