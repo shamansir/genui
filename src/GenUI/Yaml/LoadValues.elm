@@ -1,7 +1,7 @@
-module GenUI.Json.LoadValues exposing (loadValues)
+module GenUI.Yaml.LoadValues exposing (loadValues)
 
 
-import Json.Decode as D
+import Yaml.Decode as D
 
 import GenUI as G
 import GenUI.Color as Color exposing (Color)
@@ -89,7 +89,7 @@ loadValues root =
         helper : G.PropPath -> D.Decoder x -> (x -> G.Def) -> Result D.Error G.Def
         helper pPath decoder modifyDef =
             root
-                |> D.decodeValue (D.at pPath decoder)
+                |> D.fromValue (D.at pPath decoder)
                 |> Result.map modifyDef
     in
     G.update

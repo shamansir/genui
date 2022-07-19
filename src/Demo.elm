@@ -4,9 +4,10 @@ module Demo exposing (..)
 import Graph as Graph
 import Dict exposing (Dict)
 
-import Json.Decode as Json
-import Json.Encode as Json
-import Yaml.Encode as Yaml
+import Json.Decode as JsonD
+import Json.Encode as JsonE
+import Yaml.Decode as YamlD
+import Yaml.Encode as YamlE
 
 import GenUI as G
 import GenUI.Json.Decode as GenUIJson
@@ -14,6 +15,8 @@ import GenUI.Json.Encode as GenUIJson
 import GenUI.Json.LoadValues as GenUIJson
 import GenUI.Json.ToValues as GenUIJson
 import GenUI.Yaml.Encode as GenUIYaml
+import GenUI.Yaml.LoadValues as GenUIYaml
+import GenUI.Yaml.ToValues as GenUIYaml
 import GenUI.Dhall.Encode as GenUIDhall
 import GenUI.Descriptive.Encode as Descriptive
 import GenUI.ToGraph as GenUIGraph
@@ -33,9 +36,8 @@ type Output
     | Yaml
     | Graph
     | Dhall
-    | Values
-    -- | ValuesJson
-    -- | ValuesYaml
+    | ValuesJson
+    | ValuesYaml
 
 
 defaultOutput : Output
@@ -52,7 +54,8 @@ type Action
     = New
     | Parse String
     | SwitchTo Output
-    | LoadValues String
+    | LoadJsonValues String
+    | LoadYamlValues String
     | NoOp
     -- FromUrl String
 
@@ -73,11 +76,12 @@ view model =
                 ]
                 [ text <| case mode of
                     Descriptive -> "Descriptive"
-                    Json -> "Json"
-                    Yaml -> "Yaml"
+                    Json -> "JSON"
+                    Yaml -> "YAML"
                     Graph -> "Graph"
-                    Dhall -> "Dhall"
-                    Values -> "Values"
+                    Dhall -> "DHALL"
+                    ValuesJson -> "Values (JSON)"
+                    ValuesYaml -> "Values (Yaml)"
                 ]
     in case model of
         Empty ->
@@ -100,7 +104,7 @@ view model =
             div [ ]
                 <| button [ onClick New ] [ text "New" ]
                 :: (div []
-                        <| List.map (modeButton curOutput) [ Descriptive, Json, Yaml, Graph, Dhall, Values ]
+                        <| List.map (modeButton curOutput) [ Descriptive, Json, Yaml, Graph, Dhall, ValuesJson, ValuesYaml ]
                    )
                 :: List.map
                     ( \(output, parsed) ->
@@ -111,7 +115,8 @@ view model =
                             , cols 150
                             , rows 150
                             , onInput
-                                <| if output == Values then LoadValues
+                                <| if output == ValuesJson then LoadJsonValues
+                                else if output == ValuesYaml then LoadYamlValues
                                 else always NoOp
                             ]
                             [ text parsed ]
@@ -134,11 +139,12 @@ update action model =
                 _ -> defaultOutput
         makeOutputs ui =
             [ ( Descriptive, Descriptive.toString <| Descriptive.encode ui )
-            , ( Json, Json.encode 4 <| GenUIJson.encode ui )
-            , ( Yaml, Yaml.toString 4 <| GenUIYaml.encode ui )
+            , ( Json, JsonE.encode 4 <| GenUIJson.encode ui )
+            , ( Yaml, YamlE.toString 4 <| GenUIYaml.encode ui )
             , ( Dhall, GenUIDhall.toString <| GenUIDhall.encode ui )
             , ( Graph, Graph.toString GenUIGraph.nodeToString GenUIGraph.edgeToString <| GenUIGraph.toGraph ui )
-            , ( Values, Json.encode 4 <| GenUIJson.toValues ui )
+            , ( ValuesJson, JsonE.encode 4 <| GenUIJson.toValues ui )
+            , ( ValuesYaml, YamlE.toString 4 <| GenUIYaml.toValues ui )
             ]
 
     in
@@ -151,17 +157,25 @@ update action model =
                 Ok ui ->
                     Parsed curOutput ui <| makeOutputs ui
                 Err error ->
-                    ParseError <| Json.errorToString error
+                    ParseError <| JsonD.errorToString error
         SwitchTo output ->
             case model of
                 Parsed _ ui outputs ->
                     Parsed output ui outputs
                 _ -> model
-        LoadValues valuesJson ->
+        LoadJsonValues valuesJson ->
             case model of
                 Parsed _ ui _ ->
-                    Json.decodeString Json.value valuesJson
+                    JsonD.decodeString JsonD.value valuesJson
                         |> Result.map (\value -> GenUIJson.loadValues value ui)
+                        |> Result.map (\nextUi -> Parsed curOutput nextUi <| makeOutputs nextUi)
+                        |> Result.withDefault model
+                _ -> model
+        LoadYamlValues valuesYaml ->
+            case model of
+                Parsed _ ui _ ->
+                    YamlD.fromString YamlD.value valuesYaml
+                        |> Result.map (\value -> GenUIYaml.loadValues value ui)
                         |> Result.map (\nextUi -> Parsed curOutput nextUi <| makeOutputs nextUi)
                         |> Result.withDefault model
                 _ -> model
