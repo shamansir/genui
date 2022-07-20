@@ -1,12 +1,69 @@
 module GenUI.Yaml.LoadValues exposing (loadValues)
 
 
+{-| @docs loadValues
+-}
+
 import Yaml.Decode as D
 
 import GenUI as G
 import GenUI.Color as Color exposing (Color)
 import GenUI.Gradient as Gradient exposing (Gradient)
 
+
+{-| Load values from the `Yaml.Decode.Value` and apply them to the given UI.
+
+Example of the YAML values definition:
+
+```yaml
+product: RubyMine
+resolution: 1920x1080
+resolutionFactor: 1
+scale: 2
+rotation: 20
+offsetX: 13
+offsetY: 14
+callGradientTool: [[action]]
+neuro:
+    seed: 5
+    depth: 5
+    width: 5
+    variance: 2000
+    mode: fan_in
+    distribution: truncated_normal
+    architecture: densenet
+    activation: sigmoid
+    outActivation: sigmoid
+    fMode: disabled
+evolve:
+    alpha: 0.5
+    beta: 0.5
+    gamma: 1.0
+mutation:
+    randomMid: [[action]]
+    randomMax: [[action]]
+lab:
+    flatColors: true
+    flatLinesNum: 5
+    ditherStrength: 0
+logoShown: true
+undo: [[action]]
+save: [[action]]
+export_: [[action]]
+video:
+    animFunc: Random spline animation
+    videoFps: 60
+    videoLength: 30
+    maskFilename:
+    videoInvertMask: false
+    videoCodec: h264_8bit
+    videoIntensity: 3
+    requestVideo: [[action]]
+```
+
+Loads values using `Yaml.Decode.at` knowing the paths from given UI and skipping the values if they are failed to parse.
+
+ -}
 
 loadValues : D.Value -> G.GenUI -> G.GenUI
 loadValues root =
@@ -68,7 +125,7 @@ loadValues root =
                                             D.succeed color
 
                                         Err failure ->
-                                            D.fail failure
+                                            D.fail <| Gradient.errorToString failure
                                 )
                         )
                     <|

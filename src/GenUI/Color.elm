@@ -1,6 +1,16 @@
 module GenUI.Color exposing (Color(..), ParseError, toString, fromString, errorToString)
 
 
+{-| Color that can be stored in RGBA, HSLA or Hex.
+
+@docs Color
+
+# Conversion to/from string
+
+@docs toString, fromString, ParseError, errorToString
+-}
+
+
 {-| -}
 type Color
     = Rgba { red : Float, green : Float, blue : Float, alpha : Float }
@@ -8,6 +18,7 @@ type Color
     | Hex String
 
 
+{-| -}
 type ParseError
     = WrongRgba String
     | WrongHsla String
@@ -19,6 +30,7 @@ default : Color
 default = Rgba { red = 0, green = 0, blue = 0, alpha = 1.0 }
 
 
+{-| -}
 toString : Color -> String
 toString c =
     case c of
@@ -32,6 +44,7 @@ toString c =
             "hex(" ++ hex ++ ")"
 
 
+{-| -}
 fromString : String -> Result ParseError Color
 fromString str =
     let
@@ -73,6 +86,7 @@ fromString str =
         )
 
 
+{-| -}
 errorToString : ParseError -> String
 errorToString pe =
     case pe of

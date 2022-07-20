@@ -1,5 +1,9 @@
 module GenUI.Json.ToValues exposing (toValues)
 
+
+{-| @docs toValues
+-}
+
 import GenUI as G
 import GenUI.Color as Color
 import GenUI.Gradient as Gradient
@@ -41,6 +45,7 @@ toValue { def, property, name } =
     )
 
 
+{-| Extracts current values from the given UI definition as JSON. See the example in `loadValues`. -}
 toValues : G.GenUI -> E.Value
 toValues genui =
     E.object

@@ -19,12 +19,12 @@ module GenUI exposing
 
 # Property
 
-@docs Path, Property, root
+@docs Property, root, Path, PropPath
 
 
 # Concrete property definitions
 
-@docs Def, IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef
+@docs Def, IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, GradientDef, ProgressDef, ZoomDef, SelectDef, NestDef
 
 
 # Folding
@@ -34,7 +34,7 @@ module GenUI exposing
 
 # Find & Update
 
-@docs find, findP, update
+@docs find, findByIndices, update, updateAt
 
 
 # Helpers
@@ -44,7 +44,7 @@ module GenUI exposing
 
 # Subtypes
 
-@docs Face, NestShape, CellShape, SelectKind, SelectItem
+@docs Face, NestShape, CellShape, SelectKind, SelectItem, Icon, Form, Theme, Url, ZoomKind
 
 -}
 

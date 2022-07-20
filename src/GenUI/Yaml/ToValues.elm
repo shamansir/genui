@@ -1,5 +1,8 @@
 module GenUI.Yaml.ToValues exposing (toValues)
 
+{-| @docs toValues
+-}
+
 import GenUI as G
 import GenUI.Color as Color
 import GenUI.Gradient as Gradient
@@ -41,6 +44,7 @@ toValue { def, property, name } =
     )
 
 
+{-| Extracts current values from the given UI definition as YAML. See the example of such in `loadValues`. -}
 toValues : G.GenUI -> E.Encoder
 toValues genui =
     E.record

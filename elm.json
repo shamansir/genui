@@ -1,4 +1,3 @@
-
 {
     "type": "package",
     "name": "shamansir/genui",
@@ -11,11 +10,11 @@
         "GenUI.Json.Encode",
         "GenUI.Json.Decode",
         "GenUI.Json.ToValues",
-        "GenUI.Json.FromValues",
+        "GenUI.Json.LoadValues",
         "GenUI.Yaml.Encode",
         "GenUI.Yaml.Decode",
         "GenUI.Yaml.ToValues",
-        "GenUI.Yaml.FromValues",
+        "GenUI.Yaml.LoadValues",
         "GenUI.ToGraph",
         "GenUI.Color",
         "GenUI.Gradient"
@@ -27,10 +26,10 @@
         "elm/core": "1.0.5 <= v < 2.0.0",
         "elm/html": "1.0.0 <= v < 2.0.0",
         "elm/json": "1.1.3 <= v < 2.0.0",
-        "elm-community/graph": "6.0.0 <= v < 7.0.0",
         "elm/time": "1.0.0 <= v < 2.0.0",
         "elm/url": "1.0.0 <= v < 2.0.0",
-        "elm/virtual-dom": "1.0.3 <= v < 2.0.0"
+        "elm/virtual-dom": "1.0.3 <= v < 2.0.0",
+        "elm-community/graph": "6.0.0 <= v < 7.0.0"
     },
     "test-dependencies": {}
 }
