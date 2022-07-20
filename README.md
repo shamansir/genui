@@ -16,11 +16,15 @@ For an example of such definition, see [`gradient.dhall`](https://github.com/sha
     * _Descriptive_ definition;
     * (soon) `DHALL` definition;
     * A graph of controls with folders as branches and controls as nodes;
+    * `JSON` with current values from the UI;
+    * `YAML` with current values from the UI;
 * Parse
     * `JSON` definition;
     * `YAML` definition;
+    * `JSON` with new values to apply to the UI;
+    * `YAML` with new values to apply to the UI;
 
-The JSON variant is considered as the specification of the language schema. Also, [JSON schema](https://json-schema.org/) soon to be added to test the produced definitions on similarity.
+The JSON variant is considered as the specification of the language schema. Also, [JSON schema](https://json-schema.org/) is added to test the produced definitions on similarity and according to current version.
 
 # Generate example
 
