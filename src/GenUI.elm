@@ -439,14 +439,14 @@ withPath =
 update : (( Path, PropPath ) -> Property a -> Maybe (Property b)) -> GenUI a -> GenUI b
 update f gui =
     let
-        foldProperty ( iPath, sPath ) ( prop, a ) ( index, prev ) =
-            ( index + 1
-            ,
-                (let
-                    curPath =
-                        ( iPath ++ [ index ]
-                        , sPath
+        foldProperty ( parentIndexPath, sPath ) ( index, ( prop, a ) ) prev =
+            (let
+                    curIndexPath = parentIndexPath ++ [ index ]
+                    curPropPath = sPath
                             ++ [ prop.property |> Maybe.withDefault prop.name ]
+                    curPath =
+                        ( curIndexPath
+                        , curPropPath
                         )
                 in
                 case prop.def of
@@ -466,8 +466,9 @@ update f gui =
                                                         { nextDef
                                                             | children =
                                                                 nestDef.children
-                                                                    |> List.foldr (foldProperty curPath) ( 0, [] )
-                                                                    |> Tuple.second
+                                                                    |> List.indexedMap Tuple.pair
+                                                                    |> List.foldl (foldProperty curPath) []
+                                                                    |> List.reverse
                                                                     |> List.filterMap identity
                                                         }
                                                 }
@@ -485,13 +486,13 @@ update f gui =
                         f curPath ( prop, a )
                 )
                 :: prev
-            )
     in
     { version = gui.version
     , root =
         gui.root
-            |> List.foldr (foldProperty ( [], [] )) ( 0, [] )
-            |> Tuple.second
+            |> List.indexedMap Tuple.pair
+            |> List.foldl (foldProperty ( [], [] )) []
+            |> List.reverse
             |> List.filterMap identity
     }
 

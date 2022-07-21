@@ -19,7 +19,7 @@ import GenUI.Gradient as Gradient
 type alias Descriptive = Indented
 
 
-def : G.Def a -> Descriptive
+def : G.Def ( G.Path, G.PropPath ) -> Descriptive
 def d =
     let
         intDef id =
@@ -250,42 +250,50 @@ icon i =
     in "for " ++ themeString ++ " theme at " ++ url i.url
 
 
-property : G.Property a -> Descriptive
-property ( prop, _ ) =
+property : G.Property ( G.Path, G.PropPath ) -> Descriptive
+property ( prop, ( path, propPath ) ) =
     [ ( 0, "property \"" ++ prop.name ++ "\"" )
-    , ( 1
-      , case prop.property of
-            Just p ->
-                "bound to JS property \"" ++ p ++ "\""
+    , ( 1, "its full path is: root -> " ++ String.join " -> " propPath )
+    , ( 1, "its path by indices is: -1 -> " ++ (String.join " -> " <| List.map String.fromInt path) )
+    ]
+    ++ indent (def prop.def)
+    ++ (case prop.shape of
+            Just cs ->
+                ( 1, "the shape of its cell is:" )
+                    :: indent (cellShape cs)
 
             Nothing ->
-                "not nested at any property"
-      )
-    , ( 1
-      , if prop.live then
-            "its values are monitored live"
+                []
+        )
+    ++ [
+            ( 1
+            , case prop.property of
+                    Just p ->
+                        "bound to JS property \"" ++ p ++ "\""
 
-        else
-            "the changes in the value outside of controls are not tracked"
-      )
-    ]
-        ++ indent (def prop.def)
-        ++ (case prop.shape of
-                Just cs ->
-                    ( 1, "the shape of its cell is:" )
-                        :: indent (cellShape cs)
+                    Nothing ->
+                        "not nested at any property"
+            )
+        ,
+            ( 1
+            , if prop.live then
+                    "its values are monitored live"
 
-                Nothing ->
-                    []
-           )
+                else
+                    "the changes in the value outside of controls are not tracked"
+            )
+        ]
 
 
 {-| Encode UI to descriptive representation.
 -}
 encode : G.GenUI a -> Descriptive
 encode genui =
-    ( 0, "GenUI, version " ++ genui.version )
-        :: (indent <| indexedList property genui.root)
+    let
+        pgenui = G.withPath genui |> G.map Tuple.first
+    in
+    ( 0, "GenUI, version " ++ pgenui.version )
+        :: (indent <| indexedList property pgenui.root)
 
 
 {-| Convert descriptive representation to string.

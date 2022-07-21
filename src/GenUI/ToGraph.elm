@@ -1,4 +1,4 @@
-module GenUI.ToGraph exposing (toGraph, nodeToString, nodeToString_, edgeToString, edgeToString_)
+module GenUI.ToGraph exposing (toGraph, nodeToString, edgeToString)
 
 {-| Converting to Graph.
 
@@ -70,29 +70,16 @@ toGraph ra ui =
             )
             [ ]
             ui)
-    {- Graph.fromNodesAndEdges
-        (G.fold ) -}
 
 
 {-| The short representation of the property. -}
-nodeToString : G.Property a -> Maybe String
+nodeToString : Node a -> Maybe String
 nodeToString ( prop, _ ) =
     Just <| prop.name ++ " :: " ++ G.defToString prop.def
 
 
 
-{-| The short representation of the property. -}
-nodeToString_ : (a -> String) -> G.Property a -> Maybe String
-nodeToString_ toStr ( prop, a ) =
-    Just <| toStr a ++ " :: " ++ prop.name ++ " :: " ++ G.defToString prop.def
-
-
-
 {-| The short representation of the edge. -}
-edgeToString : a -> Maybe String
-edgeToString _ = Just "*"
-
-
-{-| The short representation of the edge. -}
-edgeToString_ : (a -> String) -> a -> Maybe String
-edgeToString_ toString a = Just <| toString a
+edgeToString : Edge a -> Maybe String
+edgeToString ( maybeParent, child ) =
+    Just <| (maybeParent |> Maybe.andThen nodeToString |> Maybe.withDefault "-") ++ " -> " ++ (nodeToString child |> Maybe.withDefault "-")
