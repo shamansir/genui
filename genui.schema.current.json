@@ -25,6 +25,7 @@
                 , "shape": { "$ref": "#/$defs/cell_shape" }
                 , "property": { "oneOf": [ { "type": "string" }, { "type": "null" } ] }
                 , "live": { "type": "boolean" }
+                , "_value_": {}
                 },
             "required": [ "kind", "name", "def" ],
             "allOf": [
