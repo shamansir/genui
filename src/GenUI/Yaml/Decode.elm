@@ -3,7 +3,7 @@ module GenUI.Yaml.Decode exposing (decode, decode_)
 
 {-| Decoding from YAML
 
-@docs decode
+@docs decode, decode_
 -}
 
 

@@ -1,1 +1,1 @@
-ajv test -s ./genui.schema.json -d ./gui/$1.json --valid
+ajv test -s ./genui.schema.current.json -d ./gui/$1.json --valid

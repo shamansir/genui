@@ -1,9 +1,9 @@
-module GenUI.Yaml.Encode exposing (encode)
+module GenUI.Yaml.Encode exposing (encode, encode_)
 
 
 {-| Encoding to YAML
 
-@docs encode
+@docs encode, encode_
 -}
 
 

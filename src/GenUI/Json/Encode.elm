@@ -3,7 +3,7 @@ module GenUI.Json.Encode exposing (encode, encode_)
 
 {-| Encoding to JSON
 
-@docs encode
+@docs encode, encode_
 -}
 
 
