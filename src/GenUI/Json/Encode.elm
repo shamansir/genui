@@ -1,4 +1,4 @@
-module GenUI.Json.Encode exposing (encode)
+module GenUI.Json.Encode exposing (encode, encode_)
 
 
 {-| Encoding to JSON
@@ -14,8 +14,8 @@ import GenUI.Gradient as G
 import Json.Encode as E
 
 
-def : G.Def -> E.Value
-def d =
+def : (a -> E.Value) -> G.Def a -> E.Value
+def encodeA d =
     let
         intDef id =
             E.object
@@ -63,7 +63,7 @@ def d =
             E.object
                 [ ( "nestAt", Maybe.withDefault E.null <| Maybe.map E.string nd.nestAt )
                 , ( "form", form nd.form )
-                , ( "children", E.list property nd.children )
+                , ( "children", E.list (property encodeA) nd.children )
                 , ( "shape", nestShape nd.shape )
                 , ( "face", face nd.face )
                 , ( "page", E.int nd.page )
@@ -264,8 +264,8 @@ selectItem si =
         ]
 
 
-property : G.Property -> E.Value
-property prop =
+property : (a -> E.Value) -> G.Property a -> E.Value
+property encodeA ( prop, val ) =
     let
         kind k =
             case k of
@@ -284,20 +284,27 @@ property prop =
                 G.Zoom _ -> "zoom"
     in
     E.object
-        [ ( "def", def prop.def )
+        [ ( "def", def encodeA prop.def )
         , ( "kind", E.string <| kind prop.def )
         , ( "name", E.string prop.name )
         , ( "property", Maybe.withDefault E.null <| Maybe.map E.string prop.property )
         , ( "live", E.bool prop.live )
         , ( "shape", Maybe.withDefault E.null <| Maybe.map cellShape prop.shape )
+        , ( "_value_", encodeA val )
         ]
 
 
 
-{-| YAML encoder -}
-encode : G.GenUI -> E.Value
-encode genui =
+{-| JSON encoder -}
+encode : G.GenUI () -> E.Value
+encode =
+    encode_ <| always E.null
+
+
+{-| JSON encoder that includes value in the `value` field -}
+encode_ : (a -> E.Value) -> G.GenUI a -> E.Value
+encode_ encodeValue genui =
     E.object
         [ ( "version", E.string genui.version  )
-        , ( "root", E.list property genui.root )
+        , ( "root", E.list (property encodeValue) genui.root )
         ]

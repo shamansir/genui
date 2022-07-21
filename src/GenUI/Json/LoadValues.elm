@@ -71,7 +71,7 @@ Example of the JSON values definition:
 Loads values using `Json.Decode.at` knowing the paths from given UI and skipping the values if they are failed to parse.
 
  -}
-loadValues : D.Value -> G.GenUI -> G.GenUI
+loadValues : D.Value -> G.GenUI a -> G.GenUI a
 loadValues root =
     let
         updateDef pPath def =
@@ -149,17 +149,19 @@ loadValues root =
                 _ ->
                     Result.Ok def
 
-        helper : G.PropPath -> D.Decoder x -> (x -> G.Def) -> Result D.Error G.Def
+        helper : G.PropPath -> D.Decoder x -> (x -> G.Def a) -> Result D.Error (G.Def a)
         helper pPath decoder modifyDef =
             root
                 |> D.decodeValue (D.at pPath decoder)
                 |> Result.map modifyDef
     in
     G.update
-        (\( _, pPath ) prop ->
+        (\( _, pPath ) ( prop, a ) ->
             Just
-                { prop
-                | def = updateDef pPath prop.def
-                    |> Result.withDefault prop.def
-                }
+                (
+                    { prop
+                    | def = updateDef pPath prop.def
+                        |> Result.withDefault prop.def
+                    }, a
+                )
         )

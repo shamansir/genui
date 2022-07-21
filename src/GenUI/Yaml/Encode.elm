@@ -14,8 +14,8 @@ import GenUI.Gradient as G
 import Yaml.Encode as E
 
 
-def : G.Def -> E.Encoder
-def d =
+def : (a -> E.Encoder) -> G.Def a -> E.Encoder
+def encodeA d =
     let
         intDef id =
             E.record
@@ -63,7 +63,7 @@ def d =
             E.record
                 [ ( "nestAt", Maybe.withDefault E.null <| Maybe.map E.string nd.nestAt )
                 , ( "form", form nd.form )
-                , ( "children", E.list property nd.children )
+                , ( "children", E.list (property encodeA) nd.children )
                 , ( "shape", nestShape nd.shape )
                 , ( "face", face nd.face )
                 , ( "page", E.int nd.page )
@@ -264,8 +264,8 @@ selectItem si =
         ]
 
 
-property : G.Property -> E.Encoder
-property prop =
+property : (a -> E.Encoder) -> G.Property a -> E.Encoder
+property encodeA ( prop, val ) =
     let
         kind k =
             case k of
@@ -284,20 +284,26 @@ property prop =
                 G.Zoom _ -> "zoom"
     in
     E.record
-        [ ( "def", def prop.def )
+        [ ( "def", def encodeA prop.def )
         , ( "kind", E.string <| kind prop.def )
         , ( "name", E.string prop.name )
         , ( "property", Maybe.withDefault E.null <| Maybe.map E.string prop.property )
         , ( "live", E.bool prop.live )
         , ( "shape", Maybe.withDefault E.null <| Maybe.map cellShape prop.shape )
+        , ( "_value_", encodeA val )
         ]
 
 
-
 {-| YAML encoder -}
-encode : G.GenUI -> E.Encoder
-encode genui =
+encode : G.GenUI () -> E.Encoder
+encode =
+    encode_ <| always E.null
+
+
+{-| YAML encoder that includes value in the `_value_` field -}
+encode_ : (a -> E.Encoder) -> G.GenUI a -> E.Encoder
+encode_ encodeValue genui =
     E.record
         [ ( "version", E.string genui.version  )
-        , ( "root", E.list property genui.root )
+        , ( "root", E.list (property encodeValue) genui.root )
         ]

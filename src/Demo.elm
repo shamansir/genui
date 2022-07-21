@@ -2,6 +2,7 @@ module Demo exposing (..)
 
 
 import Graph as Graph
+import Graph.DOT as DOT
 import Dict exposing (Dict)
 
 import Json.Decode as JsonD
@@ -47,7 +48,7 @@ defaultOutput = Descriptive
 type Model
     = Empty
     | ParseError String
-    | Parsed Output G.GenUI (List (Output, String))  -- (Dict Output String)
+    | Parsed Output (G.GenUI ()) (List (Output, String))  -- (Dict Output String)
 
 
 type Action
@@ -142,7 +143,7 @@ update action model =
             , ( Json, JsonE.encode 4 <| GenUIJson.encode ui )
             , ( Yaml, YamlE.toString 4 <| GenUIYaml.encode ui )
             , ( Dhall, GenUIDhall.toString <| GenUIDhall.encode ui )
-            , ( Graph, Graph.toString GenUIGraph.nodeToString GenUIGraph.edgeToString <| GenUIGraph.toGraph ui )
+            , ( Graph, DOT.output GenUIGraph.nodeToString GenUIGraph.edgeToString <| GenUIGraph.toGraph () ui )
             , ( ValuesJson, JsonE.encode 4 <| GenUIJson.toValues ui )
             , ( ValuesYaml, YamlE.toString 4 <| GenUIYaml.toValues ui )
             ]

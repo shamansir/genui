@@ -65,7 +65,7 @@ Loads values using `Yaml.Decode.at` knowing the paths from given UI and skipping
 
  -}
 
-loadValues : D.Value -> G.GenUI -> G.GenUI
+loadValues : D.Value -> G.GenUI a -> G.GenUI a
 loadValues root =
     let
         updateDef pPath def =
@@ -143,17 +143,20 @@ loadValues root =
                 _ ->
                     Result.Ok def
 
-        helper : G.PropPath -> D.Decoder x -> (x -> G.Def) -> Result D.Error G.Def
+        helper : G.PropPath -> D.Decoder x -> (x -> G.Def a) -> Result D.Error (G.Def a)
         helper pPath decoder modifyDef =
             root
                 |> D.fromValue (D.at pPath decoder)
                 |> Result.map modifyDef
     in
     G.update
-        (\( _, pPath ) prop ->
+        (\( _, pPath ) ( prop, a ) ->
             Just
-                { prop
-                | def = updateDef pPath prop.def
-                    |> Result.withDefault prop.def
-                }
+                (
+                    { prop
+                    | def = updateDef pPath prop.def
+                        |> Result.withDefault prop.def
+                    }
+                , a
+                )
         )

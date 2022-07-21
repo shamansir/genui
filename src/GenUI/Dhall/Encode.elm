@@ -65,7 +65,7 @@ color c =
             "b._hex " ++ q hex
 
 
-def : String -> String -> G.Def -> Dhall
+def : String -> String -> G.Def a -> Dhall
 def propName name d =
     let
         intDef id =
@@ -300,8 +300,8 @@ icon i =
     in "{ theme = " ++ themeString ++ ", url = " ++ url i.url ++ " }"
 
 
-property : G.Property -> Dhall
-property prop =
+property : G.Property a -> Dhall
+property ( prop, _ ) =
     let
         propName = prop.property |> Maybe.withDefault prop.name |> String.replace " " "_"
         ( selects, def_ ) = def propName prop.name prop.def
@@ -317,7 +317,7 @@ property prop =
 
 {-| Convert UI to DHALL
 -}
-encode : G.GenUI -> Dhall
+encode : G.GenUI a -> Dhall
 encode genui =
     let
         children = List.map property genui.root

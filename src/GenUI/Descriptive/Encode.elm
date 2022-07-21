@@ -19,7 +19,7 @@ import GenUI.Gradient as Gradient
 type alias Descriptive = Indented
 
 
-def : G.Def -> Descriptive
+def : G.Def a -> Descriptive
 def d =
     let
         intDef id =
@@ -250,8 +250,8 @@ icon i =
     in "for " ++ themeString ++ " theme at " ++ url i.url
 
 
-property : G.Property -> Descriptive
-property prop =
+property : G.Property a -> Descriptive
+property ( prop, _ ) =
     [ ( 0, "property \"" ++ prop.name ++ "\"" )
     , ( 1
       , case prop.property of
@@ -282,7 +282,7 @@ property prop =
 
 {-| Encode UI to descriptive representation.
 -}
-encode : G.GenUI -> Descriptive
+encode : G.GenUI a -> Descriptive
 encode genui =
     ( 0, "GenUI, version " ++ genui.version )
         :: (indent <| indexedList property genui.root)

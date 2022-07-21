@@ -1,9 +1,9 @@
-module GenUI.Json.Decode exposing (decode)
+module GenUI.Json.Decode exposing (decode, decode_)
 
 
 {-| Decoding from JSON
 
-@docs decode
+@docs decode, decode_
 -}
 
 import GenUI as G
@@ -163,8 +163,8 @@ selectKind =
             )
 
 
-def : String -> D.Decoder G.Def
-def kind =
+def : D.Decoder a -> String -> D.Decoder (G.Def (Maybe a))
+def decodeA kind =
     let
 
         actionDef =
@@ -227,7 +227,7 @@ def kind =
         nestDef =
             D.map6
                 G.NestDef
-                (D.field "children" <| D.list property)
+                (D.field "children" <| D.list (property_ decodeA))
                 (maybeField "form" G.Expanded form)
                 (D.maybe <| D.field "nestAt" D.string)
                 (D.field "shape" nestShape)
@@ -284,25 +284,45 @@ def kind =
 
 
 
-property : D.Decoder G.Property
+property : D.Decoder (G.Property ())
 property =
+    D.map (G.mapProperty <| always ()) <| property_ <| D.succeed ()
+
+
+property_ : D.Decoder a -> D.Decoder (G.Property (Maybe a))
+property_ decodeA =
     D.field "kind" D.string
         |> D.andThen
             (\kind ->
                 D.map5
-                    G.Property
-                    (D.field "def" <| def kind)
+                    G.PropertyRec
+                    (D.field "def" <| def decodeA kind)
                     (D.field "name" D.string)
                     (D.maybe <| D.field "property" D.string)
                     (D.field "live" D.bool)
                     (D.maybe <| D.field "shape" cellShape)
+                |> D.andThen
+                    (\rec ->
+                        D.field "_value_" decodeA
+                            |> D.maybe
+                            |> D.map (Tuple.pair rec)
+                    )
             )
 
 
 {-| JSON Decoder -}
-decode : D.Decoder G.GenUI
+decode : D.Decoder (G.GenUI ())
 decode =
     D.map2
         G.GenUI
         (D.field "version" D.string)
         (D.field "root" <| D.list property)
+
+
+{-| JSON Decoder for the cases when value was included in data at the `_value_` field (see `Json.Encode.encode_`) -}
+decode_ : D.Decoder a -> D.Decoder (G.GenUI (Maybe a))
+decode_ decodeA =
+    D.map2
+        G.GenUI
+        (D.field "version" D.string)
+        (D.field "root" <| D.list <| property_ decodeA)

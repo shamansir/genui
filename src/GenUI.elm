@@ -1,12 +1,13 @@
 module GenUI exposing
     ( GenUI, version
-    , Path, Property, root
+    , Path, PropPath, PropertyRec, Property, root, ghost, get
     , Def(..), IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef
     , fold, foldWithParent, foldWithPath, foldWithPropPath, foldWithPaths
     , find, findByIndices, update, updateAt
     , defToString
     , Face(..), NestShape, CellShape, SelectKind(..), SelectItem
-    , Form(..), GradientDef, Icon, ProgressDef, PropPath, Theme(..), Url(..), ZoomDef, ZoomKind(..)
+    , Form(..), GradientDef, Icon, ProgressDef, Theme(..), Url(..), ZoomDef, ZoomKind(..)
+    , map, mapProperty, mapDef
     )
 
 {-| The core definition of the UI.
@@ -19,7 +20,7 @@ module GenUI exposing
 
 # Property
 
-@docs Property, root, Path, PropPath
+@docs PropertyRec, Property, root, ghost, Path, PropPath, get
 
 
 # Concrete property definitions
@@ -46,7 +47,11 @@ module GenUI exposing
 
 @docs Face, NestShape, CellShape, SelectKind, SelectItem, Icon, Form, Theme, Url, ZoomKind
 
+# Mapping
+@docs map, mapProperty, mapDef
+
 -}
+
 
 import GenUI.Color exposing (Color(..))
 import GenUI.Gradient exposing (Gradient(..), Stop, Stop2D)
@@ -190,8 +195,8 @@ type alias SelectDef =
 
 
 {-| -}
-type alias NestDef =
-    { children : List Property, form : Form, nestAt : Maybe String, shape : NestShape, face : Face, page : Int }
+type alias NestDef a =
+    { children : List (Property a), form : Form, nestAt : Maybe String, shape : NestShape, face : Face, page : Int }
 
 
 {-| -}
@@ -210,7 +215,7 @@ type alias GradientDef =
 
 
 {-| -}
-type Def
+type Def a
     = Ghost
     | NumInt IntDef
     | NumFloat FloatDef
@@ -220,15 +225,15 @@ type Def
     | Textual TextualDef
     | Action ActionDef
     | Select SelectDef
-    | Nest NestDef
+    | Nest (NestDef a)
     | Gradient GradientDef
     | Progress ProgressDef
     | Zoom ZoomDef
 
 
 {-| -}
-type alias Property =
-    { def : Def
+type alias PropertyRec a =
+    { def : Def a
     , name : String
     , property : Maybe String
     , live : Bool
@@ -237,28 +242,49 @@ type alias Property =
 
 
 {-| -}
-type alias GenUI =
+type alias Property a =
+    ( PropertyRec a
+    , a
+    )
+
+
+{-| -}
+type alias GenUI a =
     { version : String
-    , root : List Property
+    , root : List (Property a)
     }
+
+
+{-| Get value of the property -}
+get : Property a -> a
+get = Tuple.second
 
 
 {-| Truly optional to use. If you want to attach the controls to some common parrent, this is the way to do it.
 Don't use it anywhere in the tree except as in the root.
 -}
-root : Property
+root : a -> Property a
 root =
-    { def = Ghost
-    , name = "root"
-    , property = Nothing
-    , live = False
-    , shape = Nothing
-    }
+    ghost "root"
+
+
+{-| Create ghost with given name -}
+ghost : String -> a -> Property a
+ghost name a =
+    (
+        { def = Ghost
+        , name = name
+        , property = Nothing
+        , live = False
+        , shape = Nothing
+        }
+    , a
+    )
 
 
 {-| Convert kind of the property to string, i.e. returns "int" for integer control and "xy" for XY control.
 -}
-defToString : Def -> String
+defToString : Def a -> String
 defToString def =
     case def of
         Ghost ->
@@ -303,38 +329,38 @@ defToString def =
 
 {-| Fold the interface structure from top to bottom.
 -}
-fold : (Property -> a -> a) -> a -> GenUI -> a
+fold : (Property a -> x -> x) -> x -> GenUI a -> x
 fold =
     foldWithPath << always << always
 
 
 {-| Fold the interface structure from top to bottom. The first argument is the parent property and the second one is the property being folded itselfs.
 -}
-foldWithParent : (Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
+foldWithParent : (Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
 foldWithParent =
     foldWithPath << always
 
 
 {-| Fold the interface structure from top to bottom. The function gets path and the parent property and the second argument and the third one is the property being folded itself.
 -}
-foldWithPath : (Path -> Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
+foldWithPath : (Path -> Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
 foldWithPath f =
     foldWithPaths (f << Tuple.first)
 
 
 {-| Fold the interface structure from top to bottom. The function gets property-path and the parent property and the second argument and the third one is the property being folded itself.
 -}
-foldWithPropPath : (PropPath -> Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
+foldWithPropPath : (PropPath -> Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
 foldWithPropPath f =
     foldWithPaths (f << Tuple.second)
 
 
 {-| Fold the interface structure from top to bottom. The function gets index-path, property-name-path and the parent property and the second argument and the third one is the property being folded itself.
 -}
-foldWithPaths : (( Path, PropPath ) -> Maybe Property -> Property -> a -> a) -> a -> GenUI -> a
-foldWithPaths f a =
+foldWithPaths : (( Path, PropPath ) -> Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
+foldWithPaths f x =
     let
-        foldProperty ( iPath, sPath ) parent prop ( index, a_ ) =
+        foldProperty ( iPath, sPath ) parent ( prop, a ) ( index, x_ ) =
             ( index + 1
             , let
                 curPath =
@@ -345,26 +371,26 @@ foldWithPaths f a =
               in
               case prop.def of
                 Nest nestDef ->
-                    f curPath parent prop <|
+                    f curPath parent ( prop, a ) <|
                         Tuple.second <|
                             List.foldl
-                                (foldProperty curPath <| Just prop)
-                                ( 0, a_ )
+                                (foldProperty curPath <| Just ( prop, a ))
+                                ( 0, x_ )
                             <|
                                 nestDef.children
 
                 _ ->
-                    f curPath parent prop a_
+                    f curPath parent ( prop, a ) x_
             )
     in
     Tuple.second
-        << List.foldl (foldProperty ( [], [] ) Nothing) ( 0, a )
+        << List.foldl (foldProperty ( [], [] ) Nothing) ( 0, x )
         << .root
 
 
 {-| Find property by index-based path. Traverses/folds the tree, so could be slow for a complex structure
 -}
-findByIndices : Path -> GenUI -> Maybe Property
+findByIndices : Path -> GenUI a -> Maybe (Property a)
 findByIndices iPath =
     foldWithPath
         (\oPath _ prop foundBefore ->
@@ -384,7 +410,7 @@ findByIndices iPath =
 
 {-| Find property by property-based path. Traverses/folds the tree, so could be slow for a complex structure
 -}
-find : PropPath -> GenUI -> Maybe Property
+find : PropPath -> GenUI a -> Maybe (Property a)
 find pPath =
     foldWithPropPath
         (\oPath _ prop foundBefore ->
@@ -404,51 +430,54 @@ find pPath =
 
 {-| Update every property in the tree by applying the given function to it. If the function returns `Nothing`, the property is removed, even if it's a nesting.
 -}
-update : (( Path, PropPath ) -> Property -> Maybe Property) -> GenUI -> GenUI
+update : (( Path, PropPath ) -> Property a -> Maybe (Property a)) -> GenUI a -> GenUI a
 update f gui =
     let
-        foldProperty ( iPath, sPath ) prop ( index, prev ) =
+        foldProperty ( iPath, sPath ) ( prop, a ) ( index, prev ) =
             ( index + 1
-            , (let
-                curPath =
-                    ( iPath ++ [ index ]
-                    , sPath
-                        ++ [ prop.property |> Maybe.withDefault prop.name ]
-                    )
-               in
-               case prop.def of
-                Nest nestDef ->
-                    case f curPath prop of
-                        -- if the property at this path stayed
-                        Just nextProp ->
-                            case nextProp.def of
-                                -- and it is still a nested property
-                                Nest nextDef ->
-                                    -- then recusively update its children
-                                    Just <|
-                                        { nextProp
-                                            | def =
-                                                Nest
-                                                    { nextDef
-                                                        | children =
-                                                            nestDef.children
-                                                                |> List.foldr (foldProperty curPath) ( 0, [] )
-                                                                |> Tuple.second
-                                                                |> List.filterMap identity
-                                                    }
-                                        }
+            ,
+                (let
+                    curPath =
+                        ( iPath ++ [ index ]
+                        , sPath
+                            ++ [ prop.property |> Maybe.withDefault prop.name ]
+                        )
+                in
+                case prop.def of
+                    Nest nestDef ->
+                        case f curPath ( prop, a ) of
+                            -- if the property at this path stayed
+                            Just ( nextProp, ia ) ->
+                                case nextProp.def of
+                                    -- and it is still a nested property
+                                    Nest nextDef ->
+                                        -- then recusively update its children
+                                        Just <|
+                                            (
+                                                { nextProp
+                                                | def =
+                                                    Nest
+                                                        { nextDef
+                                                            | children =
+                                                                nestDef.children
+                                                                    |> List.foldr (foldProperty curPath) ( 0, [] )
+                                                                    |> Tuple.second
+                                                                    |> List.filterMap identity
+                                                        }
+                                                }
+                                            , ia )
 
-                                -- or else just leave as the new one
-                                _ ->
-                                    Just nextProp
+                                    -- or else just leave as the new one
+                                    _ ->
+                                        Just ( nextProp, ia )
 
-                        -- if property at this point is removed, no sense in updating it
-                        Nothing ->
-                            Nothing
+                            -- if property at this point is removed, no sense in updating it
+                            Nothing ->
+                                Nothing
 
-                _ ->
-                    f curPath prop
-              )
+                    _ ->
+                        f curPath ( prop, a )
+                )
                 :: prev
             )
     in
@@ -465,10 +494,62 @@ update f gui =
 The function gets `Nothing` if the property wasn't found at path.
 Traverses/folds the tree, so could be slow for a complex structure
 -}
-updateAt : PropPath -> (Property -> Maybe Property) -> GenUI -> GenUI
+updateAt : PropPath -> (Property a -> Maybe (Property a)) -> GenUI a -> GenUI a
 updateAt pPath f =
     update
         (\(_, otherPath) prop ->
             if (pPath == otherPath) then f prop
             else Just prop
         )
+
+
+{-| -}
+map : (a -> b) -> GenUI a -> GenUI b
+map f genui =
+    { version = genui.version
+    , root = List.map (mapProperty f) genui.root
+    }
+
+
+{-| -}
+mapProperty : (a -> b) -> Property a -> Property b
+mapProperty f ( prop, a ) =
+    (
+        { def =
+            mapDef f prop.def
+        , name = prop.name
+        , property = prop.property
+        , live = prop.live
+        , shape = prop.shape
+        }
+    , f a
+    )
+
+
+{-| -}
+mapDef : (a -> b) -> Def a -> Def b
+mapDef f def =
+    case def of
+        Ghost -> Ghost
+        NumInt intDef -> NumInt intDef
+        NumFloat floatDef -> NumFloat floatDef
+        XY xyDef -> XY xyDef
+        Toggle toggleDef -> Toggle toggleDef
+        Color colorDef -> Color colorDef
+        Textual textualDef -> Textual textualDef
+        Action actionDef -> Action actionDef
+        Select selectDef -> Select selectDef
+        Nest nestDef ->
+            let
+                nextChildren = List.map (mapProperty f) nestDef.children
+            in Nest <|
+                { form = nestDef.form
+                , face = nestDef.face
+                , children = nextChildren
+                , nestAt = nestDef.nestAt
+                , page = nestDef.page
+                , shape = nestDef.shape
+                }
+        Gradient gradientDef -> Gradient gradientDef
+        Progress progressDef -> Progress progressDef
+        Zoom zoomDef -> Zoom zoomDef

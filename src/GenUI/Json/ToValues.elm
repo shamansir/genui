@@ -11,8 +11,8 @@ import GenUI.Gradient as Gradient
 import Json.Encode as E
 
 
-toValue : G.Property -> ( String, E.Value )
-toValue { def, property, name } =
+toValue : G.Property a -> ( String, E.Value )
+toValue ( { def, property, name }, _ ) =
     ( property |> Maybe.withDefault name
     , case def of
         G.Ghost -> E.null
@@ -46,7 +46,7 @@ toValue { def, property, name } =
 
 
 {-| Extracts current values from the given UI definition as JSON. See the example in `loadValues`. -}
-toValues : G.GenUI -> E.Value
+toValues : G.GenUI a -> E.Value
 toValues genui =
     E.object
         <| List.map toValue genui.root

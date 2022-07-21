@@ -1,4 +1,4 @@
-module GenUI.ToGraph exposing (toGraph, nodeToString, edgeToString)
+module GenUI.ToGraph exposing (toGraph, nodeToString, nodeToString_, edgeToString, edgeToString_)
 
 {-| Converting to Graph.
 
@@ -9,6 +9,11 @@ module GenUI.ToGraph exposing (toGraph, nodeToString, edgeToString)
 import Graph exposing (Graph)
 
 import GenUI as G
+
+
+type alias Node a = G.Property a
+
+type alias Edge a = (Maybe (G.Property a), G.Property a)
 
 
 pathToId : List Int -> Int
@@ -36,36 +41,58 @@ toParentId path =
 
 The root node has the ID of `-1`,  the ID for other nodes is calculated based on their parent and the position inside.
 
+The first argument is the value for this root node.
 -}
-toGraph : G.GenUI -> Graph G.Property ()
-toGraph ui =
-    Graph.fromNodesAndEdges
+toGraph : a -> G.GenUI a -> Graph (Node a) (Edge a)
+toGraph ra ui =
+    let
+        rootId = -1
+        rootProp = G.root ra
+        rootNode = Graph.Node rootId rootProp
+    in Graph.fromNodesAndEdges
         (G.foldWithPath
             (\path _ prop list ->
                 Graph.Node (pathToId path) prop :: list
             )
-            [ Graph.Node -1 G.root ]
+            [ rootNode ]
             ui)
         (G.foldWithPath
-            (\path _ _ list ->
+            (\path maybeParent prop list ->
                 if (List.length path > 1) then
-                    Graph.Edge (toParentId path) (pathToId path) () :: list
+                    case maybeParent of
+                        Just parent ->
+                            Graph.Edge (toParentId path) (pathToId path) (maybeParent, prop) :: list
+                        Nothing ->
+                            list
+                            -- Graph.Edge -1 (pathToId path) (Just rootProp, prop) :: list
                 else
-                    Graph.Edge -1 (pathToId path) () :: list
+                    Graph.Edge rootId (pathToId path) (Just rootProp, prop) :: list
             )
-            []
+            [ ]
             ui)
     {- Graph.fromNodesAndEdges
         (G.fold ) -}
 
 
 {-| The short representation of the property. -}
-nodeToString : G.Property -> Maybe String
-nodeToString prop =
+nodeToString : G.Property a -> Maybe String
+nodeToString ( prop, _ ) =
     Just <| prop.name ++ " :: " ++ G.defToString prop.def
 
 
 
+{-| The short representation of the property. -}
+nodeToString_ : (a -> String) -> G.Property a -> Maybe String
+nodeToString_ toStr ( prop, a ) =
+    Just <| toStr a ++ " :: " ++ prop.name ++ " :: " ++ G.defToString prop.def
+
+
+
 {-| The short representation of the edge. -}
-edgeToString : () -> Maybe String
+edgeToString : a -> Maybe String
 edgeToString _ = Just "*"
+
+
+{-| The short representation of the edge. -}
+edgeToString_ : (a -> String) -> a -> Maybe String
+edgeToString_ toString a = Just <| toString a
