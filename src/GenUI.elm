@@ -4,7 +4,7 @@ module GenUI exposing
     , Def(..), IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef
     , fold, foldWithParent, foldWithPath, foldWithPropPath, foldWithPaths
     , find, findByIndices, update, updateAt
-    , defToString
+    , withPath, defToString
     , Face(..), NestShape, CellShape, SelectKind(..), SelectItem
     , Form(..), GradientDef, Icon, ProgressDef, Theme(..), Url(..), ZoomDef, ZoomKind(..)
     , map, mapProperty, mapDef
@@ -40,7 +40,7 @@ module GenUI exposing
 
 # Helpers
 
-@docs defToString
+@docs withPath, defToString
 
 
 # Subtypes
@@ -428,9 +428,15 @@ find pPath =
         Nothing
 
 
+{-| Add path information to every property -}
+withPath : GenUI a -> GenUI ( (Path, PropPath), a )
+withPath =
+    update <| \paths -> Just << mapProperty (Tuple.pair paths)
+
+
 {-| Update every property in the tree by applying the given function to it. If the function returns `Nothing`, the property is removed, even if it's a nesting.
 -}
-update : (( Path, PropPath ) -> Property a -> Maybe (Property a)) -> GenUI a -> GenUI a
+update : (( Path, PropPath ) -> Property a -> Maybe (Property b)) -> GenUI a -> GenUI b
 update f gui =
     let
         foldProperty ( iPath, sPath ) ( prop, a ) ( index, prev ) =

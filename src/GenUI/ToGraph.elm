@@ -60,7 +60,7 @@ toGraph ra ui =
             (\path maybeParent prop list ->
                 if (List.length path > 1) then
                     case maybeParent of
-                        Just parent ->
+                        Just _ ->
                             Graph.Edge (toParentId path) (pathToId path) (maybeParent, prop) :: list
                         Nothing ->
                             list
