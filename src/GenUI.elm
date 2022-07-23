@@ -4,7 +4,7 @@ module GenUI exposing
     , Def(..), IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef
     , fold, foldWithParent, foldWithPath, foldWithPropPath, foldWithPaths
     , find, findByIndices, update, updateAt
-    , withPath, defToString
+    , withPath, withIndices, defToString
     , Face(..), NestShape, CellShape, SelectKind(..), SelectItem
     , Form(..), GradientDef, Icon, ProgressDef, Theme(..), Url(..), ZoomDef, ZoomKind(..)
     , map, mapProperty, mapDef
@@ -40,7 +40,7 @@ module GenUI exposing
 
 # Helpers
 
-@docs withPath, defToString
+@docs withPath, withIndices, defToString
 
 
 # Subtypes
@@ -508,6 +508,61 @@ updateAt pPath f =
             if (pPath == otherPath) then f prop
             else Just prop
         )
+
+
+{-| Add unique numeric index to every property / control.
+-}
+withIndices : GenUI a -> GenUI ( Int, a )
+withIndices gui =
+    let
+        foldProperties : Property a -> ( Int, List (Property (Int, a)) ) -> ( Int, List (Property (Int, a)) )
+        foldProperties ( prop, a ) ( index, prev ) =
+            let
+                ( nextIndex, nextChildren ) =
+                    case prop.def of
+                        Nest nestDef ->
+                            nestDef.children
+                                |> List.foldl foldProperties ( index, [] )
+                                |> Tuple.mapSecond List.reverse
+                        _ -> ( index, [] )
+            in
+                ( nextIndex + 1
+                ,
+                    ( case prop.def of
+                        Nest nestDef ->
+
+                            { name = prop.name
+                            , property = prop.property
+                            , live = prop.live
+                            , shape = prop.shape
+                            , def =
+                                Nest
+                                    { form = nestDef.form
+                                    , children = nextChildren
+                                    , nestAt = nestDef.nestAt
+                                    , shape = nestDef.shape
+                                    , face = nestDef.face
+                                    , page = nestDef.page
+                                    }
+                            }
+                        _ ->
+                            { name = prop.name
+                            , property = prop.property
+                            , live = prop.live
+                            , shape = prop.shape
+                            , def = prop.def |> mapDef (Tuple.pair nextIndex)
+                            }
+                    , ( nextIndex, a ) )
+                    :: prev
+                )
+    in
+    { version = gui.version
+    , root =
+        gui.root
+            |> List.foldl foldProperties ( 0, [] )
+            |> Tuple.second
+            |> List.reverse
+    }
 
 
 {-| -}

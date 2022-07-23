@@ -235,7 +235,7 @@ selectKind sk =
     case sk of
         G.Choice c ->
             E.object
-                [ ( "kind", E.string "pages" )
+                [ ( "kind", E.string "choice" )
                 , ( "form", form c.form )
                 , ( "face", face c.face )
                 , ( "shape", nestShape c.shape )
