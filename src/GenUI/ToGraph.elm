@@ -2,7 +2,7 @@ module GenUI.ToGraph exposing (toGraph, nodeToString, edgeToString, Node, Edge)
 
 {-| Converting to Graph.
 
-@docs toGraph, nodeToString, edgeToString
+@docs Node, Edge, toGraph, nodeToString, edgeToString
 
 -}
 
@@ -74,3 +74,6 @@ nodeToString ( prop, _ ) =
 edgeToString : Edge a -> Maybe String
 edgeToString { parent, child } =
     Just <| (parent |> nodeToString |> Maybe.withDefault "-") ++ " -> " ++ (child |> nodeToString |> Maybe.withDefault "-")
+
+
+-- TODO: `toGraph` with select items

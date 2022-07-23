@@ -7,7 +7,7 @@
     "properties": {
       "version": {
         "type": "string",
-        "const": "3.0.0"
+        "const": "3.0.1"
       },
       "root": {
         "type": "array",

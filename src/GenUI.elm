@@ -61,7 +61,7 @@ import GenUI.Gradient exposing (Gradient(..), Stop, Stop2D)
 -}
 version : String
 version =
-    "3.0.0"
+    "3.0.1"
 
 
 {-| A path to the property in the tree. So, all the first-level properties have the path of `[0]`.
