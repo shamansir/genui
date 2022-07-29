@@ -49,8 +49,8 @@ let NestShape =
         , pages : Integer
         }
     , default =
-        { cols = +0
-        , rows = +0
+        { cols = -1
+        , rows = -1
         , pages = +1
         }
     }

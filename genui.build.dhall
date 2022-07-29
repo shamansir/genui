@@ -88,7 +88,7 @@ let select
     __select
         Text
         (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem)
-        (P.SelectKind.Choice { form = P.NestForm.Expanded, face = P.Face.Default, page = +1, shape = P.NestShape.default })
+        (P.SelectKind.Choice { form = P.NestForm.Expanded, face = P.Face.Default, page = +0, shape = P.NestShape.default })
         name
         values
         current

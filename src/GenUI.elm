@@ -111,17 +111,17 @@ type Face
 {-| How many space takes the nested panel, used for Tron UI.
 -}
 type alias NestShape =
-    { cols : Int
-    , rows : Int
-    , pages : Int
+    { cols : Int -- FIXME: -1 if autocalculated
+    , rows : Int -- FIXME: -1 if autocalculated
+    , pages : Int -- FIXME: pages should be `Exact Int` | `Auto` | `Single`
     }
 
 
 {-| How many space takes the cell itself, used for Tron UI.
 -}
 type alias CellShape =
-    { cols : Int
-    , rows : Int
+    { cols : Int -- FIXME: should be Float or specific values
+    , rows : Int -- FIXME: should be Float or specific values
     }
 
 
@@ -237,7 +237,7 @@ type alias PropertyRec a =
     , name : String
     , property : Maybe String
     , live : Bool
-    , shape : Maybe CellShape
+    , shape : Maybe CellShape -- FIXME: doesn't represent what's needed when used with TronGUI
     }
 
 
