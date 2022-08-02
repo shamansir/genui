@@ -83,18 +83,11 @@ def d =
                 ++ indent (selectKind sd.kind)
 
         nestDef nd =
-            [ ( 0, "nested panel" )
-            , ( 1
-              , "by default it is "
-                    ++ (case nd.form of
-                            G.Expanded -> "expanded"
-                            G.Collapsed -> "collapsed"
-                       )
-              )
+            [ ( 0, "nested group" )
             , ( 1, "its inner components are: " )
             ]
                 ++ (indent <| indexedList property nd.children)
-                ++ [ ( 1
+                ++ ( 1
                      , case nd.nestAt of
                         Just p ->
                             "nested at JS property \"" ++ p ++ "\""
@@ -102,11 +95,7 @@ def d =
                         Nothing ->
                             "not nested at any JS property (stored plain in the state)"
                      )
-                   , ( 1, "its face is:" )
-                   ]
-                ++ indent (face nd.face)
-                ++ ( 1, "the shape of its panel is:" )
-                :: indent (nestShape nd.shape)
+                :: panel nd.panel
 
         gradientDef gd =
             [ ( 0, "gradient editor, current value is " ++ Gradient.toString gd.current ) ]
@@ -160,26 +149,31 @@ def d =
             zoomDef zd
 
 
+unit : G.Unit -> String
+unit u =
+    case u of
+        G.Half -> "half of the cell"
+        G.One -> "one cell"
+        G.OneAndAHalf -> "one cell and a half"
+        G.Two -> "two cells"
+        G.Three -> "three cells"
+        G.Custom n -> String.fromFloat n ++ " cells"
+
+
 cellShape : G.CellShape -> Descriptive
 cellShape cs =
-    [ ( 0, "cell shape with" )
-    , ( 1, String.fromInt cs.cols ++ " columns" )
-    , ( 1, String.fromInt cs.rows ++ " rows" )
-    ]
-
-
-nestShape : G.NestShape -> Descriptive
-nestShape ns =
-    [ ( 0, "nesting shape with" )
-    , ( 1, String.fromInt ns.cols ++ " columns" )
-    , ( 1, String.fromInt ns.rows ++ " rows" )
-    , ( 1, String.fromInt ns.pages ++ " pages" )
+    [ ( 0, "the control takes" )
+    , ( 1, unit cs.horz ++ " horizontally" )
+    , ( 1, unit cs.vert ++ " vertically" )
     ]
 
 
 face : G.Face -> Descriptive
 face f =
     case f of
+        G.Empty ->
+            [ ( 0, "empty" ) ]
+
         G.OfColor color ->
             [ ( 0, "represented with color " ++ Color.toString color ) ]
 
@@ -187,26 +181,22 @@ face f =
             ( 0, "has icons: ")
                 :: (indent <| indexedList (indented << icon) icons)
 
-        G.Default ->
-            [ ( 0, "default face" ) ]
+        G.Title ->
+            [ ( 0, "shows label of the button" ) ]
+
+        G.PanelFocusedItem ->
+            [ ( 0, "shows either selected item or focused item of the panel" ) ]
+
+        G.PanelExpandStatus ->
+            [ ( 0, "shows if panel is expanded or collapsed" ) ]
 
 
 selectKind : G.SelectKind -> Descriptive
 selectKind sk =
     case sk of
         G.Choice c ->
-               ( 0, "just a choice" )
-            :: ( 1
-              , "by default it is "
-                    ++ (case c.form of
-                            G.Expanded -> "expanded"
-                            G.Collapsed -> "collapsed"
-                       )
-              )
-            :: ( 1, "its face is:" )
-            :: indent (face c.face)
-            ++ ( 1, "the shape of its panel is:" )
-            :: indent (nestShape c.shape)
+            ( 0, "just a choice" )
+            :: panel c
 
         G.Knob ->
             [ ( 0, "a switch between values as a knob" ) ]
@@ -248,6 +238,44 @@ icon i =
                 G.Dark -> "dark"
                 G.Light -> "light"
     in "for " ++ themeString ++ " theme at " ++ url i.url
+
+
+panel : G.Panel -> Descriptive
+panel p =
+    ( 0, "with the panel" )
+    ::  ( 1
+        , "by default it is "
+        ++ (case p.form of
+                G.Expanded -> "expanded"
+                G.Collapsed -> "collapsed"
+            )
+        )
+    :: ( 1, "the button that opens this panel has a face:" )
+    :: indent (face p.button)
+    ++ ( 1, "the items of the panel all take" )
+    :: indent (p.allOf |> Maybe.map cellShape |> Maybe.withDefault (indented "different sizes"))
+    ++
+        [ ( 1, "current page is " ++ page p.page )
+        , ( 1, "and the cells in this panel " ++ pages p.pages )
+        ]
+
+
+page : G.Page -> String
+page p =
+    case p of
+        G.First -> "the first one"
+        G.Last -> "the last one"
+        G.ByCurrent -> "the one with selected or focused item"
+        G.Page n -> "page " ++ String.fromInt n
+
+
+pages : G.Pages -> String
+pages p =
+    case p of
+        G.Auto -> "automatically distributed"
+        G.Single -> "all fit on one page"
+        G.Distribute { maxInColumn, maxInRow } -> "distributed over pages with maximum " ++ String.fromInt maxInColumn ++ " cells in a column and maximum " ++ String.fromInt maxInRow ++ " cells in a row"
+        G.Exact n -> "distributed over " ++ String.fromInt n ++ " pages"
 
 
 property : G.Property ( G.Path, G.PropPath ) -> Descriptive

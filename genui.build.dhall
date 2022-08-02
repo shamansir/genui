@@ -40,7 +40,7 @@ let toggle
 
 let action
     = \(name : Text) ->
-    P.Property::{ name, def = P.Def.Action { face = P.Face.Default } }
+    P.Property::{ name, def = P.Def.Action { face = P.Face.Title } }
 
 let progress
     = \(name : Text) -> \(api : P.URL) ->
@@ -48,7 +48,11 @@ let progress
 
 let gradient
     = \(name : Text) -> \(g : P.Gradient) ->
-    P.Property::{ name, def = P.Def.Gradient { current = g } }
+    P.Property::{ name, def = P.Def.Gradient { current = g, presets = ([] : List P.Color) } }
+
+let gradient_with_presets
+    = \(name : Text) -> \(g : P.Gradient) -> \(presets : List P.Color) ->
+    P.Property::{ name, def = P.Def.Gradient { current = g, presets } }
 
 let zoom
     = \(name : Text) ->
@@ -83,12 +87,23 @@ let __select
         }
     }
 
+
+let __select_choice_panel
+    : P.Panel =
+    { form = P.Form.Expanded
+    , button = P.Face.PanelFocusedItem
+    , allOf = None P.CellShape.Type
+    , page = P.Page.ByCurrent
+    , pages = P.Pages.Auto
+    }
+
+
 let select
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     __select
         Text
-        (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem)
-        (P.SelectKind.Choice { form = P.NestForm.Expanded, face = P.Face.Default, page = +0, shape = P.NestShape.default })
+        (\(t : Text) -> { value = t, face = P.Face.Title, name = None Text } : P.SelectItem)
+        (P.SelectKind.Choice __select_choice_panel)
         name
         values
         current
@@ -97,7 +112,7 @@ let select_knob
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     __select
         Text
-        (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem)
+        (\(t : Text) -> { value = t, face = P.Face.Title, name = None Text } : P.SelectItem)
         P.SelectKind.Knob
         name
         values
@@ -108,7 +123,7 @@ let select_switch
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     __select
         Text
-        (\(t : Text) -> { value = t, face = P.Face.Default, name = None Text } : P.SelectItem)
+        (\(t : Text) -> { value = t, face = P.Face.Title, name = None Text } : P.SelectItem)
         P.SelectKind.Switch
         name
         values
@@ -137,7 +152,7 @@ let select_nv
         NameValue
         (\(t : NameValue) ->
             { value = t.value
-            , face = P.Face.Default
+            , face = P.Face.Title
             , name = Some t.name
             } : P.SelectItem
         )
@@ -163,15 +178,22 @@ let select_nvi
         current
 
 
+let __nest_panel
+    : P.Panel =
+    { form = P.Form.Expanded
+    , button = P.Face.PanelExpandStatus
+    , allOf = None P.CellShape.Type
+    , page = P.Page.ByCurrent
+    , pages = P.Pages.Auto
+    }
+
+
 let nest
-    = \(name : Text) -> \(children : List JSON.Type) -> \(form : P.NestForm) ->
+    = \(name : Text) -> \(children : List JSON.Type) -> \(form : P.Form) ->
     P.Property::{ name, def = P.Def.Nest
         { children
-        , form
         , nestProperty = None Text
-        , shape = P.NestShape.default
-        , face = P.Face.Default
-        , page = +0
+        , panel = __nest_panel
         }
     }
 
@@ -217,8 +239,8 @@ let ___def_update =
     }
 
 let ___update_choice
-    : (P.Choice -> P.Choice) -> P.SelectDef -> P.SelectDef
-    =  \(fn : P.Choice -> P.Choice)
+    : (P.Panel -> P.Panel) -> P.SelectDef -> P.SelectDef
+    =  \(fn : P.Panel -> P.Panel)
     -> \(sdef : P.SelectDef) ->
     sdef
         //
@@ -226,30 +248,38 @@ let ___update_choice
                 merge
                     { Knob = P.SelectKind.Knob
                     , Switch = P.SelectKind.Switch
-                    , Choice = \(ps : P.Choice) -> P.SelectKind.Choice (fn ps)
+                    , Choice = \(ps : P.Panel) -> P.SelectKind.Choice (fn ps)
                     }
                     sdef.kind
             }
 
-let no_face
-    = \(property : P.Property.Type) ->
+let ___update_nest
+    : (P.Panel -> P.Panel) -> P.NestDef -> P.NestDef
+    =  \(fn : P.Panel -> P.Panel)
+    -> \(ndef : P.NestDef) ->
+    ndef // { panel = fn ndef.panel }
+
+
+let __update_panel
+    = \(property : P.Property.Type) -> \(fn : P.Panel -> P.Panel) ->
     property
         //
         { def =
             merge
                 (___def_update // {
-                , Action = \(adef : P.ActionDef) -> P.Def.Action (adef // { face = P.Face.Default })
-                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { face = P.Face.Default })
+                , Nest = \(ndef : P.NestDef) ->
+                        P.Def.Nest (___update_nest fn ndef)
                 , Select =
                     \(sdef : P.SelectDef) ->
-                        P.Def.Select
-                            (___update_choice
-                                (\(ps : P.Choice) -> ps // { face = P.Face.Default })
-                                sdef
-                            )
+                        P.Def.Select (___update_choice fn sdef)
                 })
                 property.def
         }
+
+
+let __update_panel_
+    = \(property : P.Property.Type) -> \(panel : P.Panel) ->
+    __update_panel property (\(_ : P.Panel) -> panel)
 
 
 let with_face
@@ -260,65 +290,65 @@ let with_face
             merge
                 (___def_update // {
                 , Action = \(adef : P.ActionDef) -> P.Def.Action (adef // { face })
-                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { face })
+                , Nest = \(ndef : P.NestDef) ->
+                        P.Def.Nest
+                            (___update_nest
+                                (\(ps : P.Panel) -> ps // { button = face })
+                                ndef
+                            )
                 , Select =
                     \(sdef : P.SelectDef) ->
                         P.Def.Select
                             (___update_choice
-                                (\(ps : P.Choice) -> ps // { face })
+                                (\(ps : P.Panel) -> ps // { button = face })
                                 sdef
                             )
                 })
                 property.def
         }
 
-let with_shape
-    : P.Property.Type -> P.NestShape.Type -> P.Property.Type
-    = \(property : P.Property.Type) -> \(shape : P.NestShape.Type) ->
-    property
-        //
-        { def =
-            merge
-                (___def_update // {
-                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { shape })
-                , Select =
-                    \(sdef : P.SelectDef) ->
-                        P.Def.Select
-                            (___update_choice
-                                (\(ps : P.Choice) -> ps // { shape })
-                                sdef
-                            )
-                })
-                property.def
-        }
+
+let no_face
+    = \(property : P.Property.Type) ->
+    with_face property P.Face.Empty
+
+
+let expand
+    = \(property : P.Property.Type) ->
+    __update_panel property (\(p : P.Panel) -> p // { form = P.Form.Expanded })
+
+
+let collapse
+    = \(property : P.Property.Type) ->
+    __update_panel property (\(p : P.Panel) -> p // { form = P.Form.Collapsed })
+
+
+let with_paging
+    = \(property : P.Property.Type) -> \(pages : P.Pages) -> \(page : P.Page) ->
+    __update_panel property (\(p : P.Panel) -> p // { pages, page })
+
+
+let with_pages
+    = \(property : P.Property.Type) -> \(pages : P.Pages) ->
+    with_paging property pages P.Page.ByCurrent
+
 
 let with_cshape
     : P.Property.Type -> P.CellShape.Type -> P.Property.Type
     = \(property : P.Property.Type) -> \(shape : P.CellShape.Type) ->
     property // { shape = Some shape }
 
+
 let go_to_page
     : P.Property.Type -> Integer -> P.Property.Type
     = \(property : P.Property.Type) -> \(page : Integer) ->
-        property
-        //
-        { def =
-            merge
-                (___def_update // {
-                , Nest = \(ndef : P.NestDef) -> P.Def.Nest (ndef // { page })
-                , Select =
-                    \(sdef : P.SelectDef) ->
-                        P.Def.Select
-                            (___update_choice
-                                (\(ps : P.Choice) -> ps // { page })
-                                sdef
-                            )
-                })
-                property.def
-        }
+    __update_panel property (\(p : P.Panel) -> p // { page = P.Page.Page page })
 
-let _expanded : P.NestForm = P.NestForm.Expanded
-let _collapsed : P.NestForm = P.NestForm.Collapsed
+
+{- construct P.Form -}
+
+let _expanded : P.Form = P.Form.Expanded
+let _collapsed : P.Form = P.Form.Collapsed
 
 {- construct P.Color -}
 
@@ -344,6 +374,9 @@ let _hex
 
 {- construct P.Face -}
 
+let _empty_f : P.Face =
+    P.Face.Empty
+
 let _color_f
     : P.Color -> P.Face
     = \(color : P.Color) -> P.Face.Color color
@@ -357,13 +390,59 @@ let _l_icon_f
     : P.URL -> P.Face
     = \(url : P.URL) -> P.Face.Icon [ { theme = P.Theme.Light, url } ]
 
+let _icons_f
+    : List P.Icon -> P.Face
+    = \(icons : List P.Icon) -> P.Face.Icon icons
+
+let _title_f : P.Face =
+    P.Face.Title
+
+let _show_expand_f : P.Face =
+    P.Face.PanelExpandStatus
+
+let _show_focus_f : P.Face =
+    P.Face.PanelFocusedItem
+
+{- construct P.Theme -}
+
 let _dark = P.Theme.Dark
 
 let _light = P.Theme.Light
 
-let _icons_f
-    : List P.Icon -> P.Face
-    = \(icons : List P.Icon) -> P.Face.Icon icons
+{- construct P.Page -}
+
+let _first : P.Page = P.Page.First
+
+let _last : P.Page = P.Page.Last
+
+let _by_current : P.Page = P.Page.ByCurrent
+
+let _page : Integer -> P.Page = \(n : Integer) -> P.Page.Page n
+
+{- construct P.Pages -}
+
+let _auto : P.Pages = P.Pages.Auto
+
+let _single : P.Pages = P.Pages.Single
+
+let _distribute : P.Fit -> P.Pages = \(fit : P.Fit) -> P.Pages.Distribute fit
+
+let _pages : Integer -> P.Pages = \(n : Integer) -> P.Pages.Exact n
+
+{- construct P.Unit -}
+
+let _half : P.Unit = P.Unit.Half
+
+let _one : P.Unit = P.Unit.One
+
+let _one_and_half : P.Unit = P.Unit.OneAndAHalf
+
+let _two : P.Unit = P.Unit.Two
+
+let _three : P.Unit = P.Unit.Three
+
+let _unit : Double -> P.Unit = \(d : Double) -> P.Unit.Custom d
+
 
 {- construct P.URL -}
 
@@ -399,12 +478,16 @@ let _2d
     P.Gradient.TwoDimensional stops
 
 in
-    { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, select, nest, zoom, zoom_by
+    { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, gradient_with_presets, select, nest, zoom, zoom_by
     , select_knob, select_switch, select_icons, select_nv, select_nvi
     , root, children
-    , bind_to, nest_at, live, with_face, no_face, with_shape, with_cshape, go_to_page, _expanded, _collapsed
+    , bind_to, nest_at, live, with_face, no_face, with_cshape, expand, collapse, with_paging, with_pages, go_to_page
+    , _expanded, _collapsed
     , _rgba, _rgb, _hsla, _hsl, _hex
-    , _color_f, _icon_f, _icons_f, _l_icon_f
+    , _empty_f, _color_f, _icon_f, _icons_f, _l_icon_f, _title_f, _show_expand_f, _show_focus_f
+    , _first, _last, _by_current, _page
+    , _auto, _single, _distribute, _pages
+    , _half, _one, _one_and_half, _two, _three, _unit
     , _local, _remote
     , _dark, _light
     , _s, _s2, _linear, _2d

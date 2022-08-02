@@ -61,12 +61,9 @@ def encodeA d =
                 ]
         nestDef nd =
             E.record
-                [ ( "nestAt", Maybe.withDefault E.null <| Maybe.map E.string nd.nestAt )
-                , ( "form", form nd.form )
-                , ( "children", E.list (property encodeA) nd.children )
-                , ( "shape", nestShape nd.shape )
-                , ( "face", face nd.face )
-                , ( "page", E.int nd.page )
+                [ ( "children", E.list (property encodeA) nd.children )
+                , ( "panel", panel nd.panel )
+                , ( "nestAt", Maybe.withDefault E.null <| Maybe.map E.string nd.nestAt )
                 ]
         gradientDef gd =
             case gd.current of
@@ -74,11 +71,13 @@ def encodeA d =
                     E.record
                         [ ( "type", E.string "linear" )
                         , ( "current", E.list gstop1 linear )
+                        , ( "presets", E.list color gd.presets )
                         ]
                 G.TwoDimensional twod ->
                     E.record
                         [ ( "type", E.string "2d" )
                         , ( "current", E.list gstop2 twod )
+                        , ( "presets", E.list color gd.presets )
                         ]
         progressDef pd =
             E.record
@@ -106,20 +105,24 @@ def encodeA d =
         G.Zoom zd -> zoomDef zd
 
 
+
+unit : G.Unit -> E.Encoder
+unit u =
+    E.float
+        <| case u of
+            G.Half -> 0.5
+            G.One -> 1.0
+            G.OneAndAHalf -> 1.5
+            G.Two -> 2.0
+            G.Three -> 3.0
+            G.Custom n -> n
+
+
 cellShape : G.CellShape -> E.Encoder
 cellShape cs =
     E.record
-        [ ( "cols", E.int cs.cols )
-        , ( "rows", E.int cs.rows )
-        ]
-
-
-nestShape : G.NestShape -> E.Encoder
-nestShape ns =
-    E.record
-        [ ( "cols", E.int ns.cols )
-        , ( "rows", E.int ns.rows )
-        , ( "pages", E.int ns.pages )
+        [ ( "horz", unit cs.horz )
+        , ( "vert", unit cs.vert )
         ]
 
 
@@ -175,7 +178,7 @@ theme t = E.string <| case t of
     G.Light -> "light"
 
 
-gstop1 : { color : G.Color, position : Float } -> E.Encoder
+gstop1 : G.Stop -> E.Encoder
 gstop1 s =
     E.record
         [ ( "color", color s.color )
@@ -183,7 +186,7 @@ gstop1 s =
         ]
 
 
-gstop2 : { color : G.Color, position : { x : Float, y : Float } } -> E.Encoder
+gstop2 : G.Stop2D -> E.Encoder
 gstop2 s =
     E.record
         [ ( "color", color s.color )
@@ -194,19 +197,27 @@ gstop2 s =
 
 face : G.Face -> E.Encoder
 face f =
-    case f of
+    E.record <| case f of
         G.OfColor c ->
-            E.record
-                [ ( "face", E.string "color" )
-                , ( "color", color c )
-                ]
+            [ ( "face", E.string "color" )
+            , ( "color", color c )
+            ]
         G.OfIcon is ->
-            E.record
-                [ ( "face", E.string "icon" )
-                , ( "icons", E.list icon is )
-                ]
-        G.Default ->
-            E.null
+            [ ( "face", E.string "icon" )
+            , ( "icons", E.list icon is )
+            ]
+        G.Empty ->
+            [ ( "face", E.string "empty" )
+            ]
+        G.Title ->
+            [ ( "face", E.string "title" )
+            ]
+        G.PanelExpandStatus ->
+            [ ( "face", E.string "expand" )
+            ]
+        G.PanelFocusedItem ->
+            [ ( "face", E.string "focus" )
+            ]
 
 
 form : G.Form -> E.Encoder
@@ -229,16 +240,67 @@ zoomSteps zk =
         G.PlusMinus -> []
         G.Steps steps -> steps
 
+
+page : G.Page -> E.Encoder
+page p =
+    E.record <| case p of
+        G.Page n ->
+            [ ( "page", E.string "n" )
+            , ( "n", E.int n )
+            ]
+        G.First ->
+            [ ( "page", E.string "first" )
+            ]
+        G.Last ->
+            [ ( "page", E.string "last" )
+            ]
+        G.ByCurrent ->
+            [ ( "face", E.string "current" )
+            ]
+
+
+pages : G.Pages -> E.Encoder
+pages ps =
+    E.record <| case ps of
+        G.Exact n ->
+            [ ( "distribute", E.string "exact" )
+            , ( "exact", E.int n )
+            ]
+        G.Distribute f ->
+            [ ( "distribute", E.string "values" )
+            , ( "maxInRow", E.int f.maxInRow )
+            , ( "maxInColumn", E.int f.maxInColumn )
+            ]
+        G.Single ->
+            [ ( "distribute", E.string "single" )
+            ]
+        G.Auto ->
+            [ ( "distribute", E.string "auto" )
+            ]
+
+
+panel : G.Panel -> E.Encoder
+panel p =
+    E.record
+        [ ( "form", form p.form )
+        , ( "button", face p.button )
+        , ( "allOf",
+                case p.allOf of
+                Just cs -> cellShape cs
+                Nothing -> E.null
+            )
+        , ( "page", page p.page )
+        , ( "pages", pages p.pages )
+        ]
+
+
 selectKind : G.SelectKind -> E.Encoder
 selectKind sk =
     case sk of
         G.Choice c ->
             E.record
                 [ ( "kind", E.string "choice" )
-                , ( "form", form c.form )
-                , ( "face", face c.face )
-                , ( "shape", nestShape c.shape )
-                , ( "page", E.int c.page )
+                , ( "panel", panel c )
                 ]
         G.Knob ->
             E.record
@@ -248,7 +310,6 @@ selectKind sk =
             E.record
                 [ ( "kind", E.string "switch" )
                 ]
-
 
 
 selectItem : G.SelectItem -> E.Encoder
@@ -292,6 +353,7 @@ property encodeA ( prop, val ) =
         , ( "shape", Maybe.withDefault E.null <| Maybe.map cellShape prop.shape )
         , ( "_value_", encodeA val )
         ]
+
 
 
 {-| YAML encoder -}

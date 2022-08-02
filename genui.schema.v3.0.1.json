@@ -1,0 +1,453 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://shamansir.github.io/genui.schema.json",
+    "title": "GenUI",
+    "description": "Generative UI definition",
+    "type": "object",
+    "properties": {
+      "version": {
+        "type": "string",
+        "const": "3.0.1"
+      },
+      "root": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/property" }
+      }
+    },
+    "required": [ "version", "root" ],
+    "$defs": {
+        "property": {
+            "type": "object",
+            "properties":
+                { "kind":
+                    { "enum": [ "ghost", "int", "float", "xy", "color", "text", "toggle", "action", "nest", "select", "progress", "gradient", "zoom" ] }
+                , "name": { "type": "string" }
+                , "shape": { "$ref": "#/$defs/cell_shape" }
+                , "property": { "oneOf": [ { "type": "string" }, { "type": "null" } ] }
+                , "live": { "type": "boolean" }
+                , "_value_": {}
+                },
+            "required": [ "kind", "name", "def" ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "ghost" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/ghost_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "int" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/int_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "float" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/float_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "xy" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/xy_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "color" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/color_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "text" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/textual_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "toggle" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/toggle_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "action" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/action_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "select" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/select_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "nest" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/nest_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "progress" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/progress_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "gradient" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/gradient_def" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "kind": { "const": "zoom" } },
+                        "required": [ "kind" ]
+                    },
+                    "then": {
+                        "properties": { "def": { "$ref": "#/$defs/zoom_def" } }
+                    }
+                }
+              ]
+        },
+        "ghost_def": {
+            "type": "object",
+            "properties": { }
+        },
+        "int_def": {
+            "type": "object",
+            "properties":
+                { "min": { "type": "integer" }
+                , "max": { "type": "integer" }
+                , "step": { "type": "integer" }
+                , "current": { "type": "integer" }
+                },
+            "required": [ "min", "max", "current", "step" ]
+        },
+        "float_def": {
+            "type": "object",
+            "properties":
+                { "min": { "type": "number" }
+                , "max": { "type": "number" }
+                , "step": { "type": "number" }
+                , "current": { "type": "number" }
+                },
+            "required": [ "min", "max", "current", "step" ]
+        },
+        "xy_def": {
+            "type": "object",
+            "properties":
+                { "x": { "$ref": "#/$defs/float_def" }
+                , "y": { "$ref": "#/$defs/float_def" }
+                },
+            "required": [ "x", "y" ]
+        },
+        "color_def": {
+            "type": "object",
+            "properties":
+                { "current": { "$ref": "#/$defs/color" }
+                },
+            "required": [ "current" ]
+        },
+        "textual_def": {
+            "type": "object",
+            "properties":
+                { "current": { "type": "string" }
+                },
+            "required": [ "current" ]
+        },
+        "toggle_def": {
+            "type": "object",
+            "properties":
+                { "current": { "type": "boolean" }
+                },
+            "required": [ "current" ]
+        },
+        "action_def": {
+            "type": "object",
+            "properties":
+                { "face": { "$ref": "#/$defs/face" }
+                }
+        },
+        "nest_def": {
+            "type": "object",
+            "properties":
+                { "form": { "$ref": "#/$defs/form" }
+                , "face": { "$ref": "#/$defs/face" }
+                , "shape": { "$ref": "#/$defs/nest_shape" }
+                , "page": { "type": "integer" }
+                , "children" :
+                    { "type": "array"
+                    , "items": { "$ref": "#/$defs/property" }
+                    }
+                , "nestAt":
+                    { "oneOf":
+                        [ { "type": "string" }, { "type": "null" }
+                        ]
+                    }
+                },
+            "required": [ "children" ]
+        },
+        "select_def": {
+            "type": "object",
+            "properties":
+                { "current": { "type": "string" }
+                , "kind": { "$ref": "#/$defs/select_kind" }
+                , "values" :
+                    { "type": "array"
+                    , "items": { "$ref": "#/$defs/select_item" }
+                    }
+                , "nestAt":
+                    { "oneOf":
+                        [ { "type": "string" }, { "type": "null" }
+                        ]
+                    }
+                },
+            "required": [ "values", "current" ]
+        },
+        "progress_def": {
+            "type": "object",
+            "properties":
+                { "api": { "$ref": "#/$defs/url" }
+                },
+            "required": [ "api" ]
+        },
+        "gradient_def": {
+            "type": "object",
+            "properties":
+                { "type": { "enum" : [ "linear", "2d" ]  }
+                },
+            "required": [ "type", "current" ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "type": { "const": "linear" } },
+                        "required": [ "current" ]
+                    },
+                    "then": {
+                        "properties": { "current": { "$ref": "#/$defs/stops" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "type": { "const": "2d" } },
+                        "required": [ "current" ]
+                    },
+                    "then": {
+                        "properties": { "current": { "$ref": "#/$defs/stops2d" } }
+                    }
+                }
+            ]
+        },
+        "zoom_def": {
+            "type": "object",
+            "properties":
+                { "current": { "type": "number" }
+                , "steps": { "type": "array", "items": { "type" : "number" } }
+                , "kind": { "enum": [ "plusminus", "steps" ] }
+                },
+            "required": [ "current", "steps", "kind" ]
+        },
+        "cell_shape":
+            { "oneOf":
+                [ {
+                    "type": "object",
+                    "properties":
+                        { "cols": { "type": "integer" }
+                        , "rows": { "type": "integer" }
+                        },
+                    "required": [ "cols", "rows" ]
+                },
+                { "type": "null" }
+                ]
+            },
+        "nest_shape":
+            { "oneOf":
+                [ {
+                    "type": "object",
+                    "properties":
+                        { "cols": { "type": "integer" }
+                        , "rows": { "type": "integer" }
+                        , "pages": { "type": "integer" }
+                        },
+                    "required": [ "cols", "rows", "pages" ]
+                },
+                { "type": "null" }
+                ]
+            },
+        "face": {
+            "oneOf": [
+                { "type": "object"
+                , "properties":
+                    { "face": { "const": "color" }
+                    , "color": { "$ref": "#/$defs/color" }
+                    }
+                , "required": [ "face", "color" ]
+                },
+                { "type": "object"
+                , "properties":
+                    { "face": { "const": "icon" }
+                    , "icons":
+                        { "type": "array"
+                        , "items": { "$ref": "#/$defs/icon" }
+                        }
+                    }
+                , "required": [ "face", "icons" ]
+                },
+                { "type": "null" }
+            ]
+        },
+        "select_kind": {
+            "oneOf": [
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "choice" }
+                    , "face": { "$ref": "#/$defs/face" }
+                    , "shape": { "$ref": "#/$defs/nest_shape" }
+                    , "form": { "$ref": "#/$defs/form" }
+                    , "page": { "type": "integer" }
+                    }
+                , "required": [ "kind", "form", "page" ]
+                },
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "knob" }
+                    }
+                , "required": [ "kind" ]
+                },
+                { "type": "object"
+                , "properties":
+                    { "kind": { "const": "switch" }
+                    }
+                , "required": [ "kind" ]
+                }
+            ]
+        },
+        "select_item": {
+            "oneOf": [
+                { "type": "string" },
+                { "type": "object"
+                , "properties":
+                    { "value": { "type": "string" }
+                    , "face": { "$ref": "#/$defs/face" }
+                    , "name":
+                        { "oneOf":
+                            [ { "type": "string" }
+                            , { "type": "null" }
+                            ]
+                        }
+                    }
+                , "required": [ "value" ]
+                }
+            ]
+        },
+        "form": { "enum": [ "expanded", "collapsed" ] },
+        "theme": { "enum": [ "dark", "light" ] },
+        "icon": {
+            "type": "object",
+            "properties":
+                { "theme": { "$ref": "#/$defs/theme" }
+                , "url": { "$ref": "#/$defs/url" }
+                },
+            "required": [ "theme", "url" ]
+        },
+        "url": {
+            "type": "object",
+            "properties":
+                { "type": { "enum": [ "local", "remote" ] }
+                , "value": { "type": "string" }
+                },
+            "required": [ "type", "value" ]
+        },
+        "color": {
+            "oneOf": [
+                { "type": "object"
+                , "properties":
+                    { "hex": { "type": "string" } }
+                , "required" : [ "hex" ]
+                },
+                { "type": "object"
+                , "properties":
+                    { "r": { "type": "number" }
+                    , "g": { "type": "number" }
+                    , "b": { "type": "number" }
+                    , "a": { "type": "number" }
+                    }
+                , "required" : [ "r", "g", "b", "a" ]
+                },
+                { "type": "object"
+                , "properties":
+                    { "h": { "type": "number" }
+                    , "s": { "type": "number" }
+                    , "l": { "type": "number" }
+                    , "a": { "type": "number" }
+                    }
+                , "required" : [ "h", "s", "l", "a" ]
+                }
+            ]
+        },
+        "stops":
+            { "type": "array"
+            , "items": { "$ref": "#/$defs/stop" }
+            },
+        "stops2d":
+            { "type": "array"
+            , "items": { "$ref": "#/$defs/stop2" }
+            },
+        "stop": {
+            "type": "object",
+            "properties":
+                { "position": { "type": "number" }
+                , "color": { "$ref": "#/$defs/color" }
+                },
+            "required": [ "position", "color" ]
+        },
+        "stop2": {
+            "type": "object",
+            "properties":
+                { "x": { "type": "number" }
+                , "y": { "type": "number" }
+                , "color": { "$ref": "#/$defs/color" }
+                },
+            "required": [ "x", "y", "color" ]
+        }
+    }
+  }

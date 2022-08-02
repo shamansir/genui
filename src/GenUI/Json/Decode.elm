@@ -23,17 +23,8 @@ cellShape : D.Decoder G.CellShape
 cellShape =
     D.map2
         G.CellShape
-        (D.field "cols" D.int)
-        (D.field "rows" D.int)
-
-
-nestShape : D.Decoder G.NestShape
-nestShape =
-    D.map3
-        G.NestShape
-        (D.field "cols" D.int)
-        (D.field "rows" D.int)
-        (D.field "pages" D.int)
+        (D.field "horz" unit)
+        (D.field "vert" unit)
 
 
 color : D.Decoder G.Color
@@ -122,14 +113,78 @@ gstop2 =
 
 face : D.Decoder G.Face
 face =
-    {- D.field "face" -} D.string
+    D.field "face" D.string
         |> D.andThen
             (\face_ ->
                 case face_ of
-                    "icons" -> D.field "icons" (D.list icon) |> D.map G.OfIcon
+                    "icon" -> D.field "icons" (D.list icon) |> D.map G.OfIcon
                     "color" -> D.field "color" color |> D.map G.OfColor
+                    "title" -> D.succeed G.Title
+                    "expand" -> D.succeed G.PanelExpandStatus
+                    "focus" -> D.succeed G.PanelFocusedItem
                     _ -> D.fail <| "Unknown face: " ++ face_
             )
+
+
+unit : D.Decoder G.Unit
+unit =
+    let
+        allowed_error = 0.001
+        closeTo expected actual = abs (actual - expected) < allowed_error
+    in D.float
+        |> D.map
+        (\f ->
+            if closeTo 0.5 f then G.Half
+            else if closeTo 1.0 f then G.One
+            else if closeTo 1.5 f then G.OneAndAHalf
+            else if closeTo 2.0 f then G.Two
+            else if closeTo 4.0 f then G.Three
+            else G.Custom f
+        )
+
+
+page : D.Decoder G.Page
+page =
+    D.field "page" D.string
+        |> D.andThen (\s ->
+            case s of
+                "first" -> D.succeed G.First
+                "last" -> D.succeed G.Last
+                "current" -> D.succeed G.ByCurrent
+                "n" -> D.field "n" D.int |> D.map G.Page
+                _ -> D.fail <| "unknown page def " ++ s
+        )
+
+
+
+pages : D.Decoder G.Pages
+pages =
+    D.field "distribute" D.string
+        |> D.andThen (\s ->
+            case s of
+                "auto" -> D.succeed G.Auto
+                "single" -> D.succeed G.Single
+                "values" ->
+                    D.map2
+                        (\mr mc -> G.Distribute { maxInRow = mr, maxInColumn = mc })
+                        (D.field "maxInRow" D.int)
+                        (D.field "maxInColumn" D.int)
+                "exact" ->
+                    D.field "exact" D.int |> D.map G.Exact
+                _ -> D.fail <| "unknown pages def " ++ s
+        )
+
+
+panel : D.Decoder G.Panel
+panel =
+    D.map5
+        G.Panel
+        (D.field "form" form)
+        (D.field "button" face)
+        (D.maybe <| D.field "allOf" cellShape)
+        (D.field "page" page)
+        (D.field "pages" pages)
+
 
 
 selectItem : D.Decoder G.SelectItem
@@ -137,7 +192,7 @@ selectItem =
     D.map3
         G.SelectItem
         (D.field "value" D.string)
-        (maybeField "face" G.Default face)
+        (maybeField "face" G.Empty face)
         (D.maybe <| D.field "name" D.string)
 
 
@@ -148,15 +203,7 @@ selectKind =
             (\kind_ ->
                 case kind_ of
                     "choice" ->
-                        D.map4
-                            (\fr fc s p ->
-                                G.Choice
-                                    { form = fr, face = fc, shape = s, page = p }
-                            )
-                            (maybeField "form" G.Expanded form)
-                            (maybeField "face" G.Default face)
-                            (D.field "shape" nestShape)
-                            (D.field "page" D.int)
+                        D.map G.Choice <| D.field "panel" panel
                     "knob" -> D.succeed G.Knob
                     "switch" -> D.succeed G.Switch
                     _ -> D.fail <| "Unknown face: " ++ kind_
@@ -168,7 +215,7 @@ def decodeA kind =
     let
 
         actionDef =
-           maybeField "face" G.Default face
+           maybeField "face" G.Empty face
                 |> D.map G.ActionDef
 
         intDef =
@@ -211,28 +258,26 @@ def decodeA kind =
                 (D.field "current" D.bool)
 
         selectDef =
-            D.map4
+            D.map5
                 G.SelectDef
                 (D.field "current" D.string)
                 (D.field "values" <|
                     D.oneOf
                         [ D.list selectItem
-                        , D.map (List.map (\v -> { value = v, face = G.Default, name = Nothing } )) <| D.list D.string
+                        , D.map (List.map (\v -> { value = v, face = G.Title, name = Nothing } )) <| D.list D.string
                         ]
                 )
+                (D.maybe <| D.field "allOf" cellShape)
                 (D.maybe <| D.field "nestAt" D.string)
                 (D.field "kind" selectKind)
 
 
         nestDef =
-            D.map6
+            D.map3
                 G.NestDef
                 (D.field "children" <| D.list (property_ decodeA))
-                (maybeField "form" G.Expanded form)
                 (D.maybe <| D.field "nestAt" D.string)
-                (D.field "shape" nestShape)
-                (maybeField "face" G.Default face)
-                (D.field "page" D.int)
+                (D.field "panel" panel)
 
         progressDef =
             D.map
@@ -240,16 +285,19 @@ def decodeA kind =
                 (D.field "api" url)
 
         gradientDef =
-            D.map
+            D.map2
                 G.GradientDef
-                <| D.oneOf
-                    [ D.map
-                        G.Linear
-                        (D.field "current" <| D.list gstop1)
-                    , D.map
-                        G.TwoDimensional
-                        (D.field "current" <| D.list gstop2)
-                    ]
+                (D.field "current"
+                    <| D.oneOf
+                        [ D.map
+                            G.Linear
+                            (D.list gstop1)
+                        , D.map
+                            G.TwoDimensional
+                            (D.list gstop2)
+                        ]
+                )
+                (D.field "presets" <| D.list color)
 
         zoomDef =
             D.map2

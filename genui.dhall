@@ -36,49 +36,79 @@ let Icon =
 
 
 let Face =
-    < Color : Color
+    < Empty
+    | Color : Color
     | Icon : List Icon
-    | Default
+    | Title
+    | PanelExpandStatus -- expand or collapse arrow
+    | PanelFocusedItem -- or selected item, for select box
     >
 
 
-let NestShape =
-    { Type =
-        { cols : Integer
-        , rows : Integer
-        , pages : Integer
-        }
-    , default =
-        { cols = -1
-        , rows = -1
-        , pages = +1
-        }
-    }
+let Unit =
+    < Half
+    | One
+    | OneAndAHalf
+    | Two
+    | Three
+    | Custom : Double
+    >
+
+
+-- let Units : Type = Double
+
+let Cells : Type = Integer
+
+
+let Page =
+    < First
+    | Last
+    | ByCurrent -- for `Select` it is the item selected, for nest it is the first or focused one
+    | Page : Integer
+    >
+
+
+let Fit =
+    { maxInRow : Cells, maxInColumn: Cells } -- a.k.a. Fit
+
+
+let Pages =
+    < Auto
+    | Single
+    | Distribute : Fit
+    | Exact : Integer
+    >
 
 
 let CellShape =
     { Type =
-        { cols : Integer
-        , rows : Integer
+        { horz : Unit
+        , vert : Unit
         }
     , default =
-        { cols = +1
-        , rows = +1
+        { horz = Unit.One
+        , vert = Unit.One
         }
     }
 
-let NestForm =
+
+let Form =
     < Expanded
     | Collapsed
     >
 
 
-let Choice =
-    { form : NestForm, face : Face, shape : NestShape.Type, page : Integer }
+let Panel =
+    { form : Form
+    , button : Face
+    , allOf : Optional CellShape.Type
+    , page : Page
+    , pages : Pages {-, focus : Optional Int -}
+    }
 
 
 let SelectKind =
-    < Choice : Choice
+    < Choice : Panel
     | Knob
     | Switch
     >
@@ -122,10 +152,10 @@ let ToggleDef : Type = { current : Bool }
 let ColorDef : Type = { current : Color }
 let TextualDef : Type = { current : Text }
 let ActionDef : Type = { face : Face }
-let SelectDef : Type = { current : Text, values : List SelectItem, nestProperty : Optional Text, kind : SelectKind }
-let NestDef : Type = { face : Face, children : List JSON.Type, form : NestForm, nestProperty : Optional Text, shape : NestShape.Type, page : Integer }
+let SelectDef : Type = { values : List SelectItem, current : Text, nestProperty : Optional Text, kind : SelectKind }
+let NestDef : Type = { panel : Panel, children : List JSON.Type, nestProperty : Optional Text }
 let ProgressDef : Type = { api : URL } -- { cancel : Bool, link : Bool }
-let GradientDef : Type = { current : Gradient }
+let GradientDef : Type = { current : Gradient, presets : List Color }
 let ZoomDef : Type = { current : Double, kind : ZoomKind }
 
 
@@ -174,7 +204,7 @@ in
     { GenUI
     , Property
     , Def
-    , NestShape, CellShape, NestForm, Face, SelectKind, SelectItem, Choice, ZoomKind
+    , Unit, CellShape, Form, Page, Pages, Cells, Face, Panel, SelectKind, SelectItem, ZoomKind, Fit
     , Color, RGBAColor, HSLAColor
     , Gradient, Stop, Stop2D
     , URL, Icon, Theme

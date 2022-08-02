@@ -61,12 +61,9 @@ def encodeA d =
                 ]
         nestDef nd =
             E.object
-                [ ( "nestAt", Maybe.withDefault E.null <| Maybe.map E.string nd.nestAt )
-                , ( "form", form nd.form )
-                , ( "children", E.list (property encodeA) nd.children )
-                , ( "shape", nestShape nd.shape )
-                , ( "face", face nd.face )
-                , ( "page", E.int nd.page )
+                [ ( "children", E.list (property encodeA) nd.children )
+                , ( "panel", panel nd.panel )
+                , ( "nestAt", Maybe.withDefault E.null <| Maybe.map E.string nd.nestAt )
                 ]
         gradientDef gd =
             case gd.current of
@@ -74,11 +71,13 @@ def encodeA d =
                     E.object
                         [ ( "type", E.string "linear" )
                         , ( "current", E.list gstop1 linear )
+                        , ( "presets", E.list color gd.presets )
                         ]
                 G.TwoDimensional twod ->
                     E.object
                         [ ( "type", E.string "2d" )
                         , ( "current", E.list gstop2 twod )
+                        , ( "presets", E.list color gd.presets )
                         ]
         progressDef pd =
             E.object
@@ -107,20 +106,23 @@ def encodeA d =
 
 
 
+unit : G.Unit -> E.Value
+unit u =
+    E.float
+        <| case u of
+            G.Half -> 0.5
+            G.One -> 1.0
+            G.OneAndAHalf -> 1.5
+            G.Two -> 2.0
+            G.Three -> 3.0
+            G.Custom n -> n
+
+
 cellShape : G.CellShape -> E.Value
 cellShape cs =
     E.object
-        [ ( "cols", E.int cs.cols )
-        , ( "rows", E.int cs.rows )
-        ]
-
-
-nestShape : G.NestShape -> E.Value
-nestShape ns =
-    E.object
-        [ ( "cols", E.int ns.cols )
-        , ( "rows", E.int ns.rows )
-        , ( "pages", E.int ns.pages )
+        [ ( "horz", unit cs.horz )
+        , ( "vert", unit cs.vert )
         ]
 
 
@@ -195,19 +197,28 @@ gstop2 s =
 
 face : G.Face -> E.Value
 face f =
-    case f of
+    E.object <| case f of
         G.OfColor c ->
-            E.object
-                [ ( "face", E.string "color" )
-                , ( "color", color c )
-                ]
+            [ ( "face", E.string "color" )
+            , ( "color", color c )
+            ]
         G.OfIcon is ->
-            E.object
-                [ ( "face", E.string "icon" )
-                , ( "icons", E.list icon is )
-                ]
-        G.Default ->
-            E.null
+            [ ( "face", E.string "icon" )
+            , ( "icons", E.list icon is )
+            ]
+        G.Empty ->
+            [ ( "face", E.string "empty" )
+            ]
+        G.Title ->
+            [ ( "face", E.string "title" )
+            ]
+        G.PanelExpandStatus ->
+            [ ( "face", E.string "expand" )
+            ]
+        G.PanelFocusedItem ->
+            [ ( "face", E.string "focus" )
+            ]
+
 
 form : G.Form -> E.Value
 form f =
@@ -230,16 +241,66 @@ zoomSteps zk =
         G.Steps steps -> steps
 
 
+page : G.Page -> E.Value
+page p =
+    E.object <| case p of
+        G.Page n ->
+            [ ( "page", E.string "n" )
+            , ( "n", E.int n )
+            ]
+        G.First ->
+            [ ( "page", E.string "first" )
+            ]
+        G.Last ->
+            [ ( "page", E.string "last" )
+            ]
+        G.ByCurrent ->
+            [ ( "face", E.string "current" )
+            ]
+
+
+pages : G.Pages -> E.Value
+pages ps =
+    E.object <| case ps of
+        G.Exact n ->
+            [ ( "distribute", E.string "exact" )
+            , ( "exact", E.int n )
+            ]
+        G.Distribute f ->
+            [ ( "distribute", E.string "values" )
+            , ( "maxInRow", E.int f.maxInRow )
+            , ( "maxInColumn", E.int f.maxInColumn )
+            ]
+        G.Single ->
+            [ ( "distribute", E.string "single" )
+            ]
+        G.Auto ->
+            [ ( "distribute", E.string "auto" )
+            ]
+
+
+panel : G.Panel -> E.Value
+panel p =
+    E.object
+        [ ( "form", form p.form )
+        , ( "button", face p.button )
+        , ( "allOf",
+                case p.allOf of
+                Just cs -> cellShape cs
+                Nothing -> E.null
+            )
+        , ( "page", page p.page )
+        , ( "pages", pages p.pages )
+        ]
+
+
 selectKind : G.SelectKind -> E.Value
 selectKind sk =
     case sk of
         G.Choice c ->
             E.object
                 [ ( "kind", E.string "choice" )
-                , ( "form", form c.form )
-                , ( "face", face c.face )
-                , ( "shape", nestShape c.shape )
-                , ( "page", E.int c.page )
+                , ( "panel", panel c )
                 ]
         G.Knob ->
             E.object

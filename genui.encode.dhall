@@ -53,13 +53,35 @@ let encodeFace
     : P.Face -> JSON.Type
     = \(face : P.Face)
     -> merge
-        { Color = \(color : P.Color) ->
+        { Empty =
+            JSON.object (toMap { face = JSON.string "empty" })
+        , Color = \(color : P.Color) ->
             JSON.object (toMap { face = JSON.string "color", color = encodeColor color })
         , Icon = \(icons : List P.Icon) ->
             JSON.object (toMap { face = JSON.string "icon", icons = JSON.array (List/map P.Icon JSON.Type encodeIcon icons) })
-        , Default = JSON.null
+        , Title =
+            JSON.object (toMap { face = JSON.string "title" })
+        , PanelExpandStatus =
+            JSON.object (toMap { face = JSON.string "expand" })
+        , PanelFocusedItem =
+            JSON.object (toMap { face = JSON.string "focus" })
         }
         face
+
+
+let encodeUnit
+    : P.Unit -> JSON.Type
+    = \(unit : P.Unit)
+    -> JSON.double
+        (merge
+            { Half = 0.5
+            , One = 1.0
+            , OneAndAHalf = 1.5
+            , Two = 2.0
+            , Three = 3.0
+            , Custom = \(d : Double) -> d
+            }
+            unit)
 
 
 let encodeCellShape
@@ -67,48 +89,85 @@ let encodeCellShape
     = \(shape : P.CellShape.Type)
     -> JSON.object
         (toMap
-            { cols = JSON.integer shape.cols
-            , rows = JSON.integer shape.rows
+            { horz = encodeUnit shape.horz
+            , vert = encodeUnit shape.vert
             }
         )
 
-
-let encodeNestShape
-    : P.NestShape.Type -> JSON.Type
-    = \(shape : P.NestShape.Type)
+let encodePage
+    : P.Page -> JSON.Type
+    = \(page : P.Page)
     -> JSON.object
         (toMap
-            { cols = JSON.integer shape.cols
-            , rows = JSON.integer shape.rows
-            , pages = JSON.integer shape.pages
-            }
+            (merge
+                { First = { page = JSON.string "first", n = JSON.integer -1 }
+                , Last = { page = JSON.string "last", n = JSON.integer -1 }
+                , ByCurrent = { page = JSON.string "current", n = JSON.integer -1 }
+                , Page = \(n : Integer) -> { page = JSON.string "n", n = JSON.integer n }
+                }
+                page
+            )
         )
 
-let encodeNestForm
-    : P.NestForm -> JSON.Type
-    = \(form : P.NestForm)
+
+let encodePages
+    : P.Pages -> JSON.Type
+    = \(pages : P.Pages)
+    -> JSON.object
+        (toMap
+            (merge
+                { Auto =
+                    { distribute = JSON.string "auto", maxInRow = JSON.integer -1, maxInColumn = JSON.integer -1, exact = JSON.integer -1 }
+                , Single =
+                    { distribute = JSON.string "single", maxInRow = JSON.integer -1, maxInColumn = JSON.integer -1, exact = JSON.integer -1 }
+                , Distribute =
+                    \(fit : P.Fit) ->
+                    { distribute = JSON.string "values", maxInRow = JSON.integer fit.maxInRow, maxInColumn = JSON.integer fit.maxInColumn, exact = JSON.integer -1 }
+                , Exact =
+                    \(n : Integer) ->
+                    { distribute = JSON.string "exact", maxInRow = JSON.integer -1, maxInColumn = JSON.integer -1, exact = JSON.integer n }
+                }
+                pages
+            )
+        )
+
+
+let encodeForm
+    : P.Form -> JSON.Type
+    = \(form : P.Form)
     -> merge
         { Expanded = JSON.string "expanded"
         , Collapsed = JSON.string "collapsed"
         }
         form
 
+let encodePanel
+    : P.Panel -> JSON.Type
+    = \(def : P.Panel)
+    -> JSON.object
+            (toMap
+                { form = encodeForm def.form
+                , button = encodeFace def.button
+                , allOf =
+                    merge
+                        { Some = \(cs : P.CellShape.Type) -> encodeCellShape cs
+                        , None = JSON.null
+                        }
+                    def.allOf
+                , page = encodePage def.page
+                , pages = encodePages def.pages
+                })
+
+
 let encodeSelectKind
     : P.SelectKind -> JSON.Type
     = \(kind : P.SelectKind)
     -> merge
         { Choice =
-            \(def : P.Choice) ->
-            JSON.object
-                (toMap
-                    { kind = JSON.string "choice"
-                    , face = encodeFace def.face
-                    , form = encodeNestForm def.form
-                    , shape = encodeNestShape def.shape
-                    , page = JSON.integer def.page
-                    })
-        , Knob = JSON.object (toMap { kind = JSON.string "knob" })
-        , Switch = JSON.object (toMap { kind = JSON.string "switch" })
+            \(panel : P.Panel) ->
+            JSON.object (toMap { kind = JSON.string "choice", panel = encodePanel panel })
+        , Knob = JSON.object (toMap { kind = JSON.string "knob", panel = JSON.null })
+        , Switch = JSON.object (toMap { kind = JSON.string "switch", panel = JSON.null })
         }
         kind
 
@@ -152,10 +211,21 @@ let encodeStop2d
             }
         )
 
+let encodePresets
+    : List P.Color -> JSON.Type
+    = \(presets : List P.Color) ->
+    JSON.array
+        (List/map
+            P.Color
+            JSON.Type
+            encodeColor
+            presets
+        )
+
 
 let encodeGradient
-    : P.Gradient -> JSON.Type
-    = \(gradient : P.Gradient)
+    : List P.Color -> P.Gradient -> JSON.Type
+    = \(presets : List P.Color) -> \(gradient : P.Gradient)
     -> merge
         { Linear =
             \(stops : List P.Stop) ->
@@ -170,6 +240,7 @@ let encodeGradient
                                 encodeStop
                                 stops
                             )
+                    , presets = encodePresets presets
                     })
         , TwoDimensional =
             \(stops : List P.Stop2D) ->
@@ -184,6 +255,7 @@ let encodeGradient
                                 encodeStop2d
                                 stops
                             )
+                    , presets = encodePresets presets
                     })
         }
         gradient
@@ -325,17 +397,14 @@ let encode
                                 }
                     , Gradient = \(def : P.GradientDef) ->
                                 { kind = JSON.string "gradient"
-                                , def = encodeGradient def.current
+                                , def = encodeGradient def.presets def.current
                                 }
                     , Nest = \(def : P.NestDef) ->
                                 { kind = JSON.string "nest"
                                 , def = JSON.object
                                     (toMap
                                         { children = JSON.array def.children
-                                        , shape = encodeNestShape def.shape
-                                        , face = encodeFace def.face
-                                        , form = encodeNestForm def.form
-                                        , page = JSON.integer def.page
+                                        , panel = encodePanel def.panel
                                         , nestAt =
                                             merge
                                                 { Some = \(prop : Text) -> JSON.string prop

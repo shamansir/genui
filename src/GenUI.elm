@@ -5,7 +5,7 @@ module GenUI exposing
     , fold, foldWithParent, foldWithPath, foldWithPropPath, foldWithPaths
     , find, findByIndices, update, updateAt
     , withPath, withIndices, defToString
-    , Face(..), NestShape, CellShape, SelectKind(..), SelectItem
+    , Panel, Unit(..), CellShape, Page(..), Pages(..), Cells, Face(..), SelectKind(..), SelectItem
     , Form(..), GradientDef, Icon, ProgressDef, Theme(..), Url(..), ZoomDef, ZoomKind(..)
     , map, mapProperty, mapDef
     )
@@ -103,32 +103,56 @@ type alias Icon =
 {-| The face of the UI cell, used for Tron UI.
 -}
 type Face
-    = OfColor Color
+    = Empty
+    | OfColor Color
     | OfIcon (List Icon)
-    | Default
+    | Title
+    | PanelExpandStatus -- expand or collapse arrow
+    | PanelFocusedItem -- or selected item, for select box
 
 
-{-| How many space takes the nested panel, used for Tron UI.
--}
-type alias NestShape =
-    { cols : Int -- FIXME: -1 if autocalculated
-    , rows : Int -- FIXME: -1 if autocalculated
-    , pages : Int -- FIXME: pages should be `Exact Int` | `Auto` | `Single`
-    }
+{-| How much space takes the control in the Tron units -}
+type Unit
+    = Half
+    | One
+    | OneAndAHalf
+    | Two
+    | Three
+    | Custom Float
+
+
+{- The number of cells as the dimension of the panel -}
+type alias Cells = Int
+
+
+
+type Page
+    = First
+    | Last
+    | ByCurrent
+    | Page Int
+
+
+
+type Pages
+    = Auto
+    | Single
+    | Distribute { maxInColumn: Cells, maxInRow : Cells } -- a.k.a. Fit
+    | Exact Int
 
 
 {-| How many space takes the cell itself, used for Tron UI.
 -}
 type alias CellShape =
-    { cols : Int -- FIXME: should be Float or specific values
-    , rows : Int -- FIXME: should be Float or specific values
+    { horz : Unit
+    , vert : Unit
     }
 
 
 {-| How the select switch looks and acts, used for Tron UI.
 -}
 type SelectKind
-    = Choice { form : Form, face : Face, shape : NestShape, page : Int }
+    = Choice Panel
     | Knob
     | Switch
 
@@ -190,13 +214,23 @@ type alias ActionDef =
 
 
 {-| -}
+type alias Panel =
+    { form : Form
+    , button : Face
+    , allOf : Maybe CellShape
+    , page : Page
+    , pages : Pages {-, focus : Optional Int -}
+    }
+
+
+{-| -}
 type alias SelectDef =
-    { current : String, values : List SelectItem, nestAt : Maybe String, kind : SelectKind }
+    { current : String, values : List SelectItem, allOf : Maybe CellShape, nestAt : Maybe String, kind : SelectKind }
 
 
 {-| -}
 type alias NestDef a =
-    { children : List (Property a), form : Form, nestAt : Maybe String, shape : NestShape, face : Face, page : Int }
+    { children : List (Property a), nestAt : Maybe String, panel : Panel }
 
 
 {-| -}
@@ -211,7 +245,7 @@ type alias ZoomDef =
 
 {-| -}
 type alias GradientDef =
-    { current : Gradient }
+    { current : Gradient, presets : List Color }
 
 
 {-| -}
@@ -537,12 +571,9 @@ withIndices gui =
                             , shape = prop.shape
                             , def =
                                 Nest
-                                    { form = nestDef.form
-                                    , children = nextChildren
+                                    { children = nextChildren
+                                    , panel = nestDef.panel
                                     , nestAt = nestDef.nestAt
-                                    , shape = nestDef.shape
-                                    , face = nestDef.face
-                                    , page = nestDef.page
                                     }
                             }
                         _ ->
@@ -605,12 +636,9 @@ mapDef f def =
             let
                 nextChildren = List.map (mapProperty f) nestDef.children
             in Nest <|
-                { form = nestDef.form
-                , face = nestDef.face
-                , children = nextChildren
+                { children = nextChildren
                 , nestAt = nestDef.nestAt
-                , page = nestDef.page
-                , shape = nestDef.shape
+                , panel = nestDef.panel
                 }
         Gradient gradientDef -> Gradient gradientDef
         Progress progressDef -> Progress progressDef
