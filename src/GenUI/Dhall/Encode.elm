@@ -136,7 +136,7 @@ def propName name d =
         actionDef ad =
             ( noSelects
             , case ad.face of
-                G.Default -> [ ( 0, "b.action " ++ q name ) ]
+                G.Empty -> [ ( 0, "b.action " ++ q name ) ]
                 _ ->
                     [ ( 0, "b.with_face" )
                     , ( 1, "(b.action " ++ q name ++ ")" )
@@ -166,7 +166,7 @@ def propName name d =
                 ]
                 ++ (indent <| indent <| array <| List.map Tuple.second children) ++
                 [ ( 1, ")")
-                , ( 1, case nd.form of
+                , ( 1, case nd.panel.form of
                         G.Expanded -> "b._expanded"
                         G.Collapsed -> "b._collapsed"
                   )
@@ -233,17 +233,61 @@ def propName name d =
 
 cellShape : G.CellShape -> String
 cellShape cs =
-    " { cols = " ++ fi cs.cols ++
-    " , rows = " ++ fi cs.rows ++
+    " { horz = " ++ unit cs.horz ++
+    " , vert = " ++ unit cs.vert ++
     " }"
 
 
-nestShape : G.NestShape -> String
-nestShape ns =
-    " { cols = " ++ fi ns.cols ++
-    " , rows = " ++ fi ns.rows ++
-    " , pages = " ++ fi ns.pages ++
-    " }"
+unit : G.Unit -> String
+unit u =
+    case u of
+        G.Half -> "b._half"
+        G.One -> "b._one"
+        G.OneAndAHalf -> "b._one_and_half"
+        G.Two -> "b._two"
+        G.Three -> "b._three"
+        G.Custom n -> "(b._unit " ++ ff n ++ ")"
+
+
+pages : G.Pages -> String
+pages ps =
+    case ps of
+        G.Auto -> "b._auto"
+        G.Single -> "b._single"
+        G.Distribute fit -> "(b._distribute { maxInRow = " ++ fi fit.maxInRow ++ ", maxInColumn = " ++ fi fit.maxInColumn ++ "})"
+        G.Exact n -> "(b._pages " ++ fi n ++ ")"
+
+
+page : G.Page -> String
+page p =
+    case p of
+        G.First -> "b._first"
+        G.Last -> "b._last"
+        G.ByCurrent -> "b._by_current"
+        G.Page n -> "(b._page " ++ fi n ++ ")"
+
+
+form : G.Form -> String
+form f =
+    case f of
+        G.Expanded -> "b._expanded"
+        G.Collapsed -> "b._collapsed"
+
+
+panel : G.Panel -> Indented
+panel p =
+       ( 0, "{ form = " ++ form p.form)
+    :: ( 0, ", button = ")
+    :: indent (face p.button)
+    ++ [
+        ( 0, ", allOf = " ++
+            case p.allOf of
+                Just cs -> "Some (" ++ cellShape cs ++ ")"
+                Nothing -> "b._no_chsape"
+        )
+    , ( 0, ", page = " ++ page p.page )
+    , ( 0, ", pages = " ++ pages p.pages )
+    ]
 
 
 array : List Indented -> Indented
@@ -269,14 +313,24 @@ face : G.Face -> Indented
 face f =
     case f of
         G.OfColor color_ ->
-            [ ( 0, "b.color_f (" ++ color color_ ++ ")") ]
+            [ ( 0, "b._color_f (" ++ color color_ ++ ")") ]
 
         G.OfIcon icons ->
-            ( 0, "b.icons_f ")
+            ( 0, "b._icons_f ")
                 :: (indent <| array <| List.map (indented << icon) icons)
 
-        G.Default ->
-            [ ( 0, "b.no_face" ) ]
+        G.Empty ->
+            [ ( 0, "b._empty_f" ) ]
+
+        G.Title ->
+            [ ( 0, "b._title_f" ) ]
+
+        G.PanelExpandStatus ->
+            [ ( 0, "b._show_expand_f" ) ]
+
+        G.PanelFocusedItem ->
+            [ ( 0, "b._show_focus_f" ) ]
+
 
 selectItems : ( String, List G.SelectItem ) -> String
 selectItems ( propName, items ) =

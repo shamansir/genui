@@ -69,7 +69,9 @@ let Page =
 
 
 let Fit =
-    { maxInRow : Cells, maxInColumn: Cells } -- a.k.a. Fit
+    { maxInRow : Cells
+    , maxInColumn: Cells
+    }
 
 
 let Pages =

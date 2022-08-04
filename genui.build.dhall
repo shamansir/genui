@@ -276,8 +276,12 @@ let __update_panel
                 property.def
         }
 
+let _no_cshape
+    : Optional P.CellShape.Type
+    = None P.CellShape.Type
 
-let __update_panel_
+
+let with_panel
     = \(property : P.Property.Type) -> \(panel : P.Panel) ->
     __update_panel property (\(_ : P.Panel) -> panel)
 
@@ -337,6 +341,12 @@ let with_cshape
     : P.Property.Type -> P.CellShape.Type -> P.Property.Type
     = \(property : P.Property.Type) -> \(shape : P.CellShape.Type) ->
     property // { shape = Some shape }
+
+
+let no_cshape
+    : P.Property.Type -> P.Property.Type
+    = \(property : P.Property.Type) ->
+    property // { shape = _no_cshape }
 
 
 let go_to_page
@@ -443,7 +453,6 @@ let _three : P.Unit = P.Unit.Three
 
 let _unit : Double -> P.Unit = \(d : Double) -> P.Unit.Custom d
 
-
 {- construct P.URL -}
 
 let _local
@@ -453,7 +462,6 @@ let _local
 let _remote
     : Text -> P.URL
     = \(url : Text) -> P.URL.Remote url
-
 
 {- constuct P.Stop, P.Stop2D and P.Gradient -}
 
@@ -481,7 +489,7 @@ in
     { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, gradient_with_presets, select, nest, zoom, zoom_by
     , select_knob, select_switch, select_icons, select_nv, select_nvi
     , root, children
-    , bind_to, nest_at, live, with_face, no_face, with_cshape, expand, collapse, with_paging, with_pages, go_to_page
+    , bind_to, nest_at, live, with_face, no_face, with_cshape, no_cshape, expand, collapse, with_paging, with_pages, go_to_page, with_panel
     , _expanded, _collapsed
     , _rgba, _rgb, _hsla, _hsl, _hex
     , _empty_f, _color_f, _icon_f, _icons_f, _l_icon_f, _title_f, _show_expand_f, _show_focus_f
@@ -490,6 +498,7 @@ in
     , _half, _one, _one_and_half, _two, _three, _unit
     , _local, _remote
     , _dark, _light
+    , _no_cshape
     , _s, _s2, _linear, _2d
     , _nv, _vi, _nvi
     }

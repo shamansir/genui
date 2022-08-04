@@ -137,7 +137,10 @@ type Page
 type Pages
     = Auto
     | Single
-    | Distribute { maxInColumn: Cells, maxInRow : Cells } -- a.k.a. Fit
+    | Distribute
+        { maxInColumn: Cells
+        , maxInRow : Cells
+        } -- a.k.a. Fit
     | Exact Int
 
 
