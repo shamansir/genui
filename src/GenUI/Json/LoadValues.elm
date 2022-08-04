@@ -149,7 +149,7 @@ loadValues root =
                 _ ->
                     Result.Ok def
 
-        helper : G.PropPath -> D.Decoder x -> (x -> G.Def a) -> Result D.Error (G.Def a)
+        helper : G.Path -> D.Decoder x -> (x -> G.Def a) -> Result D.Error (G.Def a)
         helper pPath decoder modifyDef =
             root
                 |> D.decodeValue (D.at pPath decoder)

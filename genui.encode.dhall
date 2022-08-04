@@ -279,7 +279,18 @@ let encode
                             }
                             prop.property
                 , live = JSON.bool prop.live
-                , triggerOn = JSON.array (List/map Text JSON.Type JSON.string prop.triggerOn)
+                , triggerOn =
+                    merge
+                        { Some = \(path : List Text) -> JSON.array (List/map Text JSON.Type JSON.string path)
+                        , None = JSON.null
+                        }
+                        prop.triggerOn
+                , statePath =
+                    merge
+                        { Some = \(path : List Text) -> JSON.array (List/map Text JSON.Type JSON.string path)
+                        , None = JSON.null
+                        }
+                        prop.statePath
                 }
                 // merge
                     { Ghost =

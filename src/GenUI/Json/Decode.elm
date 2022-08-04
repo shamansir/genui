@@ -342,13 +342,15 @@ property_ decodeA =
     D.field "kind" D.string
         |> D.andThen
             (\kind ->
-                D.map5
+                D.map7
                     G.PropertyRec
                     (D.field "def" <| def decodeA kind)
                     (D.field "name" D.string)
                     (D.maybe <| D.field "property" D.string)
                     (D.field "live" D.bool)
                     (D.maybe <| D.field "shape" cellShape)
+                    (D.maybe <| D.field "triggerOn" <| D.list D.string)
+                    (D.maybe <| D.field "statePath" <| D.list D.string)
                 |> D.andThen
                     (\rec ->
                         D.field "_value_" decodeA

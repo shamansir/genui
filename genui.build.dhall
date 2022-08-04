@@ -222,6 +222,14 @@ let live
     -- = \(property : P.Property.Type) ->
     -- property // { live = True }
 
+let map_to
+    = \(path : List Text) ->
+    { statePath = Some path }
+
+let trigger_on
+    = \(path : List Text) ->
+    { triggerOn = Some path }
+
 let ___def_update =
     { Ghost = P.Def.Ghost
     , NumInt = \(idef : P.IntDef) -> P.Def.NumInt idef
@@ -489,7 +497,11 @@ in
     { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, gradient_with_presets, select, nest, zoom, zoom_by
     , select_knob, select_switch, select_icons, select_nv, select_nvi
     , root, children
-    , bind_to, nest_at, live, with_face, no_face, with_cshape, no_cshape, expand, collapse, with_paging, with_pages, go_to_page, with_panel
+    , bind_to, map_to, trigger_on, nest_at, live
+    , with_face, no_face
+    , with_cshape, no_cshape
+    , with_paging, with_pages, go_to_page, with_panel
+    , expand, collapse
     , _expanded, _collapsed
     , _rgba, _rgb, _hsla, _hsl, _hex
     , _empty_f, _color_f, _icon_f, _icons_f, _l_icon_f, _title_f, _show_expand_f, _show_focus_f

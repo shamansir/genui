@@ -1,8 +1,8 @@
 module GenUI exposing
     ( GenUI, version
-    , Path, PropPath, PropertyRec, Property, root, ghost, get
+    , Path, IndexPath, PropertyRec, Property, root, ghost, get
     , Def(..), IntDef, FloatDef, XYDef, ToggleDef, ColorDef, TextualDef, ActionDef, SelectDef, NestDef
-    , fold, foldWithParent, foldWithPath, foldWithPropPath, foldWithPaths
+    , fold, foldWithParent, foldWithPath, foldWithIndexPath, foldWithPaths
     , find, findByIndices, update, updateAt
     , withPath, withIndices, defToString
     , Panel, Unit(..), CellShape, Page(..), Pages(..), Cells, Face(..), SelectKind(..), SelectItem
@@ -67,14 +67,14 @@ version =
 {-| A path to the property in the tree. So, all the first-level properties have the path of `[0]`.
 The second property that lies in the folder at index `3` has a path `[0, 3, 1]`.
 -}
-type alias Path =
+type alias IndexPath =
     List Int
 
 
 {-| A path to the property in the tree. So, all the first-level properties have the path of `[0]`.
 The second property that lies in the folder at index `3` has a path `[0, 3, 1]`.
 -}
-type alias PropPath =
+type alias Path =
     List String
 
 
@@ -275,6 +275,8 @@ type alias PropertyRec a =
     , property : Maybe String
     , live : Bool
     , shape : Maybe CellShape -- FIXME: doesn't represent what's needed when used with TronGUI
+    , triggerOn : Maybe Path
+    , statePath : Maybe Path
     }
 
 
@@ -314,6 +316,8 @@ ghost name a =
         , property = Nothing
         , live = False
         , shape = Nothing
+        , triggerOn = Nothing
+        , statePath = Nothing
         }
     , a
     )
@@ -378,23 +382,24 @@ foldWithParent =
     foldWithPath << always
 
 
-{-| Fold the interface structure from top to bottom. The function gets path and the parent property and the second argument and the third one is the property being folded itself.
+{-| Fold the interface structure from top to bottom. The function gets property-path and the parent property and the second argument and the third one is the property being folded itself.
 -}
 foldWithPath : (Path -> Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
 foldWithPath f =
+    foldWithPaths (f << Tuple.second)
+
+
+{-| Fold the interface structure from top to bottom. The function gets path and the parent property and the second argument and the third one is the property being folded itself.
+-}
+foldWithIndexPath : (IndexPath -> Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
+foldWithIndexPath f =
     foldWithPaths (f << Tuple.first)
 
-
-{-| Fold the interface structure from top to bottom. The function gets property-path and the parent property and the second argument and the third one is the property being folded itself.
--}
-foldWithPropPath : (PropPath -> Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
-foldWithPropPath f =
-    foldWithPaths (f << Tuple.second)
 
 
 {-| Fold the interface structure from top to bottom. The function gets index-path, property-name-path and the parent property and the second argument and the third one is the property being folded itself.
 -}
-foldWithPaths : (( Path, PropPath ) -> Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
+foldWithPaths : (( IndexPath, Path ) -> Maybe (Property a) -> Property a -> x -> x) -> x -> GenUI a -> x
 foldWithPaths f x =
     let
         foldProperty ( iPath, sPath ) parent ( prop, a ) ( index, x_ ) =
@@ -447,9 +452,9 @@ findByIndices iPath =
 
 {-| Find property by property-based path. Traverses/folds the tree, so could be slow for a complex structure
 -}
-find : PropPath -> GenUI a -> Maybe (Property a)
+find : Path -> GenUI a -> Maybe (Property a)
 find pPath =
-    foldWithPropPath
+    foldWithPath
         (\oPath _ prop foundBefore ->
             case foundBefore of
                 Just found ->
@@ -466,14 +471,14 @@ find pPath =
 
 
 {-| Add path information to every property -}
-withPath : GenUI a -> GenUI ( (Path, PropPath), a )
+withPath : GenUI a -> GenUI ( (IndexPath, Path), a )
 withPath =
     update <| \paths -> Just << mapProperty (Tuple.pair paths)
 
 
 {-| Update every property in the tree by applying the given function to it. If the function returns `Nothing`, the property is removed, even if it's a nesting.
 -}
-update : (( Path, PropPath ) -> Property a -> Maybe (Property b)) -> GenUI a -> GenUI b
+update : (( IndexPath, Path ) -> Property a -> Maybe (Property b)) -> GenUI a -> GenUI b
 update f gui =
     let
         foldProperty ( parentIndexPath, sPath ) ( index, ( prop, a ) ) prev =
@@ -538,7 +543,7 @@ update f gui =
 The function gets `Nothing` if the property wasn't found at path.
 Traverses/folds the tree, so could be slow for a complex structure
 -}
-updateAt : PropPath -> (Property a -> Maybe (Property a)) -> GenUI a -> GenUI a
+updateAt : Path -> (Property a -> Maybe (Property a)) -> GenUI a -> GenUI a
 updateAt pPath f =
     update
         (\(_, otherPath) prop ->
@@ -578,6 +583,8 @@ withIndices gui =
                                     , panel = nestDef.panel
                                     , nestAt = nestDef.nestAt
                                     }
+                            , triggerOn = prop.triggerOn
+                            , statePath = prop.statePath
                             }
                         _ ->
                             { name = prop.name
@@ -585,6 +592,8 @@ withIndices gui =
                             , live = prop.live
                             , shape = prop.shape
                             , def = prop.def |> mapDef (Tuple.pair nextIndex)
+                            , triggerOn = prop.triggerOn
+                            , statePath = prop.statePath
                             }
                     , ( nextIndex, a ) )
                     :: prev
@@ -617,6 +626,8 @@ mapProperty f ( prop, a ) =
         , property = prop.property
         , live = prop.live
         , shape = prop.shape
+        , triggerOn = prop.triggerOn
+        , statePath = prop.statePath
         }
     , f a
     )

@@ -351,6 +351,8 @@ property encodeA ( prop, val ) =
         , ( "property", Maybe.withDefault E.null <| Maybe.map E.string prop.property )
         , ( "live", E.bool prop.live )
         , ( "shape", Maybe.withDefault E.null <| Maybe.map cellShape prop.shape )
+        , ( "triggerOn", Maybe.withDefault E.null <| Maybe.map (E.list E.string) prop.triggerOn )
+        , ( "statePath", Maybe.withDefault E.null <| Maybe.map (E.list E.string) prop.statePath )
         , ( "_value_", encodeA val )
         ]
 

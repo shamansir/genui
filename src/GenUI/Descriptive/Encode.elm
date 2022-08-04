@@ -19,7 +19,7 @@ import GenUI.Gradient as Gradient
 type alias Descriptive = Indented
 
 
-def : G.Def ( G.Path, G.PropPath ) -> Descriptive
+def : G.Def ( G.IndexPath, G.Path ) -> Descriptive
 def d =
     let
         intDef id =
@@ -278,7 +278,7 @@ pages p =
         G.Exact n -> "distributed over " ++ String.fromInt n ++ " pages"
 
 
-property : G.Property ( G.Path, G.PropPath ) -> Descriptive
+property : G.Property ( G.IndexPath, G.Path ) -> Descriptive
 property ( prop, ( path, propPath ) ) =
     [ ( 0, "property \"" ++ prop.name ++ "\"" )
     , ( 1, "its full path is: root -> " ++ String.join " -> " propPath )

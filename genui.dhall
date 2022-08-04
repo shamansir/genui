@@ -178,6 +178,9 @@ let Def : Type =
     >
 
 
+let Path : Type = List Text
+
+
 let Property =
     { Type =
         { def : Def
@@ -185,13 +188,15 @@ let Property =
         , property : Optional Text
         , live : Bool
         , shape : Optional CellShape.Type
-        , triggerOn : List Text
+        , triggerOn : Optional Path -- trigger property when other property changed
+        , statePath : Optional Path -- put the value somewhere else in the state, instead of the property
         }
     , default =
         { property = None Text
         , live = False
         , shape = None CellShape.Type
-        , triggerOn = ([] : List Text)
+        , triggerOn = None Path
+        , statePath = None Path
         }
     }
 
@@ -206,6 +211,7 @@ in
     { GenUI
     , Property
     , Def
+    , Path
     , Unit, CellShape, Form, Page, Pages, Cells, Face, Panel, SelectKind, SelectItem, ZoomKind, Fit
     , Color, RGBAColor, HSLAColor
     , Gradient, Stop, Stop2D
