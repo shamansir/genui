@@ -184,10 +184,10 @@ face f =
         G.Title ->
             [ ( 0, "shows label of the button" ) ]
 
-        G.PanelFocusedItem ->
+        G.Focus ->
             [ ( 0, "shows either selected item or focused item of the panel" ) ]
 
-        G.PanelExpandStatus ->
+        G.ExpandCollapse ->
             [ ( 0, "shows if panel is expanded or collapsed" ) ]
 
 

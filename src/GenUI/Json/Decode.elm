@@ -120,8 +120,8 @@ face =
                     "icon" -> D.field "icons" (D.list icon) |> D.map G.OfIcon
                     "color" -> D.field "color" color |> D.map G.OfColor
                     "title" -> D.succeed G.Title
-                    "expand" -> D.succeed G.PanelExpandStatus
-                    "focus" -> D.succeed G.PanelFocusedItem
+                    "expand" -> D.succeed G.ExpandCollapse
+                    "focus" -> D.succeed G.Focus
                     _ -> D.fail <| "Unknown face: " ++ face_
             )
 
@@ -258,7 +258,7 @@ def decodeA kind =
                 (D.field "current" D.bool)
 
         selectDef =
-            D.map5
+            D.map4
                 G.SelectDef
                 (D.field "current" D.string)
                 (D.field "values" <|
@@ -267,7 +267,6 @@ def decodeA kind =
                         , D.map (List.map (\v -> { value = v, face = G.Title, name = Nothing } )) <| D.list D.string
                         ]
                 )
-                (D.maybe <| D.field "allOf" cellShape)
                 (D.maybe <| D.field "nestAt" D.string)
                 (D.field "kind" selectKind)
 

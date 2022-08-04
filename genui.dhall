@@ -40,8 +40,8 @@ let Face =
     | Color : Color
     | Icon : List Icon
     | Title
-    | PanelExpandStatus -- expand or collapse arrow
-    | PanelFocusedItem -- or selected item, for select box
+    | ExpandCollapse -- expand or collapse arrow
+    | Focus -- or selected item, for select box
     >
 
 
@@ -74,10 +74,22 @@ let Fit =
     }
 
 
+let FitColumns =
+    { maxInRow : Cells
+    }
+
+
+let FitRows =
+    { maxInColumn : Cells
+    }
+
+
 let Pages =
     < Auto
     | Single
     | Distribute : Fit
+    | DistributeRows : FitRows
+    | DistributeColumns : FitColumns
     | Exact : Integer
     >
 
@@ -212,7 +224,7 @@ in
     , Property
     , Def
     , Path
-    , Unit, CellShape, Form, Page, Pages, Cells, Face, Panel, SelectKind, SelectItem, ZoomKind, Fit
+    , Unit, CellShape, Form, Page, Pages, Cells, Face, Panel, SelectKind, SelectItem, ZoomKind, Fit, FitRows, FitColumns
     , Color, RGBAColor, HSLAColor
     , Gradient, Stop, Stop2D
     , URL, Icon, Theme

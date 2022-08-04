@@ -61,9 +61,9 @@ let encodeFace
             JSON.object (toMap { face = JSON.string "icon", icons = JSON.array (List/map P.Icon JSON.Type encodeIcon icons) })
         , Title =
             JSON.object (toMap { face = JSON.string "title" })
-        , PanelExpandStatus =
+        , ExpandCollapse =
             JSON.object (toMap { face = JSON.string "expand" })
-        , PanelFocusedItem =
+        , Focus =
             JSON.object (toMap { face = JSON.string "focus" })
         }
         face
@@ -123,6 +123,12 @@ let encodePages
                 , Distribute =
                     \(fit : P.Fit) ->
                     { distribute = JSON.string "values", maxInRow = JSON.integer fit.maxInRow, maxInColumn = JSON.integer fit.maxInColumn, exact = JSON.integer -1 }
+                , DistributeRows =
+                    \(fit : P.FitRows) ->
+                    { distribute = JSON.string "values", maxInRow = JSON.integer -1, maxInColumn = JSON.integer fit.maxInColumn, exact = JSON.integer -1 }
+                , DistributeColumns =
+                    \(fit : P.FitColumns) ->
+                    { distribute = JSON.string "values", maxInRow = JSON.integer fit.maxInRow, maxInColumn = JSON.integer -1, exact = JSON.integer -1 }
                 , Exact =
                     \(n : Integer) ->
                     { distribute = JSON.string "exact", maxInRow = JSON.integer -1, maxInColumn = JSON.integer -1, exact = JSON.integer n }

@@ -61,7 +61,7 @@ import GenUI.Gradient exposing (Gradient(..), Stop, Stop2D)
 -}
 version : String
 version =
-    "4.0.0"
+    "5.0.0"
 
 
 {-| A path to the property in the tree. So, all the first-level properties have the path of `[0]`.
@@ -107,8 +107,8 @@ type Face
     | OfColor Color
     | OfIcon (List Icon)
     | Title
-    | PanelExpandStatus -- expand or collapse arrow
-    | PanelFocusedItem -- or selected item, for select box
+    | ExpandCollapse -- expand or collapse arrow
+    | Focus -- or selected item, for select box
 
 
 {-| How much space takes the control in the Tron units -}
@@ -236,7 +236,7 @@ type alias Panel =
 
 {-| -}
 type alias SelectDef =
-    { current : String, values : List SelectItem, allOf : Maybe CellShape, nestAt : Maybe String, kind : SelectKind }
+    { current : String, values : List SelectItem, nestAt : Maybe String, kind : SelectKind }
 
 
 {-| -}

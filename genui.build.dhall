@@ -91,7 +91,7 @@ let __select
 let __select_choice_panel
     : P.Panel =
     { form = P.Form.Expanded
-    , button = P.Face.PanelFocusedItem
+    , button = P.Face.Focus
     , allOf = None P.CellShape.Type
     , page = P.Page.ByCurrent
     , pages = P.Pages.Auto
@@ -181,7 +181,7 @@ let select_nvi
 let __nest_panel
     : P.Panel =
     { form = P.Form.Expanded
-    , button = P.Face.PanelExpandStatus
+    , button = P.Face.ExpandCollapse
     , allOf = None P.CellShape.Type
     , page = P.Page.ByCurrent
     , pages = P.Pages.Auto
@@ -416,10 +416,10 @@ let _title_f : P.Face =
     P.Face.Title
 
 let _show_expand_f : P.Face =
-    P.Face.PanelExpandStatus
+    P.Face.ExpandCollapse
 
 let _show_focus_f : P.Face =
-    P.Face.PanelFocusedItem
+    P.Face.Focus
 
 {- construct P.Theme -}
 

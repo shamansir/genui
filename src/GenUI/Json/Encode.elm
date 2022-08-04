@@ -212,10 +212,10 @@ face f =
         G.Title ->
             [ ( "face", E.string "title" )
             ]
-        G.PanelExpandStatus ->
+        G.ExpandCollapse ->
             [ ( "face", E.string "expand" )
             ]
-        G.PanelFocusedItem ->
+        G.Focus ->
             [ ( "face", E.string "focus" )
             ]
 
