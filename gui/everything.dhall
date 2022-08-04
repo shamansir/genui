@@ -57,10 +57,10 @@ in b.root
         ( b.children
             [ b.action "child1" // b.bind_to "c1"
             , b.action "child2" // b.bind_to "c2"
-            , b.action "child3"
+            , b.action "child3" // b.map_to [ "c1", "c2" ]
             , b.toggle "toggle" True // b.live
             , b.color "hsl" (b._hsl 210.0 8.0 51.0)
-            , b.text "text" "foo"
+            , b.text "text" "foo" // b.trigger_on [ "c1", "c2" ]
             , b.select_knob "sel_knob" select_knob_items "NN"
             , b.select_switch "sel_swi" select_switch_items "UU"
             , b.nest
@@ -73,6 +73,21 @@ in b.root
                     ]
                 )
                 b._expanded
+            , b.with_paging
+                (b.with_face
+                    (b.nest
+                        "subnest2"
+                        (b.children
+                            [ b.action "foo"
+                            , b.action "bar"
+                            ]
+                        )
+                        b._collapsed
+                    )
+                    b._title_f
+                )
+                b._single
+                b._first
             ]
         )
         b._collapsed

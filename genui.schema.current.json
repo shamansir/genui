@@ -7,7 +7,7 @@
     "properties": {
       "version": {
         "type": "string",
-        "const": "3.0.1"
+        "const": "4.0.0"
       },
       "root": {
         "type": "array",
@@ -25,6 +25,8 @@
                 , "shape": { "$ref": "#/$defs/cell_shape" }
                 , "property": { "oneOf": [ { "type": "string" }, { "type": "null" } ] }
                 , "live": { "type": "boolean" }
+                , "triggerOn": { "oneOf": [ { "$ref": "#/$defs/path" }, { "type": "null" } ] }
+                , "statePath": { "oneOf": [ { "$ref": "#/$defs/path" }, { "type": "null" } ] }
                 , "_value_": {}
                 },
             "required": [ "kind", "name", "def" ],
@@ -210,11 +212,7 @@
         "nest_def": {
             "type": "object",
             "properties":
-                { "form": { "$ref": "#/$defs/form" }
-                , "face": { "$ref": "#/$defs/face" }
-                , "shape": { "$ref": "#/$defs/nest_shape" }
-                , "page": { "type": "integer" }
-                , "children" :
+                { "children" :
                     { "type": "array"
                     , "items": { "$ref": "#/$defs/property" }
                     }
@@ -223,8 +221,9 @@
                         [ { "type": "string" }, { "type": "null" }
                         ]
                     }
+                , "panel": { "$ref": "#/$defs/panel" }
                 },
-            "required": [ "children" ]
+            "required": [ "children", "panel" ]
         },
         "select_def": {
             "type": "object",
@@ -286,32 +285,51 @@
                 },
             "required": [ "current", "steps", "kind" ]
         },
+        "path": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
         "cell_shape":
             { "oneOf":
                 [ {
                     "type": "object",
                     "properties":
-                        { "cols": { "type": "integer" }
-                        , "rows": { "type": "integer" }
+                        { "horz": { "$ref": "#/$defs/unit" }
+                        , "vert": { "$ref": "#/$defs/unit" }
                         },
-                    "required": [ "cols", "rows" ]
+                    "required": [ "horz", "vert" ]
                 },
                 { "type": "null" }
                 ]
             },
-        "nest_shape":
-            { "oneOf":
-                [ {
-                    "type": "object",
-                    "properties":
-                        { "cols": { "type": "integer" }
-                        , "rows": { "type": "integer" }
-                        , "pages": { "type": "integer" }
-                        },
-                    "required": [ "cols", "rows", "pages" ]
-                },
-                { "type": "null" }
-                ]
+        "panel":
+            { "type": "object"
+            , "properties":
+                { "form": { "$ref": "#/$defs/form" }
+                , "button": { "$ref": "#/$defs/face" }
+                , "allOf": { "$ref": "#/$defs/cell_shape" }
+                , "page": { "$ref": "#/$defs/page" }
+                , "pages": { "$ref": "#/$defs/pages" }
+                }
+            , "required": [ "form" ]
+            },
+        "page":
+            { "type": "object"
+            , "properties":
+                { "page": { "enum": [ "first", "last", "current", "n" ] }
+                , "n": { "type": "integer" }
+                }
+            , "required": [ "page" ]
+            },
+        "pages":
+            { "type": "object"
+            , "properties":
+                { "distribute": { "enum": [ "auto", "single", "values", "exact" ] }
+                , "maxInRow": { "type": "integer" }
+                , "maxInColumn": { "type": "integer" }
+                , "exact": { "type": "integer" }
+                }
+            , "required": [ "distribute" ]
             },
         "face": {
             "oneOf": [
@@ -332,20 +350,30 @@
                     }
                 , "required": [ "face", "icons" ]
                 },
+                { "type": "object"
+                , "properties": { "face": { "const": "empty" } }
+                },
+                { "type": "object"
+                , "properties": { "face": { "const": "title" } }
+                },
+                { "type": "object"
+                , "properties": { "face": { "const": "expand" } }
+                },
+                { "type": "object"
+                , "properties": { "face": { "const": "focus" } }
+                },
                 { "type": "null" }
             ]
         },
+        "unit": { "type": "number" },
         "select_kind": {
             "oneOf": [
                 { "type": "object"
                 , "properties":
                     { "kind": { "const": "choice" }
-                    , "face": { "$ref": "#/$defs/face" }
-                    , "shape": { "$ref": "#/$defs/nest_shape" }
-                    , "form": { "$ref": "#/$defs/form" }
-                    , "page": { "type": "integer" }
+                    , "panel": { "$ref": "#/$defs/panel" }
                     }
-                , "required": [ "kind", "form", "page" ]
+                , "required": [ "kind", "panel" ]
                 },
                 { "type": "object"
                 , "properties":

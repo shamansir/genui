@@ -1,6 +1,6 @@
 
 let Version = Text
 
-let VERSION : Version = "3.0.1"
+let VERSION : Version = "4.0.0"
 
 in VERSION

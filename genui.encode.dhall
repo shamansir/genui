@@ -141,6 +141,7 @@ let encodeForm
         }
         form
 
+
 let encodePanel
     : P.Panel -> JSON.Type
     = \(def : P.Panel)

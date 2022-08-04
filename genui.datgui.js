@@ -93,4 +93,6 @@ GenUI.toDatGUI_ = (root, state, update) => {
     GenUI.toDatGUI(root, state, state, update);
 };
 
+// TODO: support statePath and triggerOn
+
 window.GenUI = GenUI;
