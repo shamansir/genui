@@ -20,7 +20,7 @@ module GenUI exposing
 
 # Property
 
-@docs PropertyRec, Property, root, ghost, Path, PropPath, get
+@docs PropertyRec, Property, root, ghost, Path, IndexPath, get
 
 
 # Concrete property definitions
@@ -30,7 +30,7 @@ module GenUI exposing
 
 # Folding
 
-@docs fold, foldWithParent, foldWithPath, foldWithPropPath, foldWithPaths
+@docs fold, foldWithParent, foldWithPath, foldWithIndexPath, foldWithPaths
 
 
 # Find & Update
@@ -45,7 +45,7 @@ module GenUI exposing
 
 # Subtypes
 
-@docs Face, NestShape, CellShape, SelectKind, SelectItem, Icon, Form, Theme, Url, ZoomKind
+@docs Face, Unit, CellShape, SelectKind, SelectItem, Icon, Form, Theme, Url, Page, Pages, Panel, Cells, ZoomKind
 
 # Mapping
 @docs map, mapProperty, mapDef
@@ -121,11 +121,12 @@ type Unit
     | Custom Float
 
 
-{- The number of cells as the dimension of the panel -}
+{-| The number of cells as the dimension of the panel -}
 type alias Cells = Int
 
 
 
+{-| Which page should be selected on the panel, if there's paging enabled -}
 type Page
     = First
     | Last
@@ -134,6 +135,13 @@ type Page
 
 
 
+{-| How to distribute items over pages:
+
+* `Single` page to fit them into page no matter what;
+* `Distribute` is for custom distribution using `maxInRow` and `maxInColumn` (both in Cells, integer number);
+* `Auto` to use the default paging algorithm == `Distribute { maxInRow = 3, maxInColumn = 3 }`;
+* `Exact` for the exact number of pages and skipping the items that don't fit or having blank pages if they do;
+-}
 type Pages
     = Auto
     | Single
