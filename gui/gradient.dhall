@@ -1,5 +1,12 @@
-let P = ../genui.dhall
-let b = ../genui.build.dhall
+let List/map = https://prelude.dhall-lang.org/List/map
+
+-- let P = https://cdn.jsdelivr.net/gh/shamansir/genui@v3.0.1/genui.dhall
+-- let b = https://cdn.jsdelivr.net/gh/shamansir/genui@v3.0.1/genui.build.dhall
+let P = https://cdn.jsdelivr.net/gh/shamansir/genui/genui.dhall
+let b = https://cdn.jsdelivr.net/gh/shamansir/genui/genui.build.dhall
+
+let pset = https://resources.jetbrains.com/cai/brand-data/products.set.dhall
+let pgen = https://resources.jetbrains.com/cai/brand-data/products.gen.dhall
 
 let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 
@@ -7,11 +14,7 @@ let JSON = https://prelude.dhall-lang.org/JSON/package.dhall
 let resolutions = [ "1920x1080", "1080x1080", "1280x800", "800x800", "4K" ]
 
 let products =
-    [ "JetBrains", "Space", "IDEA", "PhpStorm", "PyCharm", "RubyMine", "CLion", "DataGrip"
-    , "AppCode", "GoLand", "ReSharper", "ReSharper C++", "dotCover", "dotPeek", "dotMemory", "dotTrace"
-    , "Rider", "TeamCity", "YouTrack", "Upsource", "Hub", "Kotlin", "Mono", "MPS", "IDEA Edu", "PyCharm Edu"
-    , "DataSpell", "Qodana", "Datalore", "CodeWithMe", "WebStorm", "Edu Tools", "Fleet"
-    ] -- TODO: sort
+    pgen.toNameSet pset.public
 
 {- let periodic_fn =
     [ "None", "Sin", "Tan(square)", "Squares#2", "Squares and stripes", "Tiles with bubbles"
@@ -48,6 +51,7 @@ let codecs =
 
 in b.root
     [ b.select "product" products "JetBrains"
+    , b.toggle "masterpiece" True
     , b.select "size" resolutions "1920x1080"
         // b.bind_to "resolution"
     , b.float "quality" { min = 0.1, max = 4.0, step = 0.05, current = 1.0 }
@@ -116,4 +120,5 @@ in b.root
     , b.action "create URL" // b.bind_to "save"
     , b.action "export" // b.bind_to "export_"
     , b.action "video" // b.bind_to "requestVideo"
+    , b.action "shader" // b.bind_to "requestShader"
     ] : P.GenUI
