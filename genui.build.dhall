@@ -69,18 +69,48 @@ let ValueIcon = { value : Text, dark : P.URL, light : P.URL }
 
 let NameValueIcon = { name : Text, value : Text, dark : P.URL, light : P.URL }
 
-let _nv = \(name : Text) -> \(value : Text) -> { name, value }
 
-let _vi = \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> { value, dark, light }
+let SelectItem =
+    < N : Text
+    | NV : NameValue
+    | VI : ValueIcon
+    | NVI : NameValueIcon
+    >
 
-let _nvi = \(name : Text) -> \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> { name, value, dark, light }
+
+let SelectItem/convert =
+    \(si : SelectItem) ->
+    merge
+        { N = \(n : Text) -> { value = n, face = P.Face.Title, name = None Text }
+        , NV = \(nv : NameValue) -> { value = nv.value, face = P.Face.Title, name = Some nv.name }
+        , VI = \(vi : ValueIcon) -> { value = vi.value, face = P.Face.Icon [ { theme = P.Theme.Light, url = vi.light }, { theme = P.Theme.Dark, url = vi.dark } ], name = None Text }
+        , NVI = \(nvi : NameValueIcon) -> { value = nvi.value, face = P.Face.Icon [ { theme = P.Theme.Light, url = nvi.light }, { theme = P.Theme.Dark, url = nvi.dark } ], name = Some nvi.name }
+        }
+        si
+
+
+{- let NameValue = { name : Text, value : Text }
+
+let ValueIcon = { value : Text, dark : P.URL, light : P.URL }
+
+let NameValueIcon = { name : Text, value : Text, dark : P.URL, light : P.URL } -}
+
+let _nv = \(name : Text) -> \(value : Text) -> SelectItem.NV { name, value }
+
+let _vi = \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> SelectItem.VI { value, dark, light }
+
+let _vii = \(value : Text) -> \(icon : P.URL) -> SelectItem.VI { value, dark = icon, light = icon }
+
+let _nvi = \(name : Text) -> \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> SelectItem.NVI { name, value, dark, light }
+
+let _nvii = \(name : Text) -> \(value : Text) -> \(icon : P.URL) -> SelectItem.NVI { name, value, dark = icon, light = icon }
 
 let __select
-    : ∀(valueT : Type) -> (valueT -> P.SelectItem) -> P.SelectKind -> Text -> List valueT -> Text -> P.Property.Type
-    = \(valueT : Type) -> \(convert : valueT -> P.SelectItem) -> \(kind : P.SelectKind) -> \(name : Text) -> \(values : List valueT) -> \(current : Text) ->
+    : P.SelectKind -> Text -> List SelectItem -> Text -> P.Property.Type
+    = \(kind : P.SelectKind) -> \(name : Text) -> \(values : List SelectItem) -> \(current : Text) ->
     P.Property::{ name, def = P.Def.Select
         { values =
-            List/map valueT P.SelectItem convert values
+            List/map SelectItem P.SelectItem SelectItem/convert values
         , current
         , nestProperty = None Text
         , kind = kind
@@ -98,22 +128,43 @@ let __select_choice_panel
     }
 
 
-let select
-    = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
+let select_
+    = \(name : Text) -> \(values : List SelectItem) -> \(current : Text) ->
     __select
-        Text
-        (\(t : Text) -> { value = t, face = P.Face.Title, name = None Text } : P.SelectItem)
         (P.SelectKind.Choice __select_choice_panel)
         name
         values
         current
 
+let select
+    = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
+    select_
+        name
+        (List/map Text SelectItem SelectItem.N values)
+        current
+
+
+let select_knob_
+    = \(name : Text) -> \(values : List SelectItem) -> \(current : Text) ->
+    __select
+        P.SelectKind.Knob
+        name
+        values
+        current
+
+
 let select_knob
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
+    select_knob_
+        name
+        (List/map Text SelectItem SelectItem.N values)
+        current
+
+
+let select_switch_
+    = \(name : Text) -> \(values : List SelectItem) -> \(current : Text) ->
     __select
-        Text
-        (\(t : Text) -> { value = t, face = P.Face.Title, name = None Text } : P.SelectItem)
-        P.SelectKind.Knob
+        P.SelectKind.Switch
         name
         values
         current
@@ -121,60 +172,9 @@ let select_knob
 
 let select_switch
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
-    __select
-        Text
-        (\(t : Text) -> { value = t, face = P.Face.Title, name = None Text } : P.SelectItem)
-        P.SelectKind.Switch
+    select_switch_
         name
-        values
-        current
-
-
-let select_icons
-    = \(name : Text) -> \(values : List ValueIcon) -> \(current : Text) ->
-    __select
-        ValueIcon
-        (\(t : ValueIcon) ->
-            { value = t.value
-            , face = P.Face.Icon [ { theme = P.Theme.Light, url = t.light }, { theme = P.Theme.Dark, url = t.dark } ]
-            , name = None Text
-            } : P.SelectItem
-        )
-        P.SelectKind.Switch
-        name
-        values
-        current
-
-
-let select_nv
-    = \(name : Text) -> \(values : List NameValue) -> \(current : Text) ->
-    __select
-        NameValue
-        (\(t : NameValue) ->
-            { value = t.value
-            , face = P.Face.Title
-            , name = Some t.name
-            } : P.SelectItem
-        )
-        P.SelectKind.Switch
-        name
-        values
-        current
-
-
-let select_nvi
-    = \(name : Text) -> \(values : List NameValueIcon) -> \(current : Text) ->
-    __select
-        NameValueIcon
-        (\(t : NameValueIcon) ->
-            { value = t.value
-            , face = P.Face.Icon [ { theme = P.Theme.Light, url = t.light }, { theme = P.Theme.Dark, url = t.dark } ]
-            , name = Some t.name
-            } : P.SelectItem
-        )
-        P.SelectKind.Switch
-        name
-        values
+        (List/map Text SelectItem SelectItem.N values)
         current
 
 
@@ -494,8 +494,8 @@ let _2d
     P.Gradient.TwoDimensional stops
 
 in
-    { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, gradient_with_presets, select, nest, zoom, zoom_by
-    , select_knob, select_switch, select_icons, select_nv, select_nvi
+    { ghost, int, float, xy, x_y, color, text, toggle, action, progress, gradient, gradient_with_presets, nest, zoom, zoom_by
+    , select, select_, select_knob, select_knob_, select_switch, select_switch_
     , root, children
     , bind_to, map_to, trigger_on, nest_at, live
     , with_face, no_face
@@ -513,4 +513,5 @@ in
     , _no_cshape
     , _s, _s2, _linear, _2d
     , _nv, _vi, _nvi
+    , NameValue, NameValueIcon, ValueIcon, SelectItem, SelectItem/convert
     }

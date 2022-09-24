@@ -34,6 +34,7 @@ let encodeUrl
             JSON.object (toMap { type = JSON.string "local", value = JSON.string s })
         , Remote = \(s : Text) ->
             JSON.object (toMap { type = JSON.string "remote", value = JSON.string s })
+        , NotDefined = JSON.null
         }
         url
 

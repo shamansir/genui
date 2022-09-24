@@ -26,6 +26,7 @@ let Theme =
 let URL =
     < Local : Text
     | Remote : Text
+    | NotDefined
     >
 
 
