@@ -6,70 +6,91 @@ let Property/encode = ./genui.encode.dhall
 let VERSION = ./VERSION.dhall
 
 
+-- Component with no representation. Can be used as an empty element in the hierarchy.
 let ghost
     = \(name : Text) ->
     P.Property::{ name, def = P.Def.Ghost }
 
+-- Change integer value. Takes current value, minimum value, maximum value and step.
 let int
     = \(name : Text) -> \(def : P.IntDef) ->
     P.Property::{ name, def = P.Def.NumInt def }
 
+-- Change floating poing value. Takes current value, minimum value, maximum value and step.
 let float
     = \(name : Text) -> \(def : P.FloatDef) ->
     P.Property::{ name, def = P.Def.NumFloat def }
 
+-- Change XY coordinates. Takes current value, minimum value, maximum value and step for both axes.
 let xy
     = \(name : Text) -> \(def : P.XYDef) ->
     P.Property::{ name, def = P.Def.XY def }
 
+-- Change XY coordinates. Takes current value, minimum value, maximum value and step for both axes as separate parameters.
 let x_y
     = \(name : Text) -> \(xdef : P.FloatDef) -> \(ydef : P.FloatDef) ->
     xy name { x = xdef, y = ydef }
 
+-- Change color value. Takes the current one.
 let color
     = \(name : Text) -> \(color : P.Color) ->
     P.Property::{ name, def = P.Def.Color { current = color } }
 
+-- Change text value. Takes the current one.
 let text
     = \(name : Text) -> \(current : Text) ->
     P.Property::{ name, def = P.Def.Textual { current } }
 
+-- Toggle the value between on and off. Takes current state of the toggle.
 let toggle
     = \(name : Text) -> \(current : Bool) ->
     P.Property::{ name, def = P.Def.Toggle { current } }
 
+-- Button with the given name.
 let action
     = \(name : Text) ->
     P.Property::{ name, def = P.Def.Action { face = P.Face.Title } }
 
+-- Progress control for tasks that could take considerable amount of time and may have failure states.
 let progress
     = \(name : Text) -> \(api : P.URL) ->
     P.Property::{ name, def = P.Def.Progress { api } }
 
+-- Gradient control. Takes current value.
 let gradient
     = \(name : Text) -> \(g : P.Gradient) ->
     P.Property::{ name, def = P.Def.Gradient { current = g, presets = ([] : List P.Color) } }
 
+-- Gradient control with given presets. Takes current value.
 let gradient_with_presets
     = \(name : Text) -> \(g : P.Gradient) -> \(presets : List P.Color) ->
     P.Property::{ name, def = P.Def.Gradient { current = g, presets } }
 
+-- Zoom control
 let zoom
     = \(name : Text) ->
     P.Property::{ name, def = P.Def.Zoom { current = 1.0, kind = P.ZoomKind.PlusMinus } }
 
+-- Zoom control with given steps
 let zoom_by
     = \(name : Text) -> \(current : Double) -> \(steps : List Double) ->
     P.Property::{ name, def = P.Def.Zoom { current, kind = P.ZoomKind.Steps steps } }
 
+{- *** Helpers for select components *** -}
 
+-- Item of the select box that has a name (friendly readable text) and a value (unique ID among other items).
 let NameValue = { name : Text, value : Text }
 
+-- Item of the select box that has a value (unique ID among other items) and an icon.
+-- For Tron UI, light-stroke (`dark` theme) and dark-stroke (`light` theme) icons could be specified.
 let ValueIcon = { value : Text, dark : P.URL, light : P.URL }
 
+-- Item of the select box that hasa name (friendly readable text) and a value (unique ID among other items) and an icon.
+-- For Tron UI, light-stroke and dark-stroke icons are specified.
 let NameValueIcon = { name : Text, value : Text, dark : P.URL, light : P.URL }
 
 
+-- Item in the list of options in the select list. Could be called "option" as well.
 let SelectItem =
     < N : Text
     | NV : NameValue
@@ -78,6 +99,7 @@ let SelectItem =
     >
 
 
+-- Convert `SelectItem` helper to the native `P.SelectItem` format.
 let SelectItem/convert =
     \(si : SelectItem) ->
     merge
@@ -89,21 +111,31 @@ let SelectItem/convert =
         si
 
 
-{- let NameValue = { name : Text, value : Text }
+-- Create an item with a name (friendly readable text).
+let _n = \(name : Text) -> SelectItem.N name
+let name_item = _n
 
-let ValueIcon = { value : Text, dark : P.URL, light : P.URL }
-
-let NameValueIcon = { name : Text, value : Text, dark : P.URL, light : P.URL } -}
-
+-- Create an item with a name (friendly readable text) and value (unique ID among other items).
 let _nv = \(name : Text) -> \(value : Text) -> SelectItem.NV { name, value }
+let name_value_item = _nv
 
-let _vi = \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> SelectItem.VI { value, dark, light }
+-- Create an item with a value (unique ID among other items) and an icon.
+-- For Tron UI, light-stroke (`dark` theme) and dark-stroke (`light` theme) icons are expected to be specified.
+let _vii = \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> SelectItem.VI { value, dark, light }
+let value_themed_icon_item = _vii
 
-let _vii = \(value : Text) -> \(icon : P.URL) -> SelectItem.VI { value, dark = icon, light = icon }
+-- Create an item with a value (unique ID among other items) and an icon.
+let _vi = \(value : Text) -> \(icon : P.URL) -> _vii value icon icon
+let value_icon_item = _vi
 
-let _nvi = \(name : Text) -> \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> SelectItem.NVI { name, value, dark, light }
+-- Create an item with a name (friendly readable text) and value (unique ID among other items) and an icon.
+-- For Tron UI, light-stroke (`dark` theme) and dark-stroke (`light` theme) icons are expected to be specified.
+let _nvii = \(name : Text) -> \(value : Text) -> \(dark : P.URL) -> \(light : P.URL) -> SelectItem.NVI { name, value, dark, light }
+let name_value_themed_icon_item = _nvii
 
-let _nvii = \(name : Text) -> \(value : Text) -> \(icon : P.URL) -> SelectItem.NVI { name, value, dark = icon, light = icon }
+-- Create an item with a name (friendly readable text) and value (unique ID among other items) and an icon.
+let _nvi = \(name : Text) -> \(value : Text) -> \(icon : P.URL) -> SelectItem.NVI { name, value, dark = icon, light = icon }
+let name_value_icon_item = _nvi
 
 let __select
     : P.SelectKind -> Text -> List SelectItem -> Text -> P.Property.Type
@@ -128,6 +160,12 @@ let __select_choice_panel
     }
 
 
+-- Select component with a list of options to select from.
+-- Use one of these helpers to construct options: `name_item`, `name_value_item`, `value_icon_item`, `value_themed_icon_item`, `name_value_themed_icon_item`, `name_value_themed_icon_item`.
+-- Or their shortcuts: `_n`, `_nv`, `_vi`, `_vii`, `_nvi`, `_nvii`.
+-- Takes current _value_ (not the name).
+-- For the case of `dat.gui`, could be an usual combo-box.
+-- For the case of Tron, it is a panel with choices, similar to the `nest`.
 let select_
     = \(name : Text) -> \(values : List SelectItem) -> \(current : Text) ->
     __select
@@ -136,6 +174,11 @@ let select_
         values
         current
 
+-- Select component with a list of textual options to select from.
+-- Options are considered to be both unique and readable.
+-- Takes current value (so the name).
+-- For the case of `dat.gui`, could be an usual combo-box.
+-- For the case of Tron, it is a panel with choices, similar to the `nest`.
 let select
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     select_
@@ -144,6 +187,12 @@ let select
         current
 
 
+-- The _select knob_ is the control where option is selected by turning the knob.
+-- Use one of these helpers to construct options: `name_item`, `name_value_item`, `value_icon_item`, `value_themed_icon_item`, `name_value_themed_icon_item`, `name_value_themed_icon_item`.
+-- Or their shortcuts: `_n`, `_nv`, `_vi`, `_vii`, `_nvi`, `_nvii`.
+-- Takes current _value_ (not the name).
+-- For the case of `dat.gui`, could be an usual combo-box.
+-- For the case of Tron, it is the turning knob as described.
 let select_knob_
     = \(name : Text) -> \(values : List SelectItem) -> \(current : Text) ->
     __select
@@ -153,6 +202,11 @@ let select_knob_
         current
 
 
+-- The _select knob_ is the control where option is selected by turning the knob.
+-- Options are considered to be both unique and readable.
+-- Takes current _value_ (not the name).
+-- For the case of `dat.gui`, could be an usual combo-box.
+-- For the case of Tron, it is the turning knob as described.
 let select_knob
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     select_knob_
@@ -161,6 +215,12 @@ let select_knob
         current
 
 
+-- The _select switch_ is the control where option is selected by clicking the same button specific number of times, so the options are cycled.
+-- Use one of these helpers to construct options: `name_item`, `name_value_item`, `value_icon_item`, `value_themed_icon_item`, `name_value_themed_icon_item`, `name_value_themed_icon_item`.
+-- Or their shortcuts: `_n`, `_nv`, `_vi`, `_vii`, `_nvi`, `_nvii`.
+-- Takes current _value_ (not the name).
+-- For the case of `dat.gui`, could be an usual combo-box.
+-- For the case of Tron, it is the button for multiple clicks as described.
 let select_switch_
     = \(name : Text) -> \(values : List SelectItem) -> \(current : Text) ->
     __select
@@ -170,6 +230,11 @@ let select_switch_
         current
 
 
+-- The _select switch_ is the control where option is selected by clicking the same button specific number of times, so the options are cycled.
+-- Options are considered to be both unique and readable.
+-- Takes current _value_ (not the name).
+-- For the case of `dat.gui`, could be an usual combo-box.
+-- For the case of Tron, it is the button for multiple clicks as described.
 let select_switch
     = \(name : Text) -> \(values : List Text) -> \(current : Text) ->
     select_switch_
@@ -177,6 +242,7 @@ let select_switch
         (List/map Text SelectItem SelectItem.N values)
         current
 
+{- *** Helpers for nesting components. *** -}
 
 let __nest_panel
     : P.Panel =
@@ -187,48 +253,63 @@ let __nest_panel
     , pages = P.Pages.Auto
     }
 
-
+-- Nest listed children in the panel that is revealed by clicking a button with given name.
+-- Children in the list should already be converted to JSON, use `children` helper to do that.
+-- In `dat.gui` implementation, it is a folder.
 let nest
     = \(name : Text) -> \(children : List JSON.Type) -> \(form : P.Form) ->
     P.Property::{ name, def = P.Def.Nest
         { children
         , nestProperty = None Text
-        , panel = __nest_panel
+        , panel = __nest_panel // { form }
         }
     }
 
+-- Convert a list of controls to the JSON representation. Needed for the `nest` helper.
 let children
     = \(children : List P.Property.Type) ->
     List/map P.Property.Type JSON.Type Property/encode children
 
+-- The root. The first one in any UI definition.
 let root
     = \(items : List P.Property.Type) ->
     { version = VERSION
     , root = children items
     } : P.GenUI
 
-{- modify property -}
+{- *** Helpers for changing the properties of the already defined controls *** -}
 
+-- Bind the component to some property in the state.
+-- This could be hepful when your code requires different name for this propety in the state.
+-- For example, `int "The Beautiful Number" { current = 1, step = 1, minimum = 0, max = 100 } // bind_to "theBeautifulNumber"`
 let bind_to
     = \(propName : Text) ->
     { property = Some propName }
 
+-- Nest this property under some other property in the state.
+-- This could be hepful when the back-end requires different structure of the state, differnet from the structure of folders in the UI.
 let nest_at
     = \(propName : Text) ->
     { nestProperty = Some propName }
 
+-- Move the property to some nested place in the state.
+-- This could be hepful when the back-end requires different structure of the state, differnet from the structure of folders in the UI.
+let map_to
+    = \(path : List Text) ->
+    { statePath = Some path }
+
+-- Update the value of this component when some other value under the given path in the state has changed.
+let trigger_on
+    = \(path : List Text) ->
+    { triggerOn = Some path }
+
+
+-- `live` component is listening to all the changes in the state and reflects the value immediately
 let live
     = { live = True }
     -- = \(property : P.Property.Type) ->
     -- property // { live = True }
 
-let map_to
-    = \(path : List Text) ->
-    { statePath = Some path }
-
-let trigger_on
-    = \(path : List Text) ->
-    { triggerOn = Some path }
 
 let ___def_update =
     { Ghost = P.Def.Ghost
@@ -284,16 +365,21 @@ let __update_panel
                 property.def
         }
 
+-- Remove cell shape setup from the nested panel.
 let _no_cshape
     : Optional P.CellShape.Type
     = None P.CellShape.Type
 
 
+-- Update all options of the nested panel with given ones.
+-- Works both for the nested panels and select panels.
 let with_panel
     = \(property : P.Property.Type) -> \(panel : P.Panel) ->
     __update_panel property (\(_ : P.Panel) -> panel)
 
 
+-- Change the face of the component.
+-- Works for buttons, nested panels and select panels. When used with panels, it updates the button that causes this panel to appear.
 let with_face
     = \(property : P.Property.Type) -> \(face : P.Face) ->
     property
@@ -320,55 +406,72 @@ let with_face
         }
 
 
+-- Remove face of the component.
+-- Works for buttons, nested panels and select panels. When used with panels, it updates the button that causes this panel to appear.
 let no_face
     = \(property : P.Property.Type) ->
     with_face property P.Face.Empty
 
 
+-- Expand the nested panel.
+-- Works both for the nested panels and select panels.
 let expand
     = \(property : P.Property.Type) ->
     __update_panel property (\(p : P.Panel) -> p // { form = P.Form.Expanded })
 
 
+-- Collapse the nested panel.
+-- Works both for the nested panels and select panels.
 let collapse
     = \(property : P.Property.Type) ->
     __update_panel property (\(p : P.Panel) -> p // { form = P.Form.Collapsed })
 
 
+-- Change paging of the panel.
+-- Works both for the nested panels and select panels.
 let with_paging
     = \(property : P.Property.Type) -> \(pages : P.Pages) -> \(page : P.Page) ->
     __update_panel property (\(p : P.Panel) -> p // { pages, page })
 
 
+-- Change paging of the panel.
+-- Works both for the nested panels and select panels.
 let with_pages
     = \(property : P.Property.Type) -> \(pages : P.Pages) ->
     with_paging property pages P.Page.ByCurrent
 
 
+-- Set the cell shape for the panel.
+-- It defines the size of the controls layed out within the panel. So it is given in units.
+-- Works both for the nested panels and select panels.
 let with_cshape
     : P.Property.Type -> P.CellShape.Type -> P.Property.Type
     = \(property : P.Property.Type) -> \(shape : P.CellShape.Type) ->
     property // { shape = Some shape }
 
 
+-- Remove cell shape setup from the nested panel.
+-- Works both for the nested panels and select panels.
 let no_cshape
     : P.Property.Type -> P.Property.Type
     = \(property : P.Property.Type) ->
     property // { shape = _no_cshape }
 
 
+-- Switch the panel with paging to the page with given number.
+-- Works both for the nested panels and select panels.
 let go_to_page
     : P.Property.Type -> Integer -> P.Property.Type
     = \(property : P.Property.Type) -> \(page : Integer) ->
     __update_panel property (\(p : P.Panel) -> p // { page = P.Page.Page page })
 
 
-{- construct P.Form -}
+{- *** construct P.Form *** -}
 
 let _expanded : P.Form = P.Form.Expanded
 let _collapsed : P.Form = P.Form.Collapsed
 
-{- construct P.Color -}
+{- *** construct `P.Color` *** -}
 
 let _rgba
     = \(r : Double) -> \(g : Double) -> \(b : Double) -> \(a : Double) ->
@@ -390,7 +493,7 @@ let _hex
     = \(hex : Text) ->
     P.Color.HEX hex
 
-{- construct P.Face -}
+{- *** Construct `P.Face` *** -}
 
 let _empty_f : P.Face =
     P.Face.Empty
@@ -421,33 +524,41 @@ let _show_expand_f : P.Face =
 let _show_focus_f : P.Face =
     P.Face.Focus
 
-{- construct P.Theme -}
+{- *** Construct P.Theme *** -}
 
 let _dark = P.Theme.Dark
 
 let _light = P.Theme.Light
 
-{- construct P.Page -}
+{- *** Construct P.Page *** -}
 
+-- First page is selected.
 let _first : P.Page = P.Page.First
 
+-- Last page is selected.
 let _last : P.Page = P.Page.Last
 
+-- The page with current value is selected.
 let _by_current : P.Page = P.Page.ByCurrent
 
+-- The page with current value is selected.
 let _page : Integer -> P.Page = \(n : Integer) -> P.Page.Page n
 
-{- construct P.Pages -}
+{- *** Construct P.Pages *** -}
 
+-- Distribute controls between pages automatically. (i.e. max 3x3).
 let _auto : P.Pages = P.Pages.Auto
 
+-- One and only page.
 let _single : P.Pages = P.Pages.Single
 
+-- Fit the items either using `maxInColumn` or `maxInRow` values.
 let _distribute : P.Fit -> P.Pages = \(fit : P.Fit) -> P.Pages.Distribute fit
 
+-- Distribute over exact number of pages.
 let _pages : Integer -> P.Pages = \(n : Integer) -> P.Pages.Exact n
 
-{- construct P.Unit -}
+{- *** Construct P.Unit *** -}
 
 let _half : P.Unit = P.Unit.Half
 
@@ -461,7 +572,7 @@ let _three : P.Unit = P.Unit.Three
 
 let _unit : Double -> P.Unit = \(d : Double) -> P.Unit.Custom d
 
-{- construct P.URL -}
+{- *** Construct P.URL *** -}
 
 let _local
     : Text -> P.URL
@@ -471,7 +582,7 @@ let _remote
     : Text -> P.URL
     = \(url : Text) -> P.URL.Remote url
 
-{- constuct P.Stop, P.Stop2D and P.Gradient -}
+{- *** Construct P.Stop, P.Stop2D and P.Gradient *** -}
 
 let _s
     : Double -> P.Color -> P.Stop
@@ -512,6 +623,7 @@ in
     , _dark, _light
     , _no_cshape
     , _s, _s2, _linear, _2d
-    , _nv, _vi, _nvi
+    , _n, _nv, _vi, _vii, _nvi, _nvii
+    , name_item, name_value_item, value_icon_item, value_themed_icon_item, name_value_icon_item, name_value_themed_icon_item
     , NameValue, NameValueIcon, ValueIcon, SelectItem, SelectItem/convert
     }
