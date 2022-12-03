@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <title>GenUI generator</title>
   <script src="./dat.gui.v0.7.9.min.js"></script>
+  <!-- https://resources.jetbrains.com/cai/brand-data/genui/gui/gradient.dev.json -->
 </head>
 <body>
     <link rel="stylesheet" type="text/css" href="./dat.gui.cai.css" />
     <script src="../genui.datgui.js"></script>
     <script>
       const readJson = (name, cb) => {
-          fetch(`http://localhost:8005/${name}.json`)
+          fetch(`http://localhost:8005/gui/${name}.json`)
               .then(response => {
                   if (!response.ok) {
                       throw new Error("HTTP error " + response.status);

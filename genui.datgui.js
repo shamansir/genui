@@ -93,6 +93,15 @@ GenUI.toDatGUI_ = (root, state, update) => {
     GenUI.toDatGUI(root, state, state, update);
 };
 
+GenUI.toState = (root, useMapping = false) => {
+
+}
+
+
+GenUI.fromState = (state, withMapping = false) => {
+
+}
+
 // TODO: support statePath and triggerOn
 
 window.GenUI = GenUI;

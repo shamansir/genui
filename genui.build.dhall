@@ -495,18 +495,22 @@ let _hex
 
 {- *** Construct `P.Face` *** -}
 
+-- Show nothing on the face of the button.
 let _empty_f : P.Face =
     P.Face.Empty
 
+-- Show color on the face of the button.
 let _color_f
     : P.Color -> P.Face
     = \(color : P.Color) -> P.Face.Color color
 
+-- Show dark-stroke (light theme) or light-stoke (dark theme) icon on the face of the button.
 let _icon_f
     : { dark : P.URL, light : P.URL } -> P.Face
     = \(i : { dark : P.URL, light : P.URL })
     -> P.Face.Icon [ { theme = P.Theme.Light, url = i.light }, { theme = P.Theme.Dark, url = i.dark } ]
 
+-- Show given icon on the face of the button.
 let _l_icon_f
     : P.URL -> P.Face
     = \(url : P.URL) -> P.Face.Icon [ { theme = P.Theme.Light, url } ]
@@ -515,12 +519,15 @@ let _icons_f
     : List P.Icon -> P.Face
     = \(icons : List P.Icon) -> P.Face.Icon icons
 
+-- Show the title of the component on the face. Or the title of the panel on the face of the button that opens the panel.
 let _title_f : P.Face =
     P.Face.Title
 
+-- Show if panel is expanded or collapsed on the face of the button that opens the panel.
 let _show_expand_f : P.Face =
     P.Face.ExpandCollapse
 
+-- Show current/focused item on the face of the button that opens the panel.
 let _show_focus_f : P.Face =
     P.Face.Focus
 
