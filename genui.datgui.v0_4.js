@@ -115,16 +115,53 @@ GenUI.getDatGUI = (mapping) => {
     return mapping[GenUI.REF];
 }
 
+const loadPropPath = (prop) => {
+    if (prop.def.statePath) { return prop.def.statePath; }
+    if (prop.property) { return [ prop.property ]; }
+    if (prop.name) { return [ prop.name ]; }
+}
+
+const loadPropId = (prop) => {
+    return prop.property || prop.name;
+}
+
+const assignAtPath = (path, state, what, where) => {
+    let focus = where || state;
+    if (path.length > 0) {
+        let nextPath = path.slice(1);
+        if (nextPath.length > 0) {
+            if (focus.hasOwnProperty(nextPath[0])) {
+                return assignAtPath(nextPath, state, what, focus[nextPath[0]]);
+            } else {
+                focus[nextPath[0]] = {};
+                return assignAtPath(nextPath, state, what, focus[nextPath[0]]);
+            }
+        } else {
+            focus[path[0]] = what;
+        }
+
+    } else return state;
+}
+
 GenUI.toState = (root, state, target, useMapping = false) => {
     return root.reduce(
         (accum, prop) => {
+            const propId = loadPropId(prop);
             // prop.def.statePath
             if (prop.kind != 'action') {
-                let propId = prop.property || prop.name;
-                if (prop.kind != 'nest') {
-                    accum[propId] = state.hasOwnProperty(propId) ? state[propId] : prop.def.current;
+                if (useMapping) {
+                    const propPath = loadPropPath(prop);
+                    if (prop.kind != 'nest') {
+                        assignAtPath(propPath, accum, state.hasOwnProperty(propId) ? state[propId] : prop.def.current);
+                    } else {
+                        assignAtPath(propPath, accum, window.GenUI.toState(prop.def.children, state, null, useMapping));
+                    }
                 } else {
-                    accum[propId] = window.GenUI.toState(prop.def.children, state, null, useMapping);
+                    if (prop.kind != 'nest') {
+                        accum[propId] = state.hasOwnProperty(propId) ? state[propId] : prop.def.current;
+                    } else {
+                        accum[propId] = window.GenUI.toState(prop.def.children, state, null, useMapping);
+                    }
                 }
             }
             return accum;
