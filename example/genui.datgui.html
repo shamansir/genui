@@ -4,14 +4,13 @@
   <meta charset="UTF-8">
   <title>GenUI generator</title>
   <script src="./dat.gui.v0.7.9.min.js"></script>
-  <!-- https://resources.jetbrains.com/cai/brand-data/genui/gui/gradient.dev.json -->
 </head>
 <body>
     <link rel="stylesheet" type="text/css" href="./dat.gui.cai.css" />
-    <script src="../genui.datgui.js"></script>
+    <script src="../genui.datgui.v0_4.js"></script>
     <script>
-      const readJson = (name, cb) => {
-          fetch(`http://localhost:8005/gui/${name}.json`)
+      const readJson = (url, cb) => {
+          fetch(url)
               .then(response => {
                   if (!response.ok) {
                       throw new Error("HTTP error " + response.status);
@@ -22,7 +21,20 @@
               .catch((err) => cb(err, null));
       };
 
-      readJson('gradient',
+      const readLocalJson = (name, cb) => {
+        readJson(`http://localhost:8005/gui/${name}.json`, cb);
+      }
+
+      let lastGenUI = null;
+
+      const destroyLastGui = () => {
+        if (lastGenUI) {
+            const datGUI = GenUI.getDatGUI(lastGenUI);
+            if (datGUI) datGUI.destroy();
+        }
+      }
+
+      readLocalJson('gradient',
           (err, json) =>
               {
 
@@ -49,9 +61,46 @@
                           console.log(prop, val);
                       };
 
-                  GenUI.toDatGUI(json, state, actions, update);
+                  destroyLastGui();
+                  lastGenUI = GenUI.toDatGUI(json, state, actions, update);
               }
       );
+
+      const loadJsonByUrlFromInput = () => {
+        const urlInput = document.getElementById('genui-json-url');
+        const url = urlInput.value;
+        if (url) {
+            readJson(url,
+                (err, json) =>
+                {
+                    if (err) {
+                      console.error(err);
+                      return;
+                    }
+
+                    let state = {};
+
+                    const update =
+                      (prop, val) => {
+                          console.log(state);
+                          console.log(prop, val);
+                      };
+
+                    destroyLastGui();
+                    lastGenUI = GenUI.toDatGUI(json, state, (action) => { console.log(action); }, update);
+                }
+            );
+        }
+      }
+
+      window.loadJsonByUrlFromInput = loadJsonByUrlFromInput;
+
     </script>
+
+    <div>
+        <label for="genui-json-url">URL to GenUI JSON:</label>
+        <input id="genui-json-url" type="url" />
+        <button onClick="loadJsonByUrlFromInput()">Load GenUI</button>
+    </div>
 </body>
 </html>
