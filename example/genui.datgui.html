@@ -62,6 +62,7 @@
                       };
 
                   destroyLastGui();
+                  console.log(GenUI.toState(json.root, state));
                   lastGenUI = GenUI.toDatGUI(json, state, actions, update);
               }
       );
@@ -87,6 +88,7 @@
                       };
 
                     destroyLastGui();
+                    console.log(GenUI.toState(json, state));
                     lastGenUI = GenUI.toDatGUI(json, state, (action) => { console.log(action); }, update);
                 }
             );

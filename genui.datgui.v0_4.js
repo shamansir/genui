@@ -115,13 +115,27 @@ GenUI.getDatGUI = (mapping) => {
     return mapping[GenUI.REF];
 }
 
-GenUI.toState = (root, useMapping = false) => {
-
+GenUI.toState = (root, state, target, useMapping = false) => {
+    return root.reduce(
+        (accum, prop) => {
+            // prop.def.statePath
+            if (prop.kind != 'action') {
+                let propId = prop.property || prop.name;
+                if (prop.kind != 'nest') {
+                    accum[propId] = state.hasOwnProperty(propId) ? state[propId] : prop.def.current;
+                } else {
+                    accum[propId] = window.GenUI.toState(prop.def.children, state, null, useMapping);
+                }
+            }
+            return accum;
+        },
+        target || {});
+    // (accumulator, currentValue) => accumulator + currentValue,
 }
 
 
-GenUI.fromState = (state, withMapping = false) => {
-
+GenUI.fromState = (root, state, withMapping = false) => {
+    console.log(root, state);
 }
 
 // TODO: support statePath and triggerOn
