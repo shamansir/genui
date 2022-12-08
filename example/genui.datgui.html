@@ -34,7 +34,7 @@
         }
       }
 
-      readLocalJson('gradient',
+      readLocalJson('gradient.dev',
           (err, json) =>
               {
 
@@ -62,7 +62,7 @@
                       };
 
                   destroyLastGui();
-                  console.log(GenUI.toState(json.root, state));
+                  console.log(GenUI.toState(json.root, state, null, true));
                   lastGenUI = GenUI.toDatGUI(json, state, actions, update);
               }
       );
@@ -88,7 +88,7 @@
                       };
 
                     destroyLastGui();
-                    console.log(GenUI.toState(json, state, null, true));
+                    console.log(GenUI.toState(json.root, state, null, true));
                     lastGenUI = GenUI.toDatGUI(json, state, (action) => { console.log(action); }, update);
                 }
             );

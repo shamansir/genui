@@ -116,7 +116,8 @@ GenUI.getDatGUI = (mapping) => {
 }
 
 const loadPropPath = (prop) => {
-    if (prop.def.statePath) { return prop.def.statePath; }
+    console.log('statePath', prop.statePath);
+    if (prop.statePath) { return prop.statePath; }
     if (prop.property) { return [ prop.property ]; }
     if (prop.name) { return [ prop.name ]; }
 }
@@ -125,42 +126,47 @@ const loadPropId = (prop) => {
     return prop.property || prop.name;
 }
 
-const assignAtPath = (path, state, what, where) => {
-    let focus = where || state;
+const assignAtPath = (path, accum, what, where) => {
+    let focus = where || accum || {};
     if (path.length > 0) {
         let nextPath = path.slice(1);
         if (nextPath.length > 0) {
-            if (focus.hasOwnProperty(nextPath[0])) {
-                return assignAtPath(nextPath, state, what, focus[nextPath[0]]);
+            if (focus.hasOwnProperty(path[0])) {
+                assignAtPath(nextPath, accum, what, focus[path[0]]);
             } else {
-                focus[nextPath[0]] = {};
-                return assignAtPath(nextPath, state, what, focus[nextPath[0]]);
+                focus[path[0]] = {};
+                assignAtPath(nextPath, accum, what, focus[path[0]]);
             }
         } else {
             focus[path[0]] = what;
         }
 
-    } else return state;
+    };
 }
 
 GenUI.toState = (root, state, target, useMapping = false) => {
+    //let accum = target || {};
     return root.reduce(
         (accum, prop) => {
             const propId = loadPropId(prop);
-            // prop.def.statePath
             if (prop.kind != 'action') {
                 if (useMapping) {
-                    const propPath = loadPropPath(prop);
                     if (prop.kind != 'nest') {
+                        const propPath = loadPropPath(prop);
+                        console.log(propPath);
                         assignAtPath(propPath, accum, state.hasOwnProperty(propId) ? state[propId] : prop.def.current);
                     } else {
-                        assignAtPath(propPath, accum, window.GenUI.toState(prop.def.children, state, null, useMapping));
+                        window.GenUI.toState(prop.def.children, state, accum, useMapping);
+                        /* if (prop.statePath) {
+                            assignAtPath(prop.statePath, accum, window.GenUI.toState(prop.def.children, state, accum[propId], useMapping));
+                        } */
+                        // assignAtPath(propPath, accum, window.GenUI.toState(prop.def.children, state, accum, useMapping));
                     }
                 } else {
                     if (prop.kind != 'nest') {
                         accum[propId] = state.hasOwnProperty(propId) ? state[propId] : prop.def.current;
                     } else {
-                        accum[propId] = window.GenUI.toState(prop.def.children, state, null, useMapping);
+                        accum[propId] = window.GenUI.toState(prop.def.children, state, accum, useMapping);
                     }
                 }
             }
