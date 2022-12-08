@@ -62,7 +62,7 @@
                       };
 
                   destroyLastGui();
-                  console.log(GenUI.toState(json.root, state, null, true));
+                  console.log(GenUI.export(json.root, state, null, true));
                   lastGenUI = GenUI.toDatGUI(json, state, actions, update);
               }
       );

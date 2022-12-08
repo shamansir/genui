@@ -126,6 +126,15 @@ const loadPropId = (prop) => {
     return prop.property || prop.name;
 }
 
+const valueAtPath = (src, path) => {
+    if (!path.length) return null;
+    if (path.length > 1) {
+        return valueAtPath(src.hasOwnProperty(path[0]) ? src[path[0]] : {}, path.slice(1));
+    } else {
+        return src.hasOwnProperty(path[0]) ? src[path[0]] : null;
+    }
+}
+
 const assignAtPath = (path, accum, what, where) => {
     let focus = where || accum || {};
     if (path.length > 0) {
@@ -144,41 +153,55 @@ const assignAtPath = (path, accum, what, where) => {
     };
 }
 
-GenUI.toState = (root, state, target, useMapping = false) => {
-    //let accum = target || {};
+GenUI.export = (root, state, target, useStatePaths = false) => { // always with useStatePaths?
     return root.reduce(
         (accum, prop) => {
             const propId = loadPropId(prop);
             if (prop.kind != 'action') {
-                if (useMapping) {
+                if (useStatePaths) {
                     if (prop.kind != 'nest') {
                         const propPath = loadPropPath(prop);
-                        console.log(propPath);
                         assignAtPath(propPath, accum, state.hasOwnProperty(propId) ? state[propId] : prop.def.current);
                     } else {
-                        window.GenUI.toState(prop.def.children, state, accum, useMapping);
-                        /* if (prop.statePath) {
-                            assignAtPath(prop.statePath, accum, window.GenUI.toState(prop.def.children, state, accum[propId], useMapping));
-                        } */
-                        // assignAtPath(propPath, accum, window.GenUI.toState(prop.def.children, state, accum, useMapping));
+                        window.GenUI.export(prop.def.children, state, accum, useStatePaths);
                     }
                 } else {
                     if (prop.kind != 'nest') {
                         accum[propId] = state.hasOwnProperty(propId) ? state[propId] : prop.def.current;
                     } else {
-                        accum[propId] = window.GenUI.toState(prop.def.children, state, accum, useMapping);
+                        accum[propId] = window.GenUI.export(prop.def.children, state, accum, useStatePaths);
                     }
                 }
             }
             return accum;
         },
-        target || {});
-    // (accumulator, currentValue) => accumulator + currentValue,
+        target || {}
+    );
 }
 
 
-GenUI.fromState = (root, state, withMapping = false) => {
-    console.log(root, state);
+GenUI.load = (root, from, target, withStatePaths = false) => { // always with withStatePaths?
+    return root.reduce(
+        (accum, prop) => {
+            const propId = loadPropId(prop);
+            if (prop.kind != 'action') {
+                if (withStatePaths) {
+                    if (prop.kind != 'nest') {
+                        const propPath = loadPropPath(prop);
+                        state[propId] = valueAtPath(from, propPath);
+                        //assignAtPath(propPath, accum, state.hasOwnProperty(propId) ? state[propId] : prop.def.current);
+                    } else {
+                        // window.GenUI.toState(prop.def.children, state, accum, useMapping);
+                        window.GenUI.load(prop.def.children, from, accum, withStatePaths)
+                    }
+                } else {
+                    state[propId] = from[propId];
+                }
+            }
+            return accum;
+        },
+        target || {}
+    );
 }
 
 // TODO: support statePath and triggerOn
