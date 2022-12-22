@@ -10,7 +10,10 @@ const addProp = (gui, prop, state, actions, update) => {
     switch (prop.kind) {
         case 'select': case 'choice':
             state[property] = def.current;
-            const values = def.values.map((v) => /* v.name ||*/ v.value);
+            const values = def.values.reduce((obj, v) => {
+                    obj[v.name || v.value] = v.value;
+                    return obj;
+                }, {});
             control = gui.add(state, property, values).name(name).onFinishChange((val) => { update(property, val); });
             return { property, control, values : def.values };
         case 'float': case 'int':
